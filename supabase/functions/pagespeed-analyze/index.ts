@@ -1,3 +1,5 @@
+import { getAuthenticatedUserId } from "../_shared/auth.ts";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   // Must include ALL headers sent by the client (preflight will fail otherwise)
@@ -136,6 +138,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { url, strategy = 'mobile' } = await req.json();
 
     if (!url) {

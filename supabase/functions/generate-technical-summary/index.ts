@@ -1,3 +1,5 @@
+import { getAuthenticatedUserId } from "../_shared/auth.ts";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
@@ -42,6 +44,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { analysisData } = await req.json() as { analysisData: TechnicalAnalysisData };
 
     if (!analysisData) {

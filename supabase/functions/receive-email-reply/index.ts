@@ -206,6 +206,34 @@ function normalizeSubject(subject: string | null | undefined): string {
     .toLowerCase();
 }
 
+// Verifierar Resend/Svix-webhook-signatur mot rå-body
+async function verifySvixSignature(req: Request, body: string, secret: string): Promise<boolean> {
+  try {
+    const svixId = req.headers.get("svix-id");
+    const svixTimestamp = req.headers.get("svix-timestamp");
+    const svixSignature = req.headers.get("svix-signature");
+    if (!svixId || !svixTimestamp || !svixSignature) return false;
+
+    const secretBytes = Uint8Array.from(
+      atob(secret.startsWith("whsec_") ? secret.slice(6) : secret),
+      (c) => c.charCodeAt(0),
+    );
+    const key = await crypto.subtle.importKey(
+      "raw", secretBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+    );
+    const signedContent = `${svixId}.${svixTimestamp}.${body}`;
+    const sigBuf = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signedContent));
+    const expected = btoa(String.fromCharCode(...new Uint8Array(sigBuf)));
+
+    // svix-signature: mellanslagsseparerade "v1,<base64>"-poster
+    const provided = svixSignature.split(" ").map((p) => p.split(",")[1] ?? p);
+    return provided.some((p) => p === expected);
+  } catch (e) {
+    console.error("Svix verification error:", e);
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -219,7 +247,23 @@ serve(async (req) => {
   }
 
   try {
-    const rawPayload = await req.json();
+    const rawBody = await req.text();
+
+    // Verifiera webhook-signatur om hemlighet är konfigurerad (annars logga varning)
+    const webhookSecret = Deno.env.get("RESEND_WEBHOOK_SECRET");
+    if (webhookSecret) {
+      const valid = await verifySvixSignature(req, rawBody, webhookSecret);
+      if (!valid) {
+        return new Response(JSON.stringify({ error: "Invalid signature" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      console.warn("RESEND_WEBHOOK_SECRET ej satt – inkommande webhook verifieras INTE");
+    }
+
+    const rawPayload = JSON.parse(rawBody);
     let payload = normalizeInboundPayload(rawPayload);
 
     if (
