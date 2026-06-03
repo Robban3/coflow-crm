@@ -96,7 +96,7 @@ export default function ProspectingSearchTab() {
 
   const [industry, setIndustry] = useState("");
   const [location, setLocation] = useState("");
-  const [searchTriggered, setSearchTriggered] = useState(false);
+  const [submitted, setSubmitted] = useState<{ industry: string; location: string; nonce: number } | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(loadSavedSearches());
 
@@ -137,12 +137,15 @@ export default function ProspectingSearchTab() {
     enabled: !!orgId,
   });
 
-  // Initial search
+  // Sökningen körs ENBART när man klickar Sök (submitted-snapshot), aldrig per tangenttryck
   const searchQuery = useQuery({
-    queryKey: ["prospecting-search", industry, location, market],
+    queryKey: ["prospecting-search", submitted?.industry, submitted?.location, market, submitted?.nonce],
     queryFn: async () => {
+      const sIndustry = submitted!.industry;
+      const sLocation = submitted!.location;
+
       // Återanvänd cachat resultat (24h) för att slippa onödiga betal-API-anrop
-      const cached = getCachedResults(industry, location);
+      const cached = getCachedResults(sIndustry, sLocation);
       if (cached && cached.length > 0) {
         const cachedResults = cached as PlaceResult[];
         seenPlaceIdsRef.current = new Set(cachedResults.map(r => r.placeId));
@@ -154,7 +157,7 @@ export default function ProspectingSearchTab() {
       }
 
       const { data, error } = await supabase.functions.invoke("google-places-search", {
-        body: { query: industry, location, radius: 50000, market },
+        body: { query: sIndustry, location: sLocation, radius: 50000, market },
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Sökningen misslyckades");
@@ -169,11 +172,11 @@ export default function ProspectingSearchTab() {
       setCanLoadMore(data.hasMore ?? false);
 
       // Spara i cache för återanvändning vid identisk sökning inom 24h
-      cacheResults(industry, location, results as any);
+      cacheResults(sIndustry, sLocation, results as any);
 
       return results;
     },
-    enabled: searchTriggered && !!industry,
+    enabled: !!submitted?.industry,
   });
 
   // Load more results via geo-offset
@@ -192,8 +195,8 @@ export default function ProspectingSearchTab() {
       try {
         const { data, error } = await supabase.functions.invoke("google-places-search", {
           body: {
-            query: industry,
-            location,
+            query: submitted?.industry ?? industry,
+            location: submitted?.location ?? location,
             radius: 50000,
             market,
             locationBias: offset,
@@ -230,7 +233,7 @@ export default function ProspectingSearchTab() {
     if (nextIteration >= 3 && totalNewResults === 0) {
       setCanLoadMore(false);
     }
-  }, [searchCenter, isLoadingMore, loadMoreIteration, industry, location]);
+  }, [searchCenter, isLoadingMore, loadMoreIteration, industry, location, submitted]);
 
   // Check duplicates
   const getDuplicateInfo = useCallback(
@@ -394,8 +397,7 @@ export default function ProspectingSearchTab() {
     setSearchCenter(null);
     setLoadMoreIteration(0);
     setCanLoadMore(false);
-    setSearchTriggered(false);
-    setTimeout(() => setSearchTriggered(true), 0);
+    setSubmitted({ industry: industry.trim(), location: location.trim(), nonce: Date.now() });
   };
 
   const handleClear = () => {
@@ -407,7 +409,7 @@ export default function ProspectingSearchTab() {
     setSearchCenter(null);
     setLoadMoreIteration(0);
     setCanLoadMore(false);
-    setSearchTriggered(false);
+    setSubmitted(null);
     clearCache(); // töm 24h-cachen så nästa sökning hämtar färska resultat
   };
 
@@ -640,14 +642,14 @@ export default function ProspectingSearchTab() {
         </>
       )}
 
-      {searchTriggered && !searchQuery.isFetching && filteredResults.length === 0 && !searchQuery.isError && (
+      {submitted && !searchQuery.isFetching && filteredResults.length === 0 && !searchQuery.isError && (
         <div className="text-center py-16 text-muted-foreground">
           <Search className="h-8 w-8 mx-auto mb-3 opacity-40" />
           <p className="text-sm">Inga resultat med hemsida hittades. Försök med andra söktermer.</p>
         </div>
       )}
 
-      {!searchTriggered && savedSearches.length === 0 && (
+      {!submitted && savedSearches.length === 0 && (
         <div className="text-center py-16 text-muted-foreground">
           <Search className="h-8 w-8 mx-auto mb-3 opacity-40" />
           <p className="text-sm font-medium mb-1">Sök efter företag i en bransch och stad</p>
