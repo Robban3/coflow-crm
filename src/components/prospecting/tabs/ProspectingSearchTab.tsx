@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { useMarket, MARKET_LOCATION_PLACEHOLDER } from "@/hooks/useMarket";
+import { useGooglePlacesCache } from "@/hooks/useGooglePlacesCache";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -91,6 +92,7 @@ export default function ProspectingSearchTab() {
   const orgId = useOrganizationId();
   const queryClient = useQueryClient();
   const { market } = useMarket();
+  const { getCachedResults, cacheResults } = useGooglePlacesCache();
 
   const [industry, setIndustry] = useState("");
   const [location, setLocation] = useState("");
@@ -139,21 +141,36 @@ export default function ProspectingSearchTab() {
   const searchQuery = useQuery({
     queryKey: ["prospecting-search", industry, location, market],
     queryFn: async () => {
+      // Återanvänd cachat resultat (24h) för att slippa onödiga betal-API-anrop
+      const cached = getCachedResults(industry, location);
+      if (cached && cached.length > 0) {
+        const cachedResults = cached as PlaceResult[];
+        seenPlaceIdsRef.current = new Set(cachedResults.map(r => r.placeId));
+        setAccumulatedResults(cachedResults);
+        setSearchCenter(null);
+        setLoadMoreIteration(0);
+        setCanLoadMore(false);
+        return cachedResults;
+      }
+
       const { data, error } = await supabase.functions.invoke("google-places-search", {
         body: { query: industry, location, radius: 50000, market },
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Sökningen misslyckades");
-      
+
       const results = data.results as PlaceResult[];
-      
+
       // Reset accumulated state for new search
       seenPlaceIdsRef.current = new Set(results.map(r => r.placeId));
       setAccumulatedResults(results);
       setSearchCenter(data.center || null);
       setLoadMoreIteration(0);
       setCanLoadMore(data.hasMore ?? false);
-      
+
+      // Spara i cache för återanvändning vid identisk sökning inom 24h
+      cacheResults(industry, location, results as any);
+
       return results;
     },
     enabled: searchTriggered && !!industry,

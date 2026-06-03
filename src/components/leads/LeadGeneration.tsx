@@ -11,21 +11,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { 
-  Plus, 
-  Search, 
-  Globe, 
-  Zap, 
-  Loader2, 
+import {
+  Plus,
+  Search,
+  Globe,
+  Zap,
+  Loader2,
   Building2,
   User,
   Mail,
   Phone,
+  Telescope,
+  ArrowRight,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { firecrawlApi } from "@/lib/api/firecrawl";
-import { GooglePlacesSearch } from "./GooglePlacesSearch";
 
 interface LeadGenerationProps {
   onLeadCreated: () => void;
@@ -149,9 +151,9 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-foreground">Hitta nya leads</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-foreground">Lägg till enskild lead</h2>
           <p className="text-sm md:text-base text-muted-foreground">
-            Sök efter företag via Google Places eller extrahera data från webbplatser
+            Extrahera data från en webbplats eller fyll i uppgifterna för hand
           </p>
         </div>
         <Button onClick={openManualDialog} className="w-full sm:w-auto">
@@ -160,8 +162,28 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
         </Button>
       </div>
 
-      {/* Google Places Search */}
-      <GooglePlacesSearch onLeadCreated={onLeadCreated} />
+      {/* Hänvisning till Prospektering för bulk-sökning */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Telescope className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">Söker du många företag?</h3>
+              <p className="text-sm text-muted-foreground">
+                Använd Prospektering för att hitta, berika och kontakta nya leads i bulk via Google Places.
+              </p>
+            </div>
+          </div>
+          <Button asChild variant="outline" className="w-full sm:w-auto shrink-0">
+            <Link to="/prospecting">
+              Gå till Prospektering
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* URL Extraction */}
       <Card>
