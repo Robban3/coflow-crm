@@ -92,7 +92,7 @@ export default function ProspectingSearchTab() {
   const orgId = useOrganizationId();
   const queryClient = useQueryClient();
   const { market } = useMarket();
-  const { getCachedResults, cacheResults } = useGooglePlacesCache();
+  const { getCachedResults, cacheResults, clearCache } = useGooglePlacesCache();
 
   const [industry, setIndustry] = useState("");
   const [location, setLocation] = useState("");
@@ -398,6 +398,19 @@ export default function ProspectingSearchTab() {
     setTimeout(() => setSearchTriggered(true), 0);
   };
 
+  const handleClear = () => {
+    setIndustry("");
+    setLocation("");
+    setSelectedIds(new Set());
+    setAccumulatedResults([]);
+    seenPlaceIdsRef.current = new Set();
+    setSearchCenter(null);
+    setLoadMoreIteration(0);
+    setCanLoadMore(false);
+    setSearchTriggered(false);
+    clearCache(); // töm 24h-cachen så nästa sökning hämtar färska resultat
+  };
+
   const addToSavedSearches = (ind: string, loc: string) => {
     const label = `${ind}${loc ? ` – ${loc}` : ""}`;
     const existing = savedSearches.filter(
@@ -445,6 +458,16 @@ export default function ProspectingSearchTab() {
           ) : (
             <><Search className="h-4 w-4" />Sök</>
           )}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleClear}
+          disabled={searchQuery.isFetching || (!industry && !location && accumulatedResults.length === 0)}
+          className="gap-1.5"
+        >
+          <Trash2 className="h-4 w-4" />
+          Rensa
         </Button>
       </form>
 
