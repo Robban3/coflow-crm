@@ -1,0 +1,1 @@
+ALTER TABLE public.quote_items ADD COLUMN billing_type text NOT NULL DEFAULT 'one_time' CHECK (billing_type IN ('one_time', 'monthly'));

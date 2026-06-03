@@ -1,0 +1,118 @@
+project_id = "odtiprpcpwkpbpbvljfw"
+
+[functions.pagespeed-analyze]
+verify_jwt = false
+
+[functions.generate-analysis-summary]
+verify_jwt = false
+
+[functions.firecrawl-extract]
+verify_jwt = false
+
+[functions.generate-outreach-email]
+verify_jwt = true
+
+[functions.send-sequence-email]
+verify_jwt = false
+
+[functions.process-sequence-steps]
+verify_jwt = false
+
+[functions.generate-analysis-outreach]
+verify_jwt = false
+
+[functions.send-quick-outreach-email]
+verify_jwt = false
+
+[functions.generate-technical-summary]
+verify_jwt = false
+
+[functions.generate-smart-outreach]
+verify_jwt = false
+
+[functions.ai-agent-chat]
+verify_jwt = true
+
+[functions.fetch-fleet-data]
+verify_jwt = false
+
+[functions.lookup-org-number]
+verify_jwt = false
+
+[functions.analyze-seo]
+verify_jwt = false
+
+[functions.google-places-search]
+verify_jwt = false
+
+[functions.hunter-email-finder]
+verify_jwt = false
+
+[functions.create-user]
+verify_jwt = false
+
+[functions.track-email-open]
+verify_jwt = false
+
+[functions.receive-email-reply]
+verify_jwt = false
+
+[functions.find-competitors]
+verify_jwt = false
+
+[functions.send-quote-email]
+verify_jwt = true
+
+[functions.generate-quote-pdf]
+verify_jwt = false
+
+[functions.send-document-email]
+verify_jwt = true
+
+[functions.run-geo-analysis]
+verify_jwt = false
+
+[functions.geo-quick-scan]
+verify_jwt = false
+
+[functions.run-geo-quick-scan]
+verify_jwt = false
+
+[functions.geo-quick-scan-view]
+verify_jwt = false
+
+[functions.power-call-start]
+verify_jwt = false
+
+[functions.power-call-next]
+verify_jwt = false
+
+[functions.power-call-prepare-next]
+verify_jwt = false
+
+[functions.power-call-session-state]
+verify_jwt = false
+
+[functions.ensure-lead-analyses]
+verify_jwt = false
+
+[functions.book-report-meeting]
+verify_jwt = false
+
+[functions.report-track]
+verify_jwt = false
+
+[functions.enrich-lead-contact]
+verify_jwt = true
+
+[functions.find-competitors]
+verify_jwt = false
+
+[functions.upload-company-registry]
+verify_jwt = false
+
+[functions.statistics-overview]
+verify_jwt = false
+
+[functions.auto-enrich-lead]
+verify_jwt = true

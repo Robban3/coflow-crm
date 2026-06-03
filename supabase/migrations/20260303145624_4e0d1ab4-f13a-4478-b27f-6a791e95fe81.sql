@@ -1,0 +1,1 @@
+ALTER TABLE public.quotes ADD COLUMN document_label text NOT NULL DEFAULT 'offert';

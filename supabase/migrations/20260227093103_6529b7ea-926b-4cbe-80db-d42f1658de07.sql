@@ -1,0 +1,1 @@
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS auto_enrich_enabled boolean NOT NULL DEFAULT true;

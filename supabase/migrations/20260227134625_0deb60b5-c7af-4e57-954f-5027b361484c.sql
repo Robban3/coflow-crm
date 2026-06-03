@@ -1,0 +1,7 @@
+
+ALTER TABLE public.leads
+ADD COLUMN IF NOT EXISTS site_copyright_year INTEGER,
+ADD COLUMN IF NOT EXISTS has_contact_form BOOLEAN,
+ADD COLUMN IF NOT EXISTS has_cta BOOLEAN,
+ADD COLUMN IF NOT EXISTS site_technology TEXT,
+ADD COLUMN IF NOT EXISTS detected_problems JSONB DEFAULT '[]'::jsonb;
