@@ -1,4 +1,5 @@
 import { validateFirecrawlRequest } from "../_shared/validation.ts";
+import { getAuthenticatedUserId } from "../_shared/auth.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,6 +31,15 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Require an authenticated user – this function calls the paid Firecrawl API
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Parse and validate request body
     const rawBody = await req.json();
     const validation = validateFirecrawlRequest(rawBody);

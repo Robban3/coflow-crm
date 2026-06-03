@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { fromTable } from "@/components/documents/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { type Document as DocType, type DocumentBlockRow } from "@/components/documents/types";
 import { type DocumentBlock, type BlockType } from "@/components/documents/blocks/types";
@@ -39,10 +38,10 @@ export default function PublicOfferPage() {
 
   const loadDocument = async () => {
     try {
-      const { data: d, error } = await fromTable("documents")
-        .select("*")
-        .eq("view_token", token!)
-        .maybeSingle();
+      const { data: docs, error } = await (supabase as any).rpc("public_get_document_by_token", {
+        p_token: token,
+      });
+      const d = docs?.[0];
 
       if (error || !d) {
         setNotFound(true);
@@ -51,10 +50,9 @@ export default function PublicOfferPage() {
       setDoc(d as DocType);
 
       // Load blocks
-      const { data: bData } = await fromTable("document_blocks")
-        .select("*")
-        .eq("document_id", d.id)
-        .order("sort_order");
+      const { data: bData } = await (supabase as any).rpc("public_get_document_blocks_by_token", {
+        p_token: token,
+      });
 
       if (bData) {
         const rawBlocks = (bData as DocumentBlockRow[]).map((b) => ({
@@ -92,32 +90,8 @@ export default function PublicOfferPage() {
   const trackView = async () => {
     if (!token) return;
     try {
-      const { data: d } = await fromTable("documents")
-        .select("id, view_count, created_by, title, recipient_name, status")
-        .eq("view_token", token)
-        .maybeSingle();
-      if (d) {
-        const isFirstView = !(d.view_count && d.view_count > 0);
-        const updateData: Record<string, any> = {
-          viewed_at: new Date().toISOString(),
-          view_count: (d.view_count || 0) + 1,
-        };
-        if (d.status === "sent") {
-          updateData.status = "viewed";
-        }
-        await fromTable("documents").update(updateData).eq("id", d.id);
-
-        if (isFirstView && d.created_by) {
-          await supabase.from("notifications").insert({
-            user_id: d.created_by,
-            type: "offer_viewed",
-            title: "Offert öppnad",
-            message: `${d.recipient_name || "Mottagaren"} har öppnat offert "${d.title}"`,
-            link: "/offers",
-            metadata: { document_id: d.id },
-          });
-        }
-      }
+      // View tracking + first-view notification are handled server-side in the RPC
+      await (supabase as any).rpc("public_track_document_view", { p_token: token });
     } catch {
       // silent
     }
@@ -125,15 +99,12 @@ export default function PublicOfferPage() {
 
   const handleAcceptWithSignature = async (signatureData: string) => {
     if (!doc) return;
-    const { error } = await fromTable("documents")
-      .update({
-        status: "accepted",
-        accepted_at: new Date().toISOString(),
-        recipient_signature_data: signatureData,
-        recipient_signed_at: new Date().toISOString(),
-        signature_status: "signed",
-      })
-      .eq("id", doc.id);
+    // Accept + creator notification handled server-side in the RPC (token-scoped, secure)
+    const { error } = await (supabase as any).rpc("public_respond_document", {
+      p_token: token,
+      p_action: "accepted",
+      p_signature_data: signatureData,
+    });
     if (!error) {
       toast.success("Offerten har accepterats och signerats!");
       setDoc({
@@ -144,39 +115,19 @@ export default function PublicOfferPage() {
         recipient_signed_at: new Date().toISOString(),
       });
       setSigningMode(false);
-
-      if (doc.created_by) {
-        await supabase.from("notifications").insert({
-          user_id: doc.created_by,
-          type: "offer_accepted",
-          title: "Offert accepterad! 🎉",
-          message: `${doc.recipient_name || "Mottagaren"} har accepterat offert "${doc.title}"`,
-          link: "/offers",
-          metadata: { document_id: doc.id },
-        });
-      }
     }
   };
 
   const handleReject = async () => {
     if (!doc) return;
-    const { error } = await fromTable("documents")
-      .update({ status: "rejected", rejected_at: new Date().toISOString() })
-      .eq("id", doc.id);
+    // Reject + creator notification handled server-side in the RPC (token-scoped, secure)
+    const { error } = await (supabase as any).rpc("public_respond_document", {
+      p_token: token,
+      p_action: "rejected",
+    });
     if (!error) {
       toast.info("Offerten har avböjts.");
       setDoc({ ...doc, status: "rejected" });
-
-      if (doc.created_by) {
-        await supabase.from("notifications").insert({
-          user_id: doc.created_by,
-          type: "offer_rejected",
-          title: "Offert avböjd",
-          message: `${doc.recipient_name || "Mottagaren"} har avböjt offert "${doc.title}"`,
-          link: "/offers",
-          metadata: { document_id: doc.id },
-        });
-      }
     }
   };
 

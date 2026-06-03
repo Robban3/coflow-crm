@@ -79,11 +79,10 @@ export default function PublicQuotePage() {
 
   const loadQuote = async () => {
     try {
-      const { data: q, error } = await supabase
-        .from("quotes")
-        .select("*")
-        .eq("view_token", token!)
-        .maybeSingle();
+      const { data: quotes, error } = await (supabase as any).rpc("public_get_quote_by_token", {
+        p_token: token,
+      });
+      const q = quotes?.[0];
 
       if (error || !q) {
         setNotFound(true);
@@ -91,11 +90,9 @@ export default function PublicQuotePage() {
       }
       setQuote(q as QuoteData);
 
-      const { data: qItems } = await supabase
-        .from("quote_items")
-        .select("*")
-        .eq("quote_id", q.id)
-        .order("sort_order");
+      const { data: qItems } = await (supabase as any).rpc("public_get_quote_items_by_token", {
+        p_token: token,
+      });
       setItems((qItems || []) as QuoteItem[]);
 
       if (q.organization_id) {
@@ -126,38 +123,8 @@ export default function PublicQuotePage() {
   const trackView = async () => {
     if (!token) return;
     try {
-      const { data: q } = await supabase
-        .from("quotes")
-        .select("id, view_count, created_by, quote_number, title, recipient_name, status")
-        .eq("view_token", token)
-        .maybeSingle();
-      if (q) {
-        const isFirstView = !(q.view_count && q.view_count > 0);
-        const updateData: any = {
-          viewed_at: new Date().toISOString(),
-          view_count: (q.view_count || 0) + 1,
-        };
-        // Update status to "viewed" if currently "sent"
-        if (q.status === "sent") {
-          updateData.status = "viewed";
-        }
-        await supabase
-          .from("quotes")
-          .update(updateData)
-          .eq("id", q.id);
-
-        // Notify creator on first view
-        if (isFirstView && q.created_by) {
-          await supabase.from("notifications").insert({
-            user_id: q.created_by,
-            type: "quote_viewed",
-            title: `${(q as any).document_label === "avtal" ? "Avtal" : "Offert"} öppnad`,
-            message: `${q.recipient_name || "Mottagaren"} har öppnat ${(q as any).document_label === "avtal" ? "avtal" : "offert"} ${q.quote_number}`,
-            link: "/quotes",
-            metadata: { quote_id: q.id },
-          });
-        }
-      }
+      // View tracking + first-view notification are handled server-side in the RPC
+      await (supabase as any).rpc("public_track_quote_view", { p_token: token });
     } catch {
       // silent
     }
@@ -165,15 +132,12 @@ export default function PublicQuotePage() {
 
   const handleAcceptWithSignature = async (signatureData: string) => {
     if (!quote) return;
-    const { error } = await supabase
-      .from("quotes")
-      .update({
-        status: "accepted",
-        accepted_at: new Date().toISOString(),
-        recipient_signature_data: signatureData,
-        recipient_signed_at: new Date().toISOString(),
-      })
-      .eq("id", quote.id);
+    // Accept + creator notification handled server-side in the RPC (token-scoped, secure)
+    const { error } = await (supabase as any).rpc("public_respond_quote", {
+      p_token: token,
+      p_action: "accepted",
+      p_signature_data: signatureData,
+    });
     if (!error) {
       toast.success((quote as any).document_label === "avtal" ? "Avtalet har accepterats och signerats!" : "Offerten har accepterats och signerats!");
       setQuote({
@@ -192,42 +156,19 @@ export default function PublicQuotePage() {
       } catch {
         // Silent - conversion is best-effort from public page
       }
-
-      // Notify creator
-      if (quote.created_by) {
-        await supabase.from("notifications").insert({
-          user_id: quote.created_by,
-          type: "quote_accepted",
-          title: `${(quote as any).document_label === "avtal" ? "Avtal" : "Offert"} accepterad! 🎉`,
-          message: `${quote.recipient_name || "Mottagaren"} har accepterat och signerat ${(quote as any).document_label === "avtal" ? "avtal" : "offert"} ${quote.quote_number}`,
-          link: "/quotes",
-          metadata: { quote_id: quote.id },
-        });
-      }
     }
   };
 
   const handleReject = async () => {
     if (!quote) return;
-    const { error } = await supabase
-      .from("quotes")
-      .update({ status: "rejected", rejected_at: new Date().toISOString() })
-      .eq("id", quote.id);
+    // Reject + creator notification handled server-side in the RPC (token-scoped, secure)
+    const { error } = await (supabase as any).rpc("public_respond_quote", {
+      p_token: token,
+      p_action: "rejected",
+    });
     if (!error) {
       toast.info((quote as any).document_label === "avtal" ? "Avtalet har avböjts." : "Offerten har avböjts.");
       setQuote({ ...quote, status: "rejected" });
-
-      // Notify creator
-      if (quote.created_by) {
-        await supabase.from("notifications").insert({
-          user_id: quote.created_by,
-          type: "quote_rejected",
-          title: `${(quote as any).document_label === "avtal" ? "Avtal" : "Offert"} avböjd`,
-          message: `${quote.recipient_name || "Mottagaren"} har avböjt ${(quote as any).document_label === "avtal" ? "avtal" : "offert"} ${quote.quote_number}`,
-          link: "/quotes",
-          metadata: { quote_id: quote.id },
-        });
-      }
     }
   };
 

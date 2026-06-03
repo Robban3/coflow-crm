@@ -1,3 +1,5 @@
+import { getAuthenticatedUserId } from "../_shared/auth.ts";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
@@ -38,6 +40,16 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Require an authenticated user – this function calls the paid Firecrawl API
+    // and returns personal data (vehicles, phone numbers) scraped from merinfo.se
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { orgNumber, companyName } = await req.json();
 
     if (!orgNumber && !companyName) {
