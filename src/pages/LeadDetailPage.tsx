@@ -350,10 +350,10 @@ export default function LeadDetailPage() {
       }
 
       if (offenders.length) {
-        // eslint-disable-next-line no-console
+         
         console.log("[overflow-debug] offenders:", offenders);
       } else {
-        // eslint-disable-next-line no-console
+         
         console.log("[overflow-debug] no offenders found");
       }
     };

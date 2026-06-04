@@ -68,7 +68,7 @@ async function loadCandidates(
   orgId?: string
 ): Promise<EndpointCandidate[]> {
   // Load global + org-specific candidates, sorted by priority
-  let q = supabase
+  const q = supabase
     .from("analysis_endpoints")
     .select("id, kind, name, payload_type, priority")
     .eq("kind", kind)

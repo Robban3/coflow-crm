@@ -258,7 +258,7 @@ function parseFleetData(
   }
 
   // Parse individual vehicles from table rows
-  const vehicleTablePattern = /\|\s*\[?([^\]|]+)\]?\s*\|\s*([A-Z0-9]{5,7})?\s*\|\s*([^\|]+)?\s*\|\s*([^\|]+)?\s*\|\s*(\d{4})?\s*\|/gi;
+  const vehicleTablePattern = /\|\s*\[?([^\]|]+)\]?\s*\|\s*([A-Z0-9]{5,7})?\s*\|\s*([^|]+)?\s*\|\s*([^|]+)?\s*\|\s*(\d{4})?\s*\|/gi;
   let vehicleMatch;
   while ((vehicleMatch = vehicleTablePattern.exec(vehiclesMarkdown)) !== null) {
     const model = vehicleMatch[1]?.trim();
@@ -336,7 +336,7 @@ function parseFleetData(
 
     // Extract human-readable number (prefer the visible text inside [..])
     const bracketMatch = rawNumberCol.match(/\[([^\]]+)\]/);
-    const fallbackTelMatch = rawNumberCol.match(/tel:([^\)\s]+)/i);
+    const fallbackTelMatch = rawNumberCol.match(/tel:([^)\s]+)/i);
     const rawNumber = (bracketMatch?.[1] || fallbackTelMatch?.[1] || rawNumberCol).trim();
     const key = phoneDedupeKey(rawNumber);
     if (key.length < 8) continue;
@@ -407,7 +407,7 @@ function parseFleetData(
     let match;
     pattern.lastIndex = 0;
     while ((match = pattern.exec(phonesMarkdown)) !== null) {
-      let rawNumber = match[1]?.trim();
+      const rawNumber = match[1]?.trim();
       if (!rawNumber) continue;
       
       const digitCount = (rawNumber.match(/\d/g) || []).length;

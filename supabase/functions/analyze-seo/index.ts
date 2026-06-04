@@ -217,7 +217,7 @@ function extractSeoMetrics(html: string, markdown: string, links: string[], base
   const h3_count = (html.match(/<h3[^>]*>/gi) || []).length;
   
   // Word count from markdown
-  const textContent = markdown.replace(/[#*_\[\]()!`]/g, ' ').replace(/\s+/g, ' ').trim();
+  const textContent = markdown.replace(/[#*_[\]()!`]/g, ' ').replace(/\s+/g, ' ').trim();
   const words = textContent.split(' ').filter(w => w.length > 2);
   const word_count = words.length;
   

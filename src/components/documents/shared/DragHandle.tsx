@@ -1,9 +1,10 @@
 import { GripVertical } from "lucide-react";
 import { forwardRef } from "react";
+import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 
 interface DragHandleProps {
-  listeners?: Record<string, Function>;
-  attributes?: Record<string, any>;
+  listeners?: DraggableSyntheticListeners;
+  attributes?: DraggableAttributes;
 }
 
 export const DragHandle = forwardRef<HTMLButtonElement, DragHandleProps>(

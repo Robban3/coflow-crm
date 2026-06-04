@@ -43,7 +43,7 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    let resolvedLeadId: string | null = leadId || null;
+    const resolvedLeadId: string | null = leadId || null;
     let organizationId: string | null = null;
     let domainHost: string;
     let domain: string;
@@ -97,7 +97,7 @@ serve(async (req) => {
     try {
       // STEP A: Crawl site (up to 25 pages using Firecrawl)
       const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
-      let pages: any[] = [];
+      const pages: any[] = [];
 
       if (firecrawlKey) {
         try {
@@ -383,7 +383,7 @@ function parsePage(page: any, domainHost: string): ParsedPage {
 
   // Word count
   const wordCount = md
-    .replace(/[#*\[\]()!]/g, "")
+    .replace(/[#*[\]()!]/g, "")
     .split(/\s+/)
     .filter((w: string) => w.length > 0).length;
 

@@ -174,7 +174,7 @@ serve(async (req) => {
           next_preparing: false,
           updated_at: new Date().toISOString(),
         }).eq("id", sessionId);
-      } catch {}
+      } catch { /* städning misslyckades – ignorera, felet rapporteras nedan */ }
     }
 
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {

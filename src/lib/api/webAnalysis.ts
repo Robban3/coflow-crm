@@ -246,7 +246,7 @@ export const webAnalysisApi = {
       return { success: false, error: 'Inte inloggad' };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const rawData = JSON.parse(JSON.stringify(result));
     
     const { data, error } = await supabase

@@ -64,7 +64,7 @@ function loadSession() {
 function saveSession(state: Record<string, any>) {
   try {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
-  } catch {}
+  } catch { /* sessionStorage kan saknas/vara full – ignorera */ }
 }
 
 const PAGE_SIZE = 50;
@@ -114,7 +114,7 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
       if (!error && data) {
         setExistingLeadOrgNumbers(new Set(data.map((d) => d.org_number!).filter(Boolean)));
       }
-    } catch {}
+    } catch { /* nätverksfel – behåll tom uppsättning */ }
   }, [organizationId]);
 
   useEffect(() => {

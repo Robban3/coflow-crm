@@ -433,7 +433,7 @@ serve(async (req) => {
       const leadIds = leads.map(l => l.id);
 
       // Contacted: leads with at least one sent_email or call_log in period
-      let contactedLeadIds = new Set<string>();
+      const contactedLeadIds = new Set<string>();
 
       if (leadIds.length > 0) {
         let emailsQ = supabase
@@ -564,7 +564,7 @@ serve(async (req) => {
         }
 
         // Total offers sent per user for close rate
-        let allSentQuotesQ = supabase
+        const allSentQuotesQ = supabase
           .from("quotes")
           .select("id, created_by")
           .eq("organization_id", orgId)
@@ -573,7 +573,7 @@ serve(async (req) => {
           .lte("sent_at", endISO);
         const { data: allSentQuotes } = await allSentQuotesQ;
 
-        let allSentDocsQ = supabase
+        const allSentDocsQ = supabase
           .from("documents")
           .select("id, created_by")
           .eq("organization_id", orgId)
@@ -631,7 +631,7 @@ serve(async (req) => {
         const leadCreatedMap = new Map((allLeads || []).map(l => [l.id, new Date(l.created_at).getTime()]));
 
         // Get first meeting per lead
-        let firstMeetings: Record<string, number> = {};
+        const firstMeetings: Record<string, number> = {};
         if (allLeadIds.length > 0) {
           const { data: meetingsAll } = await supabase
             .from("meetings")
@@ -648,7 +648,7 @@ serve(async (req) => {
         }
 
         // Get first offer sent per lead
-        let firstOffers: Record<string, number> = {};
+        const firstOffers: Record<string, number> = {};
         if (allLeadIds.length > 0) {
           const { data: offersAll } = await supabase
             .from("documents")
@@ -666,7 +666,7 @@ serve(async (req) => {
         }
 
         // Get accepted date per lead
-        let dealClosedMap: Record<string, number> = {};
+        const dealClosedMap: Record<string, number> = {};
         if (allLeadIds.length > 0) {
           const { data: acceptedQ } = await supabase
             .from("quotes")

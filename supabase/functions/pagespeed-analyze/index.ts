@@ -10,6 +10,7 @@ const corsHeaders = {
 // Simple punycode encoding for internationalized domain names
 function toASCII(domain: string): string {
   // Check if the domain contains non-ASCII characters
+  // eslint-disable-next-line no-control-regex -- avsiktlig ASCII-detektering (0x00–0x7F)
   if (!/[^\x00-\x7F]/.test(domain)) {
     return domain; // Already ASCII
   }
@@ -17,6 +18,7 @@ function toASCII(domain: string): string {
   // Split domain into parts and encode each part
   const parts = domain.split('.');
   const encodedParts = parts.map(part => {
+    // eslint-disable-next-line no-control-regex -- avsiktlig ASCII-detektering (0x00–0x7F)
     if (!/[^\x00-\x7F]/.test(part)) {
       return part; // ASCII part, no encoding needed
     }

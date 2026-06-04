@@ -4,7 +4,7 @@ import { useOrganizationId } from "./useOrganizationId";
 
 export type AvatarFrame = "gold" | "silver" | "bronze" | null;
 
-let cachedSnapshot: { org: string; data: { top1: string | null; top2: string | null; top3: string | null } } | null = null;
+const cachedSnapshot: { org: string; data: { top1: string | null; top2: string | null; top3: string | null } } | null = null;
 
 export function useAvatarFrame(userId: string | null | undefined): AvatarFrame {
   const organizationId = useOrganizationId();

@@ -46,7 +46,7 @@ serve(async (req) => {
     // ─── STEP 2: Crawl pages ───
     await updateProgress(supabase, scanId, "running", 2, "Hämtar innehåll från webbplatsen");
 
-    let pages: any[] = [];
+    const pages: any[] = [];
     let errorCode: string | null = null;
 
     const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
@@ -523,7 +523,7 @@ function parsePage(page: any, domain: string): ParsedPage {
   const title = meta.title || meta.ogTitle || extractFirst(md, /^#\s+(.+)/m) || null;
   const h1 = extractFirst(md, /^#\s+(.+)/m) || null;
   const wordCount = md
-    .replace(/[#*\[\]()!]/g, "")
+    .replace(/[#*[\]()!]/g, "")
     .split(/\s+/)
     .filter((w: string) => w.length > 0).length;
 

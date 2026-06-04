@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
             console.log("[process-enrichment-queue] Fallback: generating outreach for", lead.id);
             let draftSubject = `Hej från oss – ${lead.company_name || "ert företag"}`;
             let draftBody = `Hej!\n\nVi har tittat på ${lead.company_name || "ert företag"}${lead.website ? ` (${lead.website})` : ""} och ser potential att hjälpa er växa online.\n\nVi skulle gärna visa hur – kan vi boka ett kort samtal?\n\nMed vänlig hälsning`;
-            let draftSummary = aiSummary.substring(0, 300);
+            const draftSummary = aiSummary.substring(0, 300);
 
             try {
               let generationUserId = callerUserId || lead.created_by || lead.assigned_to || null;

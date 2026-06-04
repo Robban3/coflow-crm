@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
       .eq("enabled", true)
       .maybeSingle();
 
-    let reportId: string | null = share?.report_id ?? null;
+    const reportId: string | null = share?.report_id ?? null;
     let leadId: string | null = null;
 
     if (reportId) {
