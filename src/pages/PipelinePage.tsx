@@ -20,17 +20,18 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 const PIPELINE_STAGES = [
-  { key: "active", label: "Aktiv", color: "bg-blue-500", description: "Nya & aktiva leads" },
-  { key: "contacted", label: "Kontaktad", color: "bg-indigo-500", description: "Kontakt etablerad" },
-  { key: "meeting_booked", label: "Möte bokat", color: "bg-violet-500", description: "Möte inplanerat" },
-  { key: "offer_sent", label: "Offert skickad", color: "bg-amber-500", description: "Offert/avtal skickat" },
-  { key: "won", label: "Vunnen", color: "bg-emerald-500", description: "Avslutad affär" },
-  { key: "lost", label: "Förlorad", color: "bg-destructive", description: "Ej konverterad" },
+  { key: "active", color: "bg-blue-500" },
+  { key: "contacted", color: "bg-indigo-500" },
+  { key: "meeting_booked", color: "bg-violet-500" },
+  { key: "offer_sent", color: "bg-amber-500" },
+  { key: "won", color: "bg-emerald-500" },
+  { key: "lost", color: "bg-destructive" },
 ] as const;
 
 type StageKey = typeof PIPELINE_STAGES[number]["key"];
@@ -50,6 +51,8 @@ interface PipelineLead {
 export default function PipelinePage() {
   const { user, isAdmin } = useAuth();
   const queryClient = useQueryClient();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
   const { data: leads = [], isLoading } = useQuery({
@@ -82,10 +85,10 @@ export default function PipelinePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pipeline-leads"] });
-      toast.success("Lead flyttad");
+      toast.success(t("pipeline.moved"));
     },
     onError: () => {
-      toast.error("Kunde inte uppdatera lead");
+      toast.error(t("pipeline.moveError"));
     },
   });
 
@@ -119,23 +122,23 @@ export default function PipelinePage() {
   const wonCount = getLeadsForStage("won").length;
 
   return (
-    <AppLayout title="Pipeline">
+    <AppLayout title={t("pipeline.title")}>
       <div className="space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Pipeline</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t("pipeline.title")}</h2>
             <p className="text-muted-foreground text-sm">
-              Dra och släpp leads mellan stegen för att uppdatera status
+              {t("pipeline.subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="text-sm px-3 py-1">
-              {totalValue} leads
+              {t("pipeline.leadsCount", { count: totalValue })}
             </Badge>
             {wonCount > 0 && (
               <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 text-sm px-3 py-1">
-                {wonCount} vunna
+                {t("pipeline.wonCount", { count: wonCount })}
               </Badge>
             )}
           </div>
@@ -156,7 +159,7 @@ export default function PipelinePage() {
                   {/* Stage Header */}
                   <div className="flex items-center gap-2 mb-3 px-1">
                     <div className={cn("w-2.5 h-2.5 rounded-full", stage.color)} />
-                    <h3 className="text-sm font-semibold text-foreground">{stage.label}</h3>
+                    <h3 className="text-sm font-semibold text-foreground">{t(`pipeline.stage.${stage.key}`)}</h3>
                     <Badge variant="secondary" className="ml-auto text-xs">
                       {stageLeads.length}
                     </Badge>
@@ -171,7 +174,7 @@ export default function PipelinePage() {
                   >
                     {stageLeads.length === 0 && (
                       <div className="flex items-center justify-center h-24 text-xs text-muted-foreground/50">
-                        Dra leads hit
+                        {t("pipeline.dragHere")}
                       </div>
                     )}
                     {stageLeads.map((lead) => (
@@ -192,7 +195,7 @@ export default function PipelinePage() {
                               className="text-sm font-semibold text-foreground hover:text-primary truncate flex-1"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              {lead.company_name || "Namnlös lead"}
+                              {lead.company_name || t("pipeline.unnamedLead")}
                             </Link>
                             <GripVertical className="h-4 w-4 text-muted-foreground/30 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
@@ -216,7 +219,7 @@ export default function PipelinePage() {
                           </div>
 
                           <p className="text-[10px] text-muted-foreground/40">
-                            {format(new Date(lead.created_at), "d MMM yyyy", { locale: sv })}
+                            {format(new Date(lead.created_at), "d MMM yyyy", { locale: dateLocale })}
                           </p>
                         </CardContent>
                       </Card>
