@@ -32,6 +32,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { CompanyRegistryUpload } from "./CompanyRegistryUpload";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface CompanyRow {
   id: string;
@@ -71,6 +72,8 @@ const PAGE_SIZE = 50;
 
 export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () => void }) {
   const { toast } = useToast();
+  const { t, language } = useTranslation();
+  const numberLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
   const { user, isAdmin } = useAuth();
   const organizationId = useOrganizationId();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -188,7 +191,7 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
         if (error) {
           console.error("Search error:", error);
           toast({
-            title: "Sökfel",
+            title: t("companyRegistry.searchErrorTitle"),
             description: error.message,
             variant: "destructive",
           });
@@ -202,7 +205,7 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
         setIsSearching(false);
       }
     },
-    [searchQuery, cityFilter, postalCodeFilter, companyFormFilter, sniFilter, regDateFrom, regDateTo, sortField, sortAsc, toast]
+    [searchQuery, cityFilter, postalCodeFilter, companyFormFilter, sniFilter, regDateFrom, regDateTo, sortField, sortAsc, toast, t]
   );
 
   const handleSearch = () => {
@@ -264,8 +267,8 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
       if (error) throw error;
 
       toast({
-        title: "Leads importerade",
-        description: `${leads.length} företag har lagts till i din leadlista`,
+        title: t("companyRegistry.importedTitle"),
+        description: t("companyRegistry.importedDesc", { count: leads.length }),
       });
 
       setSelected(new Set());
@@ -273,8 +276,8 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
       onLeadCreated?.();
     } catch (error: any) {
       toast({
-        title: "Importfel",
-        description: error.message || "Kunde inte importera leads",
+        title: t("companyRegistry.importErrorTitle"),
+        description: error.message || t("companyRegistry.importErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -311,14 +314,14 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Building2 className="h-4 w-4" />
-            Sök i företagsregistret
+            {t("companyRegistry.searchTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Search bar */}
           <div className="flex gap-2">
             <Input
-              placeholder="Sök på företagsnamn..."
+              placeholder={t("companyRegistry.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -333,7 +336,7 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
               ) : (
                 <Search className="h-4 w-4" />
               )}
-              <span className="ml-2 hidden sm:inline">Sök</span>
+              <span className="ml-2 hidden sm:inline">{t("companyRegistry.search")}</span>
             </Button>
           </div>
 
@@ -341,46 +344,46 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
           {showFilters && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 bg-muted/50 rounded-lg">
               <Input
-                placeholder="Postort"
+                placeholder={t("companyRegistry.filterCity")}
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
               <Input
-                placeholder="Postnummer"
+                placeholder={t("companyRegistry.filterPostal")}
                 value={postalCodeFilter}
                 onChange={(e) => setPostalCodeFilter(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
               <Input
-                placeholder="Bolagsform"
+                placeholder={t("companyRegistry.filterForm")}
                 value={companyFormFilter}
                 onChange={(e) => setCompanyFormFilter(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
               <Input
-                placeholder="SNI-beskrivning"
+                placeholder={t("companyRegistry.filterSni")}
                 value={sniFilter}
                 onChange={(e) => setSniFilter(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
               <Input
                 type="date"
-                placeholder="Reg datum från"
-                title="Reg datum från"
+                placeholder={t("companyRegistry.filterRegFrom")}
+                title={t("companyRegistry.filterRegFrom")}
                 value={regDateFrom}
                 onChange={(e) => setRegDateFrom(e.target.value)}
               />
               <Input
                 type="date"
-                placeholder="Reg datum till"
-                title="Reg datum till"
+                placeholder={t("companyRegistry.filterRegTo")}
+                title={t("companyRegistry.filterRegTo")}
                 value={regDateTo}
                 onChange={(e) => setRegDateTo(e.target.value)}
               />
               {hasActiveFilters && (
                 <Button variant="ghost" size="sm" onClick={clearFilters} className="col-span-2 md:col-span-4">
-                  <X className="h-3 w-3 mr-1" /> Rensa filter
+                  <X className="h-3 w-3 mr-1" /> {t("companyRegistry.clearFilters")}
                 </Button>
               )}
             </div>
@@ -390,7 +393,7 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
           {selected.size > 0 && (
             <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
               <span className="text-sm font-medium">
-                {selected.size} företag markerade
+                {t("companyRegistry.selectedCount", { count: selected.size })}
               </span>
               <Button onClick={handleImport} disabled={isImporting} size="sm">
                 {isImporting ? (
@@ -398,7 +401,7 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
                 ) : (
                   <Download className="h-4 w-4 mr-2" />
                 )}
-                Importera som leads
+                {t("companyRegistry.importAsLeads")}
               </Button>
             </div>
           )}
@@ -408,9 +411,9 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
             <>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
-                  {totalCount.toLocaleString("sv-SE")} träffar
+                  {t("companyRegistry.hitsCount", { count: totalCount.toLocaleString(numberLocale) })}
                   {hideExistingLeads && displayResults.length < results.length && (
-                    <span className="ml-1">({results.length - displayResults.length} dolda)</span>
+                    <span className="ml-1">{t("companyRegistry.hiddenCount", { count: results.length - displayResults.length })}</span>
                   )}
                 </span>
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -418,7 +421,7 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
                     checked={hideExistingLeads}
                     onCheckedChange={setHideExistingLeads}
                   />
-                  <span className="text-muted-foreground">Dölj befintliga leads</span>
+                  <span className="text-muted-foreground">{t("companyRegistry.hideExisting")}</span>
                 </label>
               </div>
 
@@ -434,21 +437,21 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
                       </TableHead>
                       <TableHead>
                         <button className="flex items-center gap-1 hover:text-foreground" onClick={() => { toggleSort("company_name"); performSearch(0); }}>
-                          Företagsnamn
+                          {t("companyRegistry.colCompany")}
                           {sortField === "company_name" ? (sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-40" />}
                         </button>
                       </TableHead>
-                      <TableHead className="hidden md:table-cell">Org nr</TableHead>
+                      <TableHead className="hidden md:table-cell">{t("companyRegistry.colOrgNr")}</TableHead>
                       <TableHead className="hidden md:table-cell">
                         <button className="flex items-center gap-1 hover:text-foreground" onClick={() => { toggleSort("registration_date"); performSearch(0); }}>
-                          Reg datum
+                          {t("companyRegistry.colRegDate")}
                           {sortField === "registration_date" ? (sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-40" />}
                         </button>
                       </TableHead>
-                      <TableHead className="hidden md:table-cell">Postort</TableHead>
-                      <TableHead className="hidden lg:table-cell">Bolagsform</TableHead>
-                      <TableHead className="hidden lg:table-cell">SNI</TableHead>
-                      <TableHead className="hidden xl:table-cell">Telefon</TableHead>
+                      <TableHead className="hidden md:table-cell">{t("companyRegistry.colCity")}</TableHead>
+                      <TableHead className="hidden lg:table-cell">{t("companyRegistry.colForm")}</TableHead>
+                      <TableHead className="hidden lg:table-cell">{t("companyRegistry.colSni")}</TableHead>
+                      <TableHead className="hidden xl:table-cell">{t("companyRegistry.colPhone")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -472,7 +475,7 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
                               {isExistingLead && (
                                 <Badge variant="secondary" className="text-xs gap-1 shrink-0">
                                   <CheckCircle2 className="h-3 w-3" />
-                                  Lead
+                                  {t("companyRegistry.leadBadge")}
                                 </Badge>
                               )}
                             </div>
@@ -494,8 +497,8 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
                       <TableRow>
                         <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                           {hideExistingLeads && results.length > 0
-                            ? "Alla resultat på denna sida är redan leads"
-                            : "Inga resultat hittades"}
+                            ? t("companyRegistry.allAlreadyLeads")
+                            : t("companyRegistry.noResults")}
                         </TableCell>
                       </TableRow>
                     )}
@@ -507,7 +510,7 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
               {totalPages > 1 && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
-                    Sida {page + 1} av {totalPages}
+                    {t("companyRegistry.pageOf", { page: page + 1, total: totalPages })}
                   </span>
                   <div className="flex gap-2">
                     <Button
