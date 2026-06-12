@@ -11,6 +11,14 @@ import { statisticsDict } from "./statistics";
 import { reportsDict } from "./reports";
 import { prospectingDict } from "./prospecting";
 import { webAnalysisDict } from "./webAnalysis";
+import { leadDetailDict } from "./leadDetail";
+import { mailDict } from "./mail";
+import { settingsDict } from "./settings";
+import { onboardingDict } from "./onboarding";
+import { outreachDict } from "./outreach";
+import { powerCallDict } from "./powerCall";
+import { offersDict } from "./offers";
+import { publicPagesDict } from "./publicPages";
 
 export const featureDictionaries: FeatureDictionary[] = [
   tasksDict,
@@ -21,4 +29,12 @@ export const featureDictionaries: FeatureDictionary[] = [
   reportsDict,
   prospectingDict,
   webAnalysisDict,
+  leadDetailDict,
+  mailDict,
+  settingsDict,
+  onboardingDict,
+  outreachDict,
+  powerCallDict,
+  offersDict,
+  publicPagesDict,
 ];
