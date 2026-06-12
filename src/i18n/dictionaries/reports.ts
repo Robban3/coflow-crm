@@ -1,8 +1,16 @@
 import type { FeatureDictionary } from "../translations";
 
-// Stub — filled in by feature translation work.
 export const reportsDict: FeatureDictionary = {
-  sv: {},
-  en: {},
-  es: {},
+  sv: {
+    "reports.title": "Rapporter",
+    "reports.subtitle": "Generera professionella rapporter för dina leads",
+  },
+  en: {
+    "reports.title": "Reports",
+    "reports.subtitle": "Generate professional reports for your leads",
+  },
+  es: {
+    "reports.title": "Informes",
+    "reports.subtitle": "Genera informes profesionales para tus leads",
+  },
 };

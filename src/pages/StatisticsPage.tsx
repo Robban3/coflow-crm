@@ -27,6 +27,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, Phone, CalendarClock, Mail } from "lucide-react";
 import type { UserRole } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export type Granularity = "day" | "week" | "month";
 export type PeriodPreset = "today" | "yesterday" | "last_7_days" | "last_30_days" | "this_week" | "last_week" | "this_month" | "last_month" | "custom";
@@ -141,6 +142,7 @@ export interface InsightEntry {
 }
 
 export default function StatisticsPage() {
+  const { t } = useTranslation();
   const { hasModuleAccess } = useModules();
   const { userRole: authRole } = useAuth();
   const [granularity, setGranularity] = useState<Granularity>("day");
@@ -191,10 +193,10 @@ export default function StatisticsPage() {
         <div>
           <div className="flex items-center gap-3 mb-1">
             <BarChart3 className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold tracking-tight">Statistik</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t("statistics.title")}</h1>
           </div>
           <p className="text-muted-foreground text-sm">
-            {isUser ? "Din personliga prestation" : "Överblick över aktivitet och prestation"}
+            {isUser ? t("statistics.subtitleUser") : t("statistics.subtitleTeam")}
           </p>
         </div>
 
@@ -202,10 +204,10 @@ export default function StatisticsPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="activity" className="gap-1.5">
-              <BarChart3 className="h-4 w-4" /> Aktivitetsstatistik
+              <BarChart3 className="h-4 w-4" /> {t("statistics.tabActivity")}
             </TabsTrigger>
             <TabsTrigger value="email" className="gap-1.5">
-              <Mail className="h-4 w-4" /> Mailstatistik
+              <Mail className="h-4 w-4" /> {t("statistics.tabEmail")}
             </TabsTrigger>
           </TabsList>
 
@@ -231,9 +233,9 @@ export default function StatisticsPage() {
             ) : !data || data.leaderboard.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <BarChart3 className="h-12 w-12 text-muted-foreground/40 mb-4" />
-                <h2 className="text-lg font-semibold text-foreground mb-2">Ingen statistik ännu</h2>
+                <h2 className="text-lg font-semibold text-foreground mb-2">{t("statistics.emptyTitle")}</h2>
                 <p className="text-muted-foreground text-sm max-w-md">
-                  När teamet börjar skicka mail, registrera samtal och logga aktiviteter syns data här.
+                  {t("statistics.emptyDesc")}
                 </p>
               </div>
             ) : (
@@ -258,19 +260,19 @@ export default function StatisticsPage() {
                       <Card className="border-border/50">
                         <CardContent className="p-4 text-center">
                           <p className="text-2xl font-bold">{data.callOutcomeStats?.summary.total ?? 0}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Samtal totalt</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t("statistics.callsTotal")}</p>
                         </CardContent>
                       </Card>
                       <Card className="border-border/50">
                         <CardContent className="p-4 text-center">
                           <p className="text-2xl font-bold text-primary">{data.callOutcomeStats?.summary.answer_rate ?? 0}%</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Svarsfrekvens</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t("statistics.answerRate")}</p>
                         </CardContent>
                       </Card>
                       <Card className="border-border/50">
                         <CardContent className="p-4 text-center">
                           <p className="text-2xl font-bold text-primary">{data.callOutcomeStats?.summary.booked ?? 0}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Möten bokade</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t("statistics.meetingsBooked")}</p>
                         </CardContent>
                       </Card>
                       <Card className="border-border/50">
@@ -279,12 +281,12 @@ export default function StatisticsPage() {
                             <p className="text-2xl font-bold">{data.callbackBacklog?.total_open ?? 0}</p>
                             {(data.callbackBacklog?.due_today ?? 0) > 0 && (
                               <Badge variant="destructive" className="text-xs px-1.5 py-0">
-                                {data.callbackBacklog!.due_today} idag
+                                {t("statistics.dueToday", { count: data.callbackBacklog!.due_today })}
                               </Badge>
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5 flex items-center justify-center gap-1">
-                            <CalendarClock className="h-3 w-3" /> Öppna callbacks
+                            <CalendarClock className="h-3 w-3" /> {t("statistics.openCallbacks")}
                           </p>
                         </CardContent>
                       </Card>
