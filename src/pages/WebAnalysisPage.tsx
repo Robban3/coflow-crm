@@ -56,6 +56,7 @@ import { LinkedLeadInfo } from "@/components/web-analysis/LinkedLeadInfo";
 import { ServiceBusinessPlugin, RestaurantHotelPlugin } from "@/components/web-analysis/IndustryPlugins";
 import { GeoAnalysisTab } from "@/components/web-analysis/GeoAnalysisTab";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Analysis {
   id: string;
@@ -88,6 +89,8 @@ export default function WebAnalysisPage() {
   const [runSeoAnalysis, setRunSeoAnalysis] = useState(false);
   const organizationId = useOrganizationId();
   const { toast } = useToast();
+  const { t, language } = useTranslation();
+  const dateStringLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
 
   const [searchParams] = useSearchParams();
 
@@ -196,10 +199,10 @@ export default function WebAnalysisPage() {
         const leadMatch = await webAnalysisApi.findLeadByUrl(existing.url);
         setLinkedLead(leadMatch);
         
-        const analysisDate = new Date(existing.created_at).toLocaleDateString('sv-SE');
+        const analysisDate = new Date(existing.created_at).toLocaleDateString(dateStringLocale);
         toast({
-          title: "Befintlig analys hittad",
-          description: `Denna URL analyserades ${analysisDate}. Visar befintlig analys (max 3 dagar gammal).`,
+          title: t("webAnalysis.existingFoundTitle"),
+          description: t("webAnalysis.existingFoundDesc", { date: analysisDate }),
         });
         setIsAnalyzing(false);
         return;
@@ -225,20 +228,20 @@ export default function WebAnalysisPage() {
         setLinkedLead(leadMatch);
         
         toast({
-          title: "Analys klar och sparad!",
-          description: `${url} har analyserats. Kör SEO Intelligence manuellt för djupare analys.`,
+          title: t("webAnalysis.doneSavedTitle"),
+          description: t("webAnalysis.doneSavedDesc", { url }),
         });
       } else {
         toast({
-          title: "Fel vid analys",
-          description: response.error || "Kunde inte analysera sidan",
+          title: t("webAnalysis.analysisErrorTitle"),
+          description: response.error || t("webAnalysis.couldNotAnalyze"),
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Ett oväntat fel uppstod",
+        title: t("common.error"),
+        description: t("common.unexpectedError"),
         variant: "destructive",
       });
     } finally {
@@ -275,20 +278,20 @@ export default function WebAnalysisPage() {
         setLinkedLead(leadMatch);
         
         toast({
-          title: "Ny analys klar!",
-          description: `${currentUrl} har analyserats på nytt och sparats`,
+          title: t("webAnalysis.reanalysisDoneTitle"),
+          description: t("webAnalysis.reanalysisDoneDesc", { url: currentUrl }),
         });
       } else {
         toast({
-          title: "Fel vid analys",
-          description: response.error || "Kunde inte analysera sidan",
+          title: t("webAnalysis.analysisErrorTitle"),
+          description: response.error || t("webAnalysis.couldNotAnalyze"),
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Ett oväntat fel uppstod",
+        title: t("common.error"),
+        description: t("common.unexpectedError"),
         variant: "destructive",
       });
     } finally {
@@ -298,8 +301,8 @@ export default function WebAnalysisPage() {
 
   const handleLeadCreated = async (leadId: string) => {
     toast({
-      title: "Lead skapad och kopplad!",
-      description: "Analysen är nu kopplad till leaden",
+      title: t("webAnalysis.leadCreatedTitle"),
+      description: t("webAnalysis.leadLinkedDesc"),
     });
     fetchAnalyses();
     // Refresh linked lead
@@ -327,14 +330,14 @@ export default function WebAnalysisPage() {
   };
 
   return (
-    <AppLayout title="Webbanalys">
+    <AppLayout title={t("webAnalysis.title")}>
       <div className="space-y-4 md:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">Webbanalys</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">{t("webAnalysis.title")}</h2>
             <p className="text-sm md:text-base text-muted-foreground">
-              Analysera webbplatser med Lighthouse
+              {t("webAnalysis.subtitle")}
             </p>
           </div>
         </div>
@@ -344,10 +347,10 @@ export default function WebAnalysisPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Gauge className="h-5 w-5" />
-              Kör ny analys
+              {t("webAnalysis.runNew")}
             </CardTitle>
             <CardDescription>
-              Ange en URL för att analysera prestanda, tillgänglighet, SEO och PWA-stöd
+              {t("webAnalysis.runNewDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -356,7 +359,7 @@ export default function WebAnalysisPage() {
                 <div className="relative flex-1">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="https://exempel.se"
+                    placeholder={t("webAnalysis.urlPlaceholder")}
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     className="pl-9"
@@ -374,22 +377,22 @@ export default function WebAnalysisPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="mobile">Mobil</SelectItem>
-                      <SelectItem value="desktop">Desktop</SelectItem>
+                      <SelectItem value="mobile">{t("webAnalysis.mobile")}</SelectItem>
+                      <SelectItem value="desktop">{t("webAnalysis.desktop")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button onClick={handleAnalyze} disabled={isAnalyzing || !url} className="flex-1 sm:flex-none">
                     {isAnalyzing ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span className="hidden sm:inline">Analyserar...</span>
+                        <span className="hidden sm:inline">{t("webAnalysis.analyzing")}</span>
                         <span className="sm:hidden">...</span>
                       </>
                     ) : (
                       <>
                         <BarChart3 className="mr-2 h-4 w-4" />
-                        <span className="hidden sm:inline">Analysera</span>
-                        <span className="sm:hidden">Kör</span>
+                        <span className="hidden sm:inline">{t("webAnalysis.analyze")}</span>
+                        <span className="sm:hidden">{t("webAnalysis.run")}</span>
                       </>
                     )}
                   </Button>
@@ -398,7 +401,7 @@ export default function WebAnalysisPage() {
               {isAnalyzing && (
                 <p className="text-sm text-muted-foreground">
                   <Loader2 className="inline h-3 w-3 animate-spin mr-1" />
-                  Analysen tar normalt 10-30 sekunder...
+                  {t("webAnalysis.analyzeHint")}
                 </p>
               )}
             </div>
@@ -417,14 +420,14 @@ export default function WebAnalysisPage() {
                 </Badge>
                 <Badge variant="secondary" className="text-xs sm:text-sm">
                   {strategy === 'mobile' ? <Smartphone className="h-3 w-3 mr-1" /> : <Monitor className="h-3 w-3 mr-1" />}
-                  {strategy === 'mobile' ? 'Mobil' : 'Desktop'}
+                  {strategy === 'mobile' ? t("webAnalysis.mobile") : t("webAnalysis.desktop")}
                 </Badge>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button onClick={() => setShowOutreachDialog(true)} variant="outline" size="sm" className="text-xs sm:text-sm">
                   <Mail className="mr-1 sm:mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Skicka mail</span>
-                  <span className="sm:hidden">Mail</span>
+                  <span className="hidden sm:inline">{t("webAnalysis.sendMail")}</span>
+                  <span className="sm:hidden">{t("webAnalysis.mail")}</span>
                 </Button>
                 {selectedAnalysis && (
                   <Button 
@@ -435,21 +438,21 @@ export default function WebAnalysisPage() {
                     className="text-xs sm:text-sm"
                   >
                     <RefreshCw className="mr-1 sm:mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Kör ny analys</span>
-                    <span className="sm:hidden">Omanalysera</span>
+                    <span className="hidden sm:inline">{t("webAnalysis.runNew")}</span>
+                    <span className="sm:hidden">{t("webAnalysis.reanalyze")}</span>
                   </Button>
                 )}
                 {(savedAnalysisId || selectedAnalysis) && !linkedLead && (
                   <Button onClick={() => setShowCreateLeadDialog(true)} variant="default" size="sm" className="text-xs sm:text-sm">
                     <UserPlus className="mr-1 sm:mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Skapa lead</span>
-                    <span className="sm:hidden">Lead</span>
+                    <span className="hidden sm:inline">{t("webAnalysis.createLead")}</span>
+                    <span className="sm:hidden">{t("webAnalysis.lead")}</span>
                   </Button>
                 )}
                 {savedAnalysisId && !selectedAnalysis && (
                   <Badge variant="secondary" className="flex items-center gap-1 text-xs">
                     <Clock className="h-3 w-3" />
-                    Sparad
+                    {t("webAnalysis.saved")}
                   </Badge>
                 )}
               </div>
@@ -462,14 +465,14 @@ export default function WebAnalysisPage() {
 
             {/* Score Cards */}
             <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-              <ScoreCard 
-                label="Prestanda" 
-                score={currentResult.performance_score} 
+              <ScoreCard
+                label={t("webAnalysis.colPerformance")}
+                score={currentResult.performance_score}
                 icon={Gauge}
               />
-              <ScoreCard 
-                label="Tillgänglighet" 
-                score={currentResult.accessibility_score} 
+              <ScoreCard
+                label={t("webAnalysis.colAccessibility")}
+                score={currentResult.accessibility_score}
                 icon={Accessibility}
               />
               <ScoreCard 
@@ -477,9 +480,9 @@ export default function WebAnalysisPage() {
                 score={currentResult.best_practices_score} 
                 icon={Shield}
               />
-              <ScoreCard 
-                label="SEO" 
-                score={currentResult.seo_score} 
+              <ScoreCard
+                label={t("webAnalysis.colSeo")}
+                score={currentResult.seo_score}
                 icon={Search}
               />
               <ScoreCard 
@@ -495,23 +498,23 @@ export default function WebAnalysisPage() {
                <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="customer" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Kundrapport</span>
-                  <span className="sm:hidden">Kund</span>
+                  <span className="hidden sm:inline">{t("webAnalysis.customerReport")}</span>
+                  <span className="sm:hidden">{t("webAnalysis.customer")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="technical" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Teknisk</span>
-                  <span className="sm:hidden">Tekn.</span>
+                  <span className="hidden sm:inline">{t("webAnalysis.technical")}</span>
+                  <span className="sm:hidden">{t("webAnalysis.technicalShort")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="geo" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <Brain className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">GEO / AI</span>
-                  <span className="sm:hidden">GEO</span>
+                  <span className="hidden sm:inline">{t("webAnalysis.geoAi")}</span>
+                  <span className="sm:hidden">{t("webAnalysis.geo")}</span>
                 </TabsTrigger>
                  <TabsTrigger value="seo" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                    <Search className="h-3 w-3 sm:h-4 sm:w-4" />
-                   <span className="hidden sm:inline">SEO Intel</span>
-                   <span className="sm:hidden">SEO</span>
+                   <span className="hidden sm:inline">{t("webAnalysis.seoIntel")}</span>
+                   <span className="sm:hidden">{t("webAnalysis.seo")}</span>
                  </TabsTrigger>
               </TabsList>
 
@@ -543,11 +546,11 @@ export default function WebAnalysisPage() {
                         body,
                       });
                       if (res.error) throw new Error(res.error.message);
-                      toast({ title: "GEO-analys klar!", description: `Poäng: ${res.data.geo_score}/100` });
+                      toast({ title: t("webAnalysis.geoDoneTitle"), description: t("webAnalysis.geoScoreDesc", { score: res.data.geo_score }) });
                     } catch (e) {
                       toast({
-                        title: "Fel vid GEO-analys",
-                        description: e instanceof Error ? e.message : "Okänt fel",
+                        title: t("webAnalysis.geoErrorTitle"),
+                        description: e instanceof Error ? e.message : t("webAnalysis.unknownError"),
                         variant: "destructive",
                       });
                     } finally {
@@ -589,19 +592,19 @@ export default function WebAnalysisPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base sm:text-lg flex items-center gap-2">
               <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
-              Analyshistorik
+              {t("webAnalysis.historyTitle")}
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Tidigare genomförda analyser</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">{t("webAnalysis.pastAnalyses")}</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             {analyses.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center px-4">
                 <BarChart3 className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/50 mb-4" />
                 <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1">
-                  Inga analyser ännu
+                  {t("webAnalysis.emptyTitle")}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Kör din första webbanalys ovan
+                  {t("webAnalysis.emptyDesc")}
                 </p>
               </div>
             ) : (
@@ -617,7 +620,7 @@ export default function WebAnalysisPage() {
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <p className="font-medium text-sm truncate flex-1">{analysis.url}</p>
                         <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {new Date(analysis.created_at).toLocaleDateString('sv-SE')}
+                          {new Date(analysis.created_at).toLocaleDateString(dateStringLocale)}
                         </span>
                       </div>
                       <div className="flex items-center gap-3 text-xs">
@@ -643,12 +646,12 @@ export default function WebAnalysisPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>URL</TableHead>
-                        <TableHead className="text-center">Prestanda</TableHead>
-                        <TableHead className="text-center">Tillgänglighet</TableHead>
-                        <TableHead className="text-center">SEO</TableHead>
-                        <TableHead className="text-center">Best Practices</TableHead>
-                        <TableHead>Datum</TableHead>
+                        <TableHead>{t("webAnalysis.colUrl")}</TableHead>
+                        <TableHead className="text-center">{t("webAnalysis.colPerformance")}</TableHead>
+                        <TableHead className="text-center">{t("webAnalysis.colAccessibility")}</TableHead>
+                        <TableHead className="text-center">{t("webAnalysis.colSeo")}</TableHead>
+                        <TableHead className="text-center">{t("webAnalysis.colBestPractices")}</TableHead>
+                        <TableHead>{t("webAnalysis.colDate")}</TableHead>
                         <TableHead className="w-20"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -685,7 +688,7 @@ export default function WebAnalysisPage() {
                           <TableCell className="text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
-                              {new Date(analysis.created_at).toLocaleDateString('sv-SE')}
+                              {new Date(analysis.created_at).toLocaleDateString(dateStringLocale)}
                             </div>
                           </TableCell>
                           <TableCell>
