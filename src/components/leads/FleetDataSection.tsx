@@ -19,7 +19,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import {
   Collapsible,
   CollapsibleContent,
@@ -71,6 +72,8 @@ export function FleetDataSection({
   onOrgNumberChange 
 }: FleetDataSectionProps) {
   const { toast } = useToast();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const organizationId = useOrganizationId();
   const [fleetData, setFleetData] = useState<FleetData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -114,8 +117,8 @@ export function FleetDataSection({
   const handleLookupOrgNumber = async () => {
     if (!companyName) {
       toast({
-        title: "Saknar företagsnamn",
-        description: "Företagsnamn krävs för att söka org-nummer",
+        title: t("leadDetail.fd_missingCompanyNameTitle"),
+        description: t("leadDetail.fd_missingCompanyNameDesc"),
         variant: "destructive",
       });
       return;
@@ -133,8 +136,8 @@ export function FleetDataSection({
 
       if (!data.success) {
         toast({
-          title: "Inget org-nummer hittades",
-          description: data.error || "Kunde inte hitta organisationsnummer",
+          title: t("leadDetail.fd_noOrgNumberFoundTitle"),
+          description: data.error || t("leadDetail.fd_couldNotFindOrgNumber"),
           variant: "destructive",
         });
         return;
@@ -149,8 +152,8 @@ export function FleetDataSection({
       if (updateError) throw updateError;
 
       toast({
-        title: "Org-nummer hittat!",
-        description: `${data.orgNumber} har sparats`,
+        title: t("leadDetail.fd_orgNumberFoundTitle"),
+        description: t("leadDetail.fd_orgNumberSaved", { orgNumber: data.orgNumber }),
       });
 
       onOrgNumberFound?.(data.orgNumber);
@@ -158,9 +161,9 @@ export function FleetDataSection({
 
     } catch (err) {
       console.error('Error looking up org number:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Okänt fel';
+      const errorMessage = err instanceof Error ? err.message : t("leadDetail.fd_unknownError");
       toast({
-        title: "Fel vid sökning",
+        title: t("leadDetail.fd_searchErrorTitle"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -172,8 +175,8 @@ export function FleetDataSection({
   const handleFetchData = async () => {
     if (!orgNumber && !companyName) {
       toast({
-        title: "Saknar sökterm",
-        description: "Ange org-nummer eller företagsnamn för att söka",
+        title: t("leadDetail.fd_missingSearchTermTitle"),
+        description: t("leadDetail.fd_missingSearchTermDesc"),
         variant: "destructive",
       });
       return;
@@ -195,10 +198,10 @@ export function FleetDataSection({
       if (fnError) throw fnError;
 
       if (!data.success) {
-        setError(data.error || 'Kunde inte hämta data');
+        setError(data.error || t("leadDetail.fd_couldNotFetchData"));
         toast({
-          title: "Ingen data hittades",
-          description: data.error || "Kunde inte hämta fordons- eller telefonidata",
+          title: t("leadDetail.fd_noDataFoundTitle"),
+          description: data.error || t("leadDetail.fd_couldNotFetchVehicleOrPhoneData"),
           variant: "destructive",
         });
         return;
@@ -230,18 +233,21 @@ export function FleetDataSection({
       if (upsertError) throw upsertError;
 
       toast({
-        title: "Data hämtad!",
-        description: `${data.data.vehicleCount || 0} fordon, ${data.data.phoneNumbers?.length || 0} telefonnummer`,
+        title: t("leadDetail.fd_dataFetchedTitle"),
+        description: t("leadDetail.fd_dataFetchedDesc", {
+          vehicleCount: data.data.vehicleCount || 0,
+          phoneCount: data.data.phoneNumbers?.length || 0,
+        }),
       });
 
       await fetchStoredData();
 
     } catch (err) {
       console.error('Error fetching fleet data:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Okänt fel';
+      const errorMessage = err instanceof Error ? err.message : t("leadDetail.fd_unknownError");
       setError(errorMessage);
       toast({
-        title: "Fel vid hämtning",
+        title: t("leadDetail.fd_fetchErrorTitle"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -272,10 +278,10 @@ export function FleetDataSection({
           <div>
             <CardTitle className="text-base md:text-lg flex items-center gap-2">
               <Car className="h-4 w-4 md:h-5 md:w-5" />
-              Fordonsdata & Telefoni
+              {t("leadDetail.fd_cardTitle")}
             </CardTitle>
             <CardDescription className="text-xs sm:text-sm">
-              Data från merinfo.se
+              {t("leadDetail.fd_cardDescription")}
             </CardDescription>
           </div>
           <Button 
@@ -289,7 +295,7 @@ export function FleetDataSection({
             ) : (
               <RefreshCw className="mr-2 h-4 w-4" />
             )}
-            {fleetData ? "Uppdatera" : "Hämta data"}
+            {fleetData ? t("leadDetail.fd_update") : t("leadDetail.fd_fetchData")}
           </Button>
         </div>
       </CardHeader>
@@ -298,7 +304,7 @@ export function FleetDataSection({
           <div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/10 text-destructive mb-4">
             <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium text-sm">Kunde inte hämta data</p>
+              <p className="font-medium text-sm">{t("leadDetail.fd_couldNotFetchData")}</p>
               <p className="text-xs mt-1 opacity-80">{error}</p>
             </div>
           </div>
@@ -308,12 +314,12 @@ export function FleetDataSection({
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <Car className="h-10 w-10 text-muted-foreground/50 mb-3" />
             <p className="text-sm text-muted-foreground mb-2">
-              Ingen fordons- eller telefonidata hämtad ännu
+              {t("leadDetail.fd_noDataFetchedYet")}
             </p>
             {!orgNumber && companyName && (
               <div className="space-y-2">
                 <p className="text-xs text-muted-foreground">
-                  Inget org-nummer angivet
+                  {t("leadDetail.fd_noOrgNumberProvided")}
                 </p>
                 <Button
                   size="sm"

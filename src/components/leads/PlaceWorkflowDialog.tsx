@@ -39,6 +39,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageSpeedResult } from "@/lib/api/webAnalysis";
 import { firecrawlApi } from "@/lib/api/firecrawl";
 import { useMarket } from "@/hooks/useMarket";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface PlaceResult {
   placeId: string;
@@ -109,6 +110,7 @@ export function PlaceWorkflowDialog({
 
   const { toast } = useToast();
   const { market } = useMarket();
+  const { t } = useTranslation();
 
   // Reset state when dialog opens/closes or place changes
   useEffect(() => {
@@ -200,7 +202,7 @@ export function PlaceWorkflowDialog({
 
       // Save analysis
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Ej inloggad");
+      if (!user) throw new Error(t("leadDetail.pw_errorNotLoggedIn"));
 
       const { data: savedAnalysis, error: saveError } = await supabase
         .from("web_analyses")
@@ -223,14 +225,14 @@ export function PlaceWorkflowDialog({
       onAnalysisComplete?.(savedAnalysis.id);
 
       toast({
-        title: "Analys klar!",
-        description: `${place.name} har analyserats`,
+        title: t("leadDetail.pw_analysisDoneTitle"),
+        description: t("leadDetail.pw_analysisDoneDesc", { name: place.name }),
       });
     } catch (error) {
       console.error("Analysis error:", error);
       toast({
-        title: "Analys misslyckades",
-        description: error instanceof Error ? error.message : "Kunde inte analysera",
+        title: t("leadDetail.pw_analysisFailedTitle"),
+        description: error instanceof Error ? error.message : t("leadDetail.pw_couldNotAnalyze"),
         variant: "destructive",
       });
       setActiveTab("overview");
@@ -266,13 +268,13 @@ export function PlaceWorkflowDialog({
       setEmailGenerated(true);
 
       toast({
-        title: "Mail genererat!",
-        description: "Granska och redigera innan du skickar",
+        title: t("leadDetail.pw_emailGeneratedTitle"),
+        description: t("leadDetail.pw_emailGeneratedDesc"),
       });
     } catch (error) {
       toast({
-        title: "Fel vid generering",
-        description: error instanceof Error ? error.message : "Kunde inte generera",
+        title: t("leadDetail.pw_generationErrorTitle"),
+        description: error instanceof Error ? error.message : t("leadDetail.pw_couldNotGenerate"),
         variant: "destructive",
       });
     } finally {
@@ -282,14 +284,14 @@ export function PlaceWorkflowDialog({
 
   const handleSendEmail = async () => {
     if (!recipientEmail) {
-      toast({ title: "Ange e-postadress", variant: "destructive" });
+      toast({ title: t("leadDetail.pw_enterEmailAddress"), variant: "destructive" });
       return;
     }
 
     setIsSendingEmail(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Ej inloggad");
+      if (!user) throw new Error(t("leadDetail.pw_errorNotLoggedIn"));
 
       // Auto-create lead if it doesn't exist yet
       let currentLeadId = leadId;
@@ -341,8 +343,8 @@ export function PlaceWorkflowDialog({
         }
 
         toast({
-          title: "Lead skapad automatiskt",
-          description: `${companyName || place.name} har lagts till som lead`,
+          title: t("leadDetail.pw_leadAutoCreatedTitle"),
+          description: t("leadDetail.pw_leadAutoCreatedDesc", { name: companyName || place.name }),
         });
       } else if (leadCreated && !currentLeadId) {
         // Edge case: leadCreated is true but we don't have the ID - try to find it
@@ -380,14 +382,14 @@ export function PlaceWorkflowDialog({
 
       setEmailSent(true);
       toast({
-        title: "Mail skickat!",
-        description: `Mailet har skickats till ${recipientEmail}`,
+        title: t("leadDetail.pw_emailSentTitle"),
+        description: t("leadDetail.pw_emailSentDesc", { email: recipientEmail }),
       });
     } catch (error) {
       console.error("[PlaceWorkflow] Email send error:", error);
       toast({
-        title: "Fel vid skickning",
-        description: error instanceof Error ? error.message : "Kunde inte skicka",
+        title: t("leadDetail.pw_sendErrorTitle"),
+        description: error instanceof Error ? error.message : t("leadDetail.pw_couldNotSend"),
         variant: "destructive",
       });
     } finally {
@@ -428,21 +430,21 @@ export function PlaceWorkflowDialog({
         const hasContact = response.data.email || response.data.phone || response.data.contactName;
         
         toast({
-          title: hasContact ? "Kontaktinfo hittad!" : "Begränsad data",
-          description: hasContact 
-            ? "E-post och kontaktuppgifter har hämtats" 
-            : "Inga direkta kontaktuppgifter på webbplatsen",
+          title: hasContact ? t("leadDetail.pw_contactFoundTitle") : t("leadDetail.pw_limitedDataTitle"),
+          description: hasContact
+            ? t("leadDetail.pw_contactFoundDesc")
+            : t("leadDetail.pw_noDirectContactDesc"),
         });
       } else {
         toast({
-          title: "Kunde inte hämta",
-          description: "Prova att fylla i manuellt",
+          title: t("leadDetail.pw_couldNotFetchTitle"),
+          description: t("leadDetail.pw_tryFillManuallyDesc"),
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Extract contact error:", error);
-      toast({ title: "Fel", description: "Kunde inte hämta kontaktinfo", variant: "destructive" });
+      toast({ title: t("leadDetail.pw_errorTitle"), description: t("leadDetail.pw_couldNotFetchContactDesc"), variant: "destructive" });
     } finally {
       setIsExtractingContact(false);
     }
@@ -465,16 +467,16 @@ export function PlaceWorkflowDialog({
         if (response.data.email) setRecipientEmail(response.data.email);
         if (response.data.contactName) setContactName(response.data.contactName);
         
-        toast({ title: "Data extraherad!", description: "Granska informationen" });
+        toast({ title: t("leadDetail.pw_dataExtractedTitle"), description: t("leadDetail.pw_reviewInfoDesc") });
       } else {
         toast({
-          title: "Kunde inte extrahera",
-          description: "Fyll i manuellt",
+          title: t("leadDetail.pw_couldNotExtractTitle"),
+          description: t("leadDetail.pw_fillManuallyDesc"),
           variant: "destructive",
         });
       }
     } catch (error) {
-      toast({ title: "Fel", description: "Kunde inte hämta data", variant: "destructive" });
+      toast({ title: t("leadDetail.pw_errorTitle"), description: t("leadDetail.pw_couldNotFetchDataDesc"), variant: "destructive" });
     } finally {
       setIsExtractingData(false);
     }
@@ -482,14 +484,14 @@ export function PlaceWorkflowDialog({
 
   const handleSaveLead = async () => {
     if (!leadFormData.companyName) {
-      toast({ title: "Företagsnamn krävs", variant: "destructive" });
+      toast({ title: t("leadDetail.pw_companyNameRequired"), variant: "destructive" });
       return;
     }
 
     setIsSavingLead(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Ej inloggad");
+      if (!user) throw new Error(t("leadDetail.pw_errorNotLoggedIn"));
 
       const { data: lead, error } = await supabase
         .from("leads")
@@ -527,13 +529,13 @@ export function PlaceWorkflowDialog({
       onLeadCreated();
 
       toast({
-        title: "Lead skapad!",
-        description: `${leadFormData.companyName} har lagts till`,
+        title: t("leadDetail.pw_leadCreatedTitle"),
+        description: t("leadDetail.pw_leadCreatedDesc", { name: leadFormData.companyName }),
       });
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte skapa lead",
+        title: t("leadDetail.pw_errorTitle"),
+        description: t("leadDetail.pw_couldNotCreateLeadDesc"),
         variant: "destructive",
       });
     } finally {
@@ -582,19 +584,19 @@ export function PlaceWorkflowDialog({
                 {place.website && (
                   <Badge variant="outline" className="gap-1">
                     <Globe className="h-3 w-3" />
-                    Webbplats
+                    {t("leadDetail.pw_badgeWebsite")}
                   </Badge>
                 )}
                 {leadCreated && (
                   <Badge className="gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
                     <CheckCircle2 className="h-3 w-3" />
-                    Lead
+                    {t("leadDetail.pw_badgeLead")}
                   </Badge>
                 )}
                 {analysisResult && (
                   <Badge className="gap-1 bg-primary/10 text-primary border-primary/20">
                     <BarChart3 className="h-3 w-3" />
-                    Analyserad
+                    {t("leadDetail.pw_badgeAnalyzed")}
                   </Badge>
                 )}
               </div>
@@ -609,27 +611,27 @@ export function PlaceWorkflowDialog({
               value="overview"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
-              Översikt
+              {t("leadDetail.pw_tabOverview")}
             </TabsTrigger>
             <TabsTrigger
               value="analysis"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
               disabled={!place.website}
             >
-              Analys
+              {t("leadDetail.pw_tabAnalysis")}
             </TabsTrigger>
             <TabsTrigger
               value="email"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
               disabled={!analysisResult}
             >
-              Mail
+              {t("leadDetail.pw_tabEmail")}
             </TabsTrigger>
             <TabsTrigger
               value="lead"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
-              Lead
+              {t("leadDetail.pw_tabLead")}
             </TabsTrigger>
           </TabsList>
 
@@ -665,7 +667,7 @@ export function PlaceWorkflowDialog({
                 <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 space-y-3">
                   <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                     <CheckCircle2 className="h-4 w-4" />
-                    Kontaktinfo från webbplatsen
+                    {t("leadDetail.pw_contactInfoFromWebsite")}
                   </div>
                   <div className="grid gap-2">
                     {extractedContactData.email && (
@@ -688,7 +690,7 @@ export function PlaceWorkflowDialog({
                     )}
                     {!extractedContactData.email && !extractedContactData.contactName && !extractedContactData.phone && (
                       <p className="text-sm text-muted-foreground">
-                        Inga kontaktuppgifter hittades på webbplatsen
+                        {t("leadDetail.pw_noContactFoundOnWebsite")}
                       </p>
                     )}
                   </div>
@@ -697,7 +699,7 @@ export function PlaceWorkflowDialog({
 
               {/* Quick Actions */}
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-muted-foreground">Snabbåtgärder</h4>
+                <h4 className="text-sm font-medium text-muted-foreground">{t("leadDetail.pw_quickActions")}</h4>
                 <div className="grid gap-3">
                   {/* Firecrawl Extract Contact */}
                   {place.website && !contactExtracted && (
@@ -710,9 +712,9 @@ export function PlaceWorkflowDialog({
                       <span className="flex items-center gap-3">
                         <Zap className="h-5 w-5" />
                         <span className="text-left">
-                          <span className="block font-medium">Hämta kontaktinfo</span>
+                          <span className="block font-medium">{t("leadDetail.pw_actionFetchContactTitle")}</span>
                           <span className="block text-xs opacity-70">
-                            Sök e-post och telefon på webbplatsen
+                            {t("leadDetail.pw_actionFetchContactDesc")}
                           </span>
                         </span>
                       </span>
@@ -734,9 +736,9 @@ export function PlaceWorkflowDialog({
                       <span className="flex items-center gap-3">
                         <BarChart3 className="h-5 w-5" />
                         <span className="text-left">
-                          <span className="block font-medium">Analysera webbplats</span>
+                          <span className="block font-medium">{t("leadDetail.pw_actionAnalyzeTitle")}</span>
                           <span className="block text-xs opacity-70">
-                            Kör PageSpeed-analys
+                            {t("leadDetail.pw_actionAnalyzeDesc")}
                           </span>
                         </span>
                       </span>
@@ -757,9 +759,9 @@ export function PlaceWorkflowDialog({
                       <span className="flex items-center gap-3">
                         <Mail className="h-5 w-5" />
                         <span className="text-left">
-                          <span className="block font-medium">Skicka outreach-mail</span>
+                          <span className="block font-medium">{t("leadDetail.pw_actionSendOutreachTitle")}</span>
                           <span className="block text-xs opacity-70">
-                            Generera AI-mail baserat på analys
+                            {t("leadDetail.pw_actionSendOutreachDesc")}
                           </span>
                         </span>
                       </span>
@@ -776,9 +778,9 @@ export function PlaceWorkflowDialog({
                       <span className="flex items-center gap-3">
                         <Plus className="h-5 w-5" />
                         <span className="text-left">
-                          <span className="block font-medium">Skapa lead</span>
+                          <span className="block font-medium">{t("leadDetail.pw_actionCreateLeadTitle")}</span>
                           <span className="block text-xs opacity-70">
-                            Spara som lead i systemet
+                            {t("leadDetail.pw_actionCreateLeadDesc")}
                           </span>
                         </span>
                       </span>
