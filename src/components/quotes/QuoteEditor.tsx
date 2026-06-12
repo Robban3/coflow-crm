@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { ProductPicker } from "./ProductPicker";
 import { SendQuoteDialog } from "./SendQuoteDialog";
 import { SignatureCanvas } from "./SignatureCanvas";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface QuoteItem {
   id?: string;
@@ -37,6 +38,8 @@ interface QuoteEditorProps {
 }
 
 export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProps) {
+  const { t, language } = useTranslation();
+  const numberLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
   const { user } = useAuth();
   const organizationId = useOrganizationId();
   const [loading, setLoading] = useState(!!quoteId);
@@ -156,7 +159,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
       .single();
 
     if (error || !q) {
-      toast.error("Kunde inte ladda offerten");
+      toast.error(t("quotes.couldNotLoadQuote"));
       onClose();
       return;
     }
@@ -262,7 +265,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
 
   const convertToDeal = async () => {
     if (!currentQuoteId || !organizationId || !user) return;
-    if (!confirm("Markera denna offert som vunnen affär? En kund skapas/kopplas och offerten låses.")) return;
+    if (!confirm(t("quotes.confirmConvert"))) return;
     setConvertingToDeal(true);
     try {
       // Look up or create a customer for this quote
@@ -344,9 +347,9 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
       if (updErr) throw updErr;
 
       setStatus("won");
-      toast.success("Offerten är nu markerad som affär 🎉");
+      toast.success(t("quotes.quoteMarkedAsDeal"));
     } catch (err: any) {
-      toast.error("Kunde inte konvertera: " + (err.message || "Okänt fel"));
+      toast.error(t("quotes.couldNotConvert", { error: err.message || t("quotes.unknownError") }));
     } finally {
       setConvertingToDeal(false);
     }
@@ -355,7 +358,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
   const saveQuote = async () => {
     if (!user || !organizationId) return;
     if (!title.trim()) {
-      toast.error("Ange en titel för offerten");
+      toast.error(t("quotes.enterQuoteTitle"));
       return;
     }
     setSaving(true);
@@ -428,9 +431,9 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
         if (itemsError) throw itemsError;
       }
 
-      toast.success(documentLabel === "avtal" ? "Avtalet har sparats" : "Offerten har sparats");
+      toast.success(documentLabel === "avtal" ? t("quotes.agreementSaved") : t("quotes.quoteSaved"));
     } catch (err: any) {
-      toast.error("Kunde inte spara: " + (err.message || "Okänt fel"));
+      toast.error(t("quotes.couldNotSave", { error: err.message || t("quotes.unknownError") }));
     } finally {
       setSaving(false);
     }
@@ -440,12 +443,12 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
     if (!viewToken) return;
     const url = `${window.location.origin}/quote/${viewToken}`;
     navigator.clipboard.writeText(url);
-    toast.success("Länk kopierad!");
+    toast.success(t("quotes.linkCopied"));
   };
 
   const downloadPdf = async () => {
     if (!currentQuoteId) {
-      toast.error("Spara offerten först");
+      toast.error(t("quotes.saveQuoteFirst"));
       return;
     }
     setDownloadingPdf(true);
@@ -464,7 +467,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
         setTimeout(() => printWindow.print(), 2000);
       }
     } catch {
-      toast.error("Kunde inte generera PDF");
+      toast.error(t("quotes.couldNotGeneratePdf"));
     } finally {
       setDownloadingPdf(false);
     }

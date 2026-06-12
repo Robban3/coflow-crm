@@ -23,11 +23,12 @@ import {
   ExternalLink
 } from "lucide-react";
 import { format, startOfWeek, addDays, isSameDay, parseISO, addWeeks, subWeeks } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Meeting {
   id: string;
@@ -58,7 +59,9 @@ export function MeetingCalendar({ isAdmin = false }: MeetingCalendarProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
+
   const [currentWeekStart, setCurrentWeekStart] = useState(() => 
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
@@ -121,15 +124,15 @@ export function MeetingCalendar({ isAdmin = false }: MeetingCalendarProps) {
       if (error) throw error;
 
       toast({
-        title: "Mötet avbokat",
-        description: "Mötet har tagits bort från kalendern",
+        title: t("meetings.meetingCancelledTitle"),
+        description: t("meetings.meetingCancelledDesc"),
       });
 
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte ta bort mötet",
+        title: t("meetings.error"),
+        description: t("meetings.meetingDeleteError"),
         variant: "destructive",
       });
     }
@@ -146,9 +149,9 @@ export function MeetingCalendar({ isAdmin = false }: MeetingCalendarProps) {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'scheduled': return 'Bokat';
-      case 'completed': return 'Genomfört';
-      case 'cancelled': return 'Avbokat';
+      case 'scheduled': return t("meetings.statusScheduled");
+      case 'completed': return t("meetings.statusCompleted");
+      case 'cancelled': return t("meetings.statusCancelled");
       default: return status;
     }
   };
@@ -168,10 +171,10 @@ export function MeetingCalendar({ isAdmin = false }: MeetingCalendarProps) {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Möteskalender
+              {t("meetings.calendarTitle")}
             </CardTitle>
             <CardDescription>
-              {isAdmin ? "Alla teamets möten" : "Dina bokade möten"}
+              {isAdmin ? t("meetings.calendarDescAdmin") : t("meetings.calendarDescUser")}
             </CardDescription>
           </div>
           
@@ -179,10 +182,10 @@ export function MeetingCalendar({ isAdmin = false }: MeetingCalendarProps) {
             {isAdmin && (
               <Select value={filterUser} onValueChange={setFilterUser}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrera användare" />
+                  <SelectValue placeholder={t("meetings.filterUser")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Alla användare</SelectItem>
+                  <SelectItem value="all">{t("meetings.allUsers")}</SelectItem>
                   {teamMembers.map(member => (
                     <SelectItem key={member.id} value={member.id}>
                       {member.full_name || member.email}
@@ -205,7 +208,7 @@ export function MeetingCalendar({ isAdmin = false }: MeetingCalendarProps) {
                 size="sm"
                 onClick={() => setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
               >
-                Idag
+                {t("meetings.today")}
               </Button>
               <Button 
                 variant="outline" 
@@ -237,14 +240,14 @@ export function MeetingCalendar({ isAdmin = false }: MeetingCalendarProps) {
                   }`}
                 >
                   <div className={`text-sm font-medium mb-2 ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
-                    <span className="hidden sm:inline">{format(day, 'EEE', { locale: sv })}</span>
-                    <span className="sm:hidden">{format(day, 'EEEE', { locale: sv })}</span>
+                    <span className="hidden sm:inline">{format(day, 'EEE', { locale: dateLocale })}</span>
+                    <span className="sm:hidden">{format(day, 'EEEE', { locale: dateLocale })}</span>
                     <span className="ml-1">{format(day, 'd/M')}</span>
                   </div>
                   
                   <div className="space-y-1">
                     {dayMeetings.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">Inga möten</p>
+                      <p className="text-xs text-muted-foreground">{t("meetings.noMeetings")}</p>
                     ) : (
                       dayMeetings.map(meeting => (
                         <div 

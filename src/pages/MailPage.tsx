@@ -7,8 +7,10 @@ import { MailSent } from "@/components/mail/MailSent";
 import { MailOutreach } from "@/components/mail/MailOutreach";
 import { MailFollowUp } from "@/components/mail/MailFollowUp";
 import { NewMailDialog } from "@/components/mail/NewMailDialog";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function MailPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("inbox");
 
   return (
@@ -16,9 +18,9 @@ export default function MailPage() {
       <div className="space-y-4 md:space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">Mail</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">{t("mail.title")}</h2>
             <p className="text-sm md:text-base text-muted-foreground">
-              Din inkorg, skickade mail och outreach
+              {t("mail.subtitle")}
             </p>
           </div>
           <NewMailDialog onSent={() => setActiveTab("sent")} />
@@ -28,19 +30,19 @@ export default function MailPage() {
           <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
             <TabsTrigger value="inbox" className="flex items-center gap-2">
               <Inbox className="h-4 w-4" />
-              <span>Inkorg</span>
+              <span>{t("mail.tabInbox")}</span>
             </TabsTrigger>
             <TabsTrigger value="sent" className="flex items-center gap-2">
               <Send className="h-4 w-4" />
-              <span>Skickat</span>
+              <span>{t("mail.tabSent")}</span>
             </TabsTrigger>
             <TabsTrigger value="outreach" className="flex items-center gap-2">
               <MailIcon className="h-4 w-4" />
-              <span>Outreach</span>
+              <span>{t("mail.tabOutreach")}</span>
             </TabsTrigger>
             <TabsTrigger value="followup" className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
-              <span>Uppföljning</span>
+              <span>{t("mail.tabFollowUp")}</span>
             </TabsTrigger>
           </TabsList>
 

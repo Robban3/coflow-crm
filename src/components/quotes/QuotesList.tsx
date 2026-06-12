@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, FileText, Eye, Send, ExternalLink, Copy } from "lucide-react";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Quote {
   id: string;
@@ -32,17 +33,20 @@ interface QuotesListProps {
   onEdit: (id: string) => void;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  draft: { label: "Utkast", variant: "secondary" },
-  sent: { label: "Skickad", variant: "default" },
-  viewed: { label: "Visad", variant: "outline" },
-  accepted: { label: "Accepterad", variant: "default" },
-  won: { label: "🎉 Affär", variant: "default" },
-  rejected: { label: "Avböjd", variant: "destructive" },
-  expired: { label: "Utgången", variant: "secondary" },
+const STATUS_CONFIG: Record<string, { labelKey: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  draft: { labelKey: "quotes.statusDraft", variant: "secondary" },
+  sent: { labelKey: "quotes.statusSent", variant: "default" },
+  viewed: { labelKey: "quotes.statusViewed", variant: "outline" },
+  accepted: { labelKey: "quotes.statusAccepted", variant: "default" },
+  won: { labelKey: "quotes.statusWon", variant: "default" },
+  rejected: { labelKey: "quotes.statusRejected", variant: "destructive" },
+  expired: { labelKey: "quotes.statusExpired", variant: "secondary" },
 };
 
 export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
+  const numberLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
   const organizationId = useOrganizationId();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +71,7 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
   const copyLink = (token: string) => {
     const url = `${window.location.origin}/quote/${token}`;
     navigator.clipboard.writeText(url);
-    toast.success("Länk kopierad!");
+    toast.success(t("quotes.linkCopied"));
   };
 
   const filtered = quotes.filter((q) => {
@@ -84,12 +88,12 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Offerter</h1>
-          <p className="text-muted-foreground text-sm">Skapa, skicka och följ upp offerter</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("quotes.title")}</h1>
+          <p className="text-muted-foreground text-sm">{t("quotes.subtitle")}</p>
         </div>
         <Button onClick={onCreateNew}>
           <Plus className="h-4 w-4 mr-2" />
-          Ny offert
+          {t("quotes.newQuote")}
         </Button>
       </div>
 
@@ -98,7 +102,7 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Sök offert..."
+            placeholder={t("quotes.searchQuote")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -112,7 +116,7 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
               size="sm"
               onClick={() => setStatusFilter(s)}
             >
-              {s === "all" ? "Alla" : STATUS_CONFIG[s]?.label || s}
+              {s === "all" ? t("quotes.filterAll") : STATUS_CONFIG[s] ? t(STATUS_CONFIG[s].labelKey) : s}
             </Button>
           ))}
         </div>
@@ -120,16 +124,16 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
 
       {/* List */}
       {loading ? (
-        <div className="text-center py-12 text-muted-foreground">Laddar...</div>
+        <div className="text-center py-12 text-muted-foreground">{t("quotes.loading")}</div>
       ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-            <h3 className="font-medium mb-1">Inga offerter ännu</h3>
-            <p className="text-muted-foreground text-sm mb-4">Skapa din första offert för att komma igång</p>
+            <h3 className="font-medium mb-1">{t("quotes.noQuotesYet")}</h3>
+            <p className="text-muted-foreground text-sm mb-4">{t("quotes.createFirstQuote")}</p>
             <Button onClick={onCreateNew}>
               <Plus className="h-4 w-4 mr-2" />
-              Skapa offert
+              {t("quotes.createQuote")}
             </Button>
           </CardContent>
         </Card>
@@ -149,13 +153,13 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium truncate">{q.title}</span>
                         <Badge variant={statusInfo.variant} className="shrink-0">
-                          {statusInfo.label}
+                          {t(statusInfo.labelKey)}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <span>#{q.quote_number}</span>
                         {q.recipient_name && <span>→ {q.recipient_name}</span>}
-                        <span>{format(new Date(q.created_at), "d MMM yyyy", { locale: sv })}</span>
+                        <span>{format(new Date(q.created_at), "d MMM yyyy", { locale: dateLocale })}</span>
                         {q.view_count > 0 && (
                           <span className="flex items-center gap-1">
                             <Eye className="h-3 w-3" />
@@ -166,7 +170,7 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-semibold text-lg whitespace-nowrap">
-                        {Number(q.total).toLocaleString("sv-SE")} {q.currency}
+                        {Number(q.total).toLocaleString(numberLocale)} {q.currency}
                       </span>
                       <Button
                         variant="ghost"
@@ -175,7 +179,7 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
                           e.stopPropagation();
                           copyLink(q.view_token);
                         }}
-                        title="Kopiera länk"
+                        title={t("quotes.copyLink")}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>

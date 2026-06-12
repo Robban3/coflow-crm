@@ -7,9 +7,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Send, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
 import { fromTable } from "@/components/documents/supabaseHelper";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Comment {
   id: string;
@@ -25,6 +26,8 @@ interface TicketCommentsProps {
 }
 
 export function TicketComments({ ticketId }: TicketCommentsProps) {
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState("");
@@ -50,17 +53,17 @@ export function TicketComments({ ticketId }: TicketCommentsProps) {
       content: content.trim(),
       is_internal: isInternal,
     });
-    if (error) toast({ title: "Fel", description: error.message, variant: "destructive" });
+    if (error) toast({ title: t("tickets.toast.error"), description: error.message, variant: "destructive" });
     else { setContent(""); fetchComments(); }
     setSending(false);
   };
 
   return (
     <div className="space-y-3">
-      <h4 className="text-sm font-semibold">Kommentarer</h4>
+      <h4 className="text-sm font-semibold">{t("tickets.comments.title")}</h4>
       <div className="space-y-2 max-h-[300px] overflow-y-auto">
         {comments.length === 0 && (
-          <p className="text-xs text-muted-foreground text-center py-4">Inga kommentarer ännu</p>
+          <p className="text-xs text-muted-foreground text-center py-4">{t("tickets.comments.empty")}</p>
         )}
         {comments.map(c => (
             <div key={c.id} className="flex gap-2">
@@ -68,7 +71,7 @@ export function TicketComments({ ticketId }: TicketCommentsProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-muted-foreground">
-                    {formatDistanceToNow(new Date(c.created_at), { locale: sv, addSuffix: true })}
+                    {formatDistanceToNow(new Date(c.created_at), { locale: dateLocale, addSuffix: true })}
                   </span>
                   {c.is_internal && <Eye className="h-3 w-3 text-muted-foreground" />}
                 </div>
@@ -79,7 +82,7 @@ export function TicketComments({ ticketId }: TicketCommentsProps) {
       </div>
       <div className="space-y-2 pt-2 border-t">
         <Textarea
-          placeholder="Skriv en kommentar..."
+          placeholder={t("tickets.comments.placeholder")}
           value={content}
           onChange={e => setContent(e.target.value)}
           rows={2}
@@ -88,10 +91,10 @@ export function TicketComments({ ticketId }: TicketCommentsProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Switch id="internal" checked={isInternal} onCheckedChange={setIsInternal} />
-            <Label htmlFor="internal" className="text-xs">Intern anteckning</Label>
+            <Label htmlFor="internal" className="text-xs">{t("tickets.comments.internalNote")}</Label>
           </div>
           <Button size="sm" onClick={handleSend} disabled={sending || !content.trim()}>
-            <Send className="h-3.5 w-3.5 mr-1" /> Skicka
+            <Send className="h-3.5 w-3.5 mr-1" /> {t("tickets.comments.send")}
           </Button>
         </div>
       </div>

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Save, Clock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface DayAvailability {
   id?: string;
@@ -18,13 +19,13 @@ interface DayAvailability {
 }
 
 const DAYS_OF_WEEK = [
-  { value: 1, label: "Måndag" },
-  { value: 2, label: "Tisdag" },
-  { value: 3, label: "Onsdag" },
-  { value: 4, label: "Torsdag" },
-  { value: 5, label: "Fredag" },
-  { value: 6, label: "Lördag" },
-  { value: 0, label: "Söndag" },
+  { value: 1, labelKey: "meetings.dayMonday" },
+  { value: 2, labelKey: "meetings.dayTuesday" },
+  { value: 3, labelKey: "meetings.dayWednesday" },
+  { value: 4, labelKey: "meetings.dayThursday" },
+  { value: 5, labelKey: "meetings.dayFriday" },
+  { value: 6, labelKey: "meetings.daySaturday" },
+  { value: 0, labelKey: "meetings.daySunday" },
 ];
 
 const DEFAULT_AVAILABILITY: DayAvailability[] = DAYS_OF_WEEK.map(day => ({
@@ -37,6 +38,7 @@ const DEFAULT_AVAILABILITY: DayAvailability[] = DAYS_OF_WEEK.map(day => ({
 export function AvailabilitySettings() {
   const organizationId = useOrganizationId();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [availability, setAvailability] = useState<DayAvailability[]>(DEFAULT_AVAILABILITY);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -86,7 +88,7 @@ export function AvailabilitySettings() {
     setIsSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Inte inloggad');
+      if (!user) throw new Error(t('meetings.notLoggedIn'));
 
       // Upsert all availability records
       for (const day of availability) {
@@ -118,8 +120,8 @@ export function AvailabilitySettings() {
       }
 
       toast({
-        title: "Tillgänglighet sparad",
-        description: "Dina bokningsbara tider har uppdaterats",
+        title: t("meetings.availabilitySavedTitle"),
+        description: t("meetings.availabilitySavedDesc"),
       });
 
       // Refresh to get IDs
@@ -127,8 +129,8 @@ export function AvailabilitySettings() {
     } catch (error) {
       console.error('Error saving availability:', error);
       toast({
-        title: "Fel",
-        description: "Kunde inte spara tillgänglighet",
+        title: t("meetings.error"),
+        description: t("meetings.availabilitySaveError"),
         variant: "destructive",
       });
     } finally {
@@ -159,10 +161,10 @@ export function AvailabilitySettings() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Clock className="h-5 w-5" />
-          Tillgänglighet för möten
+          {t("meetings.availabilityTitle")}
         </CardTitle>
         <CardDescription>
-          Ställ in vilka tider du är tillgänglig för bokningar
+          {t("meetings.availabilityDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -183,7 +185,7 @@ export function AvailabilitySettings() {
                   onCheckedChange={(checked) => updateDay(day.value, 'is_available', checked)}
                 />
                 <Label className={`font-medium ${!dayData.is_available ? 'text-muted-foreground' : ''}`}>
-                  {day.label}
+                  {t(day.labelKey)}
                 </Label>
               </div>
               
@@ -215,7 +217,7 @@ export function AvailabilitySettings() {
             ) : (
               <Save className="mr-2 h-4 w-4" />
             )}
-            Spara tillgänglighet
+            {t("meetings.saveAvailability")}
           </Button>
         </div>
       </CardContent>

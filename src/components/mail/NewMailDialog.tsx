@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus, Send } from "lucide-react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface NewMailDialogProps {
   onSent?: () => void;
@@ -27,6 +28,7 @@ export function NewMailDialog({ onSent }: NewMailDialogProps) {
   const [body, setBody] = useState("");
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const resetForm = () => {
     setRecipientEmail("");
@@ -48,8 +50,8 @@ export function NewMailDialog({ onSent }: NewMailDialogProps) {
 
     if (!to || !trimmedSubject || !bodyText) {
       toast({
-        title: "Fyll i alla fält",
-        description: "Mottagare, ämne och meddelande krävs för att skicka mail.",
+        title: t("mail.fillAllFields"),
+        description: t("mail.fillAllFieldsDesc"),
         variant: "destructive",
       });
       return;
@@ -59,7 +61,7 @@ export function NewMailDialog({ onSent }: NewMailDialogProps) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error("Du måste vara inloggad för att skicka mail.");
+        throw new Error(t("mail.mustBeLoggedIn"));
       }
 
       const { error } = await supabase.functions.invoke("send-quick-outreach-email", {
@@ -75,16 +77,16 @@ export function NewMailDialog({ onSent }: NewMailDialogProps) {
       }
 
       toast({
-        title: "Mail skickat",
-        description: `Mailet skickades till ${to}`,
+        title: t("mail.mailSent"),
+        description: t("mail.mailSentTo", { to }),
       });
 
       handleOpenChange(false);
       onSent?.();
     } catch (error) {
       toast({
-        title: "Kunde inte skicka mail",
-        description: error instanceof Error ? error.message : "Ett oväntat fel uppstod.",
+        title: t("mail.couldNotSend"),
+        description: error instanceof Error ? error.message : t("mail.unexpectedError"),
         variant: "destructive",
       });
     } finally {

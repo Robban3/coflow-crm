@@ -11,14 +11,15 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, AlertTriangle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
 import { fromTable } from "@/components/documents/supabaseHelper";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import type { TicketRow } from "./TicketCard";
 
-const statusLabels: Record<string, string> = { new: "Nytt", open: "Öppet", in_progress: "Pågår", waiting: "Väntar", resolved: "Löst", closed: "Stängt" };
-const typeLabels: Record<string, string> = { sales: "Sälj", support: "Support", onboarding: "Onboarding", other: "Övrigt" };
-const priorityLabels: Record<string, string> = { low: "Låg", medium: "Medium", high: "Hög", urgent: "Brådskande" };
+const statusKeys = ["new", "open", "in_progress", "waiting", "resolved", "closed"];
+const typeKeys = ["sales", "support", "onboarding", "other"];
+const priorityKeys = ["low", "medium", "high", "urgent"];
 const priorityColors: Record<string, string> = { low: "text-muted-foreground", medium: "text-warning", high: "text-orange-500", urgent: "text-destructive" };
 
 interface TicketListProps {
@@ -26,6 +27,8 @@ interface TicketListProps {
 }
 
 export function TicketList({ myOnly }: TicketListProps) {
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const { user } = useAuth();
   const [tickets, setTickets] = useState<TicketRow[]>([]);
   const [loading, setLoading] = useState(true);

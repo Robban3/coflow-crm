@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search, Inbox, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format, formatDistanceToNow } from "date-fns";
-import { sv } from "date-fns/locale";
+import { formatDistanceToNow } from "date-fns";
+import { sv, enUS, es } from "date-fns/locale";
 import { MailThreadView } from "./MailThreadView";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface EmailReply {
   id: string;
@@ -26,6 +27,8 @@ interface EmailReply {
 
 export function MailInbox() {
   const { user } = useAuth();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const [search, setSearch] = useState("");
   const [selectedReplyId, setSelectedReplyId] = useState<string | null>(null);
 
@@ -75,7 +78,7 @@ export function MailInbox() {
             onClick={() => setSelectedReplyId(null)}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Tillbaka till inkorg
+            {t("mail.backToInbox")}
           </Button>
           <MailThreadView
             originalEmailId={reply.original_email_id || reply.id}
@@ -91,7 +94,7 @@ export function MailInbox() {
       <Card>
         <CardContent className="py-12 text-center">
           <Inbox className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-          <p className="text-muted-foreground">Inga inkomna svar ännu.</p>
+          <p className="text-muted-foreground">{t("mail.inboxEmpty")}</p>
         </CardContent>
       </Card>
     );
@@ -102,7 +105,7 @@ export function MailInbox() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Sök i inkorg..."
+          placeholder={t("mail.searchInbox")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
@@ -124,11 +127,11 @@ export function MailInbox() {
                       {reply.from_name || reply.from_email}
                     </span>
                     <Badge variant="secondary" className="text-xs shrink-0">
-                      Svar
+                      {t("mail.badgeReply")}
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground truncate">
-                    {reply.subject || "(Inget ämne)"}
+                    {reply.subject || t("mail.noSubject")}
                   </p>
                   {reply.body_text && (
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
@@ -139,7 +142,7 @@ export function MailInbox() {
                 <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
                   {formatDistanceToNow(new Date(reply.received_at), {
                     addSuffix: true,
-                    locale: sv,
+                    locale: dateLocale,
                   })}
                 </span>
               </div>

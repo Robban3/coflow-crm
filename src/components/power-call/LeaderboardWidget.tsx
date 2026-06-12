@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { format, subMonths } from "date-fns";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface SnapshotEntry {
   userId: string | null;
@@ -25,6 +26,7 @@ export function LeaderboardWidget() {
   const organizationId = useOrganizationId();
   const { isAdmin, user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -77,7 +79,7 @@ export function LeaderboardWidget() {
             userId: e.userId,
             meetings: e.meetings,
             frame: e.frame as "gold" | "silver" | "bronze",
-            name: p?.full_name || p?.email || "Okänd",
+            name: p?.full_name || p?.email || t("powerCall.leaderboard.unknown"),
             avatar: p?.avatar_url || null,
           };
         })
@@ -126,10 +128,10 @@ export function LeaderboardWidget() {
 
       if (error) throw error;
 
-      toast({ title: "Leaderboard uppdaterat", description: `Snapshot för ${monthStr} genererad` });
+      toast({ title: t("powerCall.leaderboard.toastUpdated"), description: t("powerCall.leaderboard.toastUpdatedDesc", { month: monthStr }) });
       queryClient.invalidateQueries({ queryKey: ["leaderboard-snapshot"] });
     } catch {
-      toast({ title: "Fel", description: "Kunde inte generera snapshot", variant: "destructive" });
+      toast({ title: t("powerCall.leaderboard.toastError"), description: t("powerCall.leaderboard.toastFailed"), variant: "destructive" });
     } finally {
       setIsGenerating(false);
     }

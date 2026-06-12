@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search, Send, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface SentEmail {
   id: string;
@@ -24,6 +25,8 @@ interface SentEmail {
 
 export function MailSent() {
   const { user } = useAuth();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const [search, setSearch] = useState("");
 
   const { data: emails = [], isLoading: loading } = useQuery({
@@ -65,7 +68,7 @@ export function MailSent() {
       <Card>
         <CardContent className="py-12 text-center">
           <Send className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-          <p className="text-muted-foreground">Inga skickade mail ännu.</p>
+          <p className="text-muted-foreground">{t("mail.sentEmpty")}</p>
         </CardContent>
       </Card>
     );
@@ -76,7 +79,7 @@ export function MailSent() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Sök i skickade..."
+          placeholder={t("mail.searchSent")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
@@ -97,12 +100,14 @@ export function MailSent() {
                       variant={email.status === "sent" ? "default" : "destructive"}
                       className="text-xs shrink-0"
                     >
-                      {email.status === "sent" ? "Skickat" : email.status || "Okänd"}
+                      {email.status === "sent" ? t("mail.statusSent") : email.status || t("mail.statusUnknown")}
                     </Badge>
                     {email.opened_at && (
                       <Badge variant="outline" className="text-xs shrink-0 gap-1">
                         <Eye className="h-3 w-3" />
-                        Öppnat{email.opened_count && email.opened_count > 1 ? ` (${email.opened_count}x)` : ""}
+                        {email.opened_count && email.opened_count > 1
+                          ? t("mail.openedCount", { count: email.opened_count })
+                          : t("mail.opened")}
                       </Badge>
                     )}
                   </div>
@@ -113,7 +118,7 @@ export function MailSent() {
                 <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
                   {formatDistanceToNow(new Date(email.created_at), {
                     addSuffix: true,
-                    locale: sv,
+                    locale: dateLocale,
                   })}
                 </span>
               </div>
