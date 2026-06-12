@@ -56,6 +56,7 @@ import { LeadStatusBadge } from "@/components/leads/LeadStatusBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamMembers, type TeamMember } from "@/hooks/useTeamMembers";
 import type { LeadWithOutreachStatus } from "@/pages/LeadsPage";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 type OwnerFilter = "all" | "mine" | "unassigned" | string;
 type SortField = "company_name" | "created_at" | "contact_name" | "source";
@@ -83,6 +84,7 @@ function InlineLeadOwners({
   currentOwnerId: string | null;
   onOwnerChange: () => void;
 }) {
+  const { t } = useTranslation();
   const [showPopover, setShowPopover] = useState(false);
 
   const assignedMembers = memberIds
@@ -112,7 +114,7 @@ function InlineLeadOwners({
       title={
         assignedMembers.length > 0
           ? assignedMembers.map(m => m.full_name || m.email).join(", ")
-          : "Tilldela medlemmar"
+          : t("leadsList.assignMembers")
       }
     >
       {assignedMembers.length === 0 ? (
@@ -160,6 +162,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const { members, membersMap, getInitials } = useTeamMembers();
+  const { t } = useTranslation();
 
   const pendingCount = useMemo(() => leads.filter(l => l.enrichment_status === "pending").length, [leads]);
 
@@ -310,11 +313,11 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
               <TooltipTrigger asChild>
                 <Badge variant="default" className="gap-1 bg-blue-500 hover:bg-blue-600 text-white">
                   <Clock className="h-3 w-3" />
-                  Sekvens
+                  {t("leadsList.badgeSequence")}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Aktiv sekvens pågår</p>
+                <p>{t("leadsList.tipSequenceActive")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -326,13 +329,13 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
               <TooltipTrigger asChild>
                 <Badge variant="secondary" className="gap-1">
                   <Send className="h-3 w-3" />
-                  {lead.email_count} mail
+                  {t("leadsList.mailBadge", { count: lead.email_count })}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{lead.email_count} mail har skickats</p>
+                <p>{t("leadsList.tipMailsSent", { count: lead.email_count })}</p>
                 {lead.sequence_status && lead.sequence_status !== 'active' && (
-                  <p className="text-xs text-muted-foreground">Sekvens: {lead.sequence_status}</p>
+                  <p className="text-xs text-muted-foreground">{t("leadsList.sequenceLabel", { status: lead.sequence_status })}</p>
                 )}
               </TooltipContent>
             </Tooltip>
@@ -346,11 +349,11 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
               <TooltipTrigger asChild>
                 <Badge variant="outline" className="gap-1 text-muted-foreground">
                   <CircleDashed className="h-3 w-3" />
-                  Ej kontaktad
+                  {t("leadsList.notContacted")}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Ingen kontakt har gjorts ännu</p>
+                <p>{t("leadsList.tipNoContact")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -373,11 +376,11 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                 }}
               >
                 <CheckCircle2 className="h-3 w-3" />
-                Analyserad
+                {t("leadsList.analyzed")}
               </Badge>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Klicka för att se analysen</p>
+              <p>{t("leadsList.tipClickAnalysis")}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -398,11 +401,11 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                 }}
               >
                 <BarChart3 className="h-3 w-3" />
-                Ej analyserad
+                {t("leadsList.notAnalyzed")}
               </Badge>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Klicka för att analysera webbplatsen</p>
+              <p>{t("leadsList.tipClickAnalyze")}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -417,11 +420,11 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
   const getSourceBadge = (source: string) => {
     switch (source) {
       case 'web_analysis':
-        return <Badge variant="secondary">Webbanalys</Badge>;
+        return <Badge variant="secondary">{t("leadsList.sourceWebAnalysis")}</Badge>;
       case 'firecrawl':
         return <Badge variant="secondary">Firecrawl</Badge>;
       case 'manual':
-        return <Badge variant="outline">Manuell</Badge>;
+        return <Badge variant="outline">{t("leadsList.sourceManual")}</Badge>;
       default:
         return <Badge variant="outline">{source}</Badge>;
     }
@@ -436,14 +439,14 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
         return (
           <Badge variant="outline" className="gap-1 text-muted-foreground text-[10px]">
             <Minus className="h-3 w-3" />
-            Väntar
+            {t("leadsList.enrPending")}
           </Badge>
         );
       case "processing":
         return (
           <Badge variant="secondary" className="gap-1 text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800">
             <Loader2 className="h-3 w-3 animate-spin" />
-            Analyserar...
+            {t("leadsList.enrProcessing")}
           </Badge>
         );
       case "ready":
@@ -451,7 +454,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
           <div className="flex items-center gap-1">
             <Badge variant="secondary" className="gap-1 text-[10px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800">
               <CheckCircle className="h-3 w-3" />
-              Redo
+              {t("leadsList.enrReady")}
             </Badge>
             {hasDraft && (
               <TooltipProvider>
@@ -462,7 +465,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                     </span>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Utkast väntar på granskning</p>
+                    <p>{t("leadsList.tipDraftPending")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -473,7 +476,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
         return (
           <Badge variant="destructive" className="gap-1 text-[10px]">
             <AlertTriangle className="h-3 w-3" />
-            Misslyckades
+            {t("leadsList.enrFailed")}
           </Badge>
         );
       case "skipped":
@@ -496,18 +499,18 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
       {pendingCount > 0 && (
         <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
           <span className="text-sm font-medium">
-            {pendingCount} leads väntar på analys
+            {t("leadsList.pendingAnalysis", { count: pendingCount })}
             {queueProgress && (
               <span className="ml-2 text-muted-foreground">
-                ({queueProgress.processed} klara, {queueProgress.remaining} kvar)
+                {t("leadsList.queueProgress", { processed: queueProgress.processed, remaining: queueProgress.remaining })}
               </span>
             )}
           </span>
           <Button size="sm" onClick={handleProcessQueue} disabled={isProcessingQueue}>
             {isProcessingQueue ? (
-              <><Loader2 className="mr-2 h-3 w-3 animate-spin" />Analyserar...</>
+              <><Loader2 className="mr-2 h-3 w-3 animate-spin" />{t("leadsList.enrProcessing")}</>
             ) : (
-              <><Zap className="mr-2 h-3 w-3" />Starta analys</>
+              <><Zap className="mr-2 h-3 w-3" />{t("leadsList.startAnalysis")}</>
             )}
           </Button>
         </div>
@@ -516,9 +519,9 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
       <CardHeader className="pb-4">
         <div className="flex flex-col gap-4">
           <div>
-            <CardTitle className="text-lg">Sparade leads</CardTitle>
+            <CardTitle className="text-lg">{t("leadsList.savedLeads")}</CardTitle>
             <CardDescription>
-              {sortedLeads.length} av {leads.length} leads visas
+              {t("leadsList.showingCount", { shown: sortedLeads.length, total: leads.length })}
             </CardDescription>
           </div>
           
@@ -528,7 +531,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Sök företag, kontakt, e-post..."
+                placeholder={t("leadsList.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -540,31 +543,31 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
               <Filter className="h-4 w-4 text-muted-foreground hidden sm:block" />
               <Select value={ownerFilter} onValueChange={(value) => setOwnerFilter(value)}>
                 <SelectTrigger className="w-full sm:w-[160px]">
-                  <SelectValue placeholder="Ägare" />
+                  <SelectValue placeholder={t("leadsList.ownerPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4" />
-                      Alla ({leads.length})
+                      {t("leadsList.ownerAll", { count: leads.length })}
                     </div>
                   </SelectItem>
                   <SelectItem value="mine">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      Mina ({mineCount})
+                      {t("leadsList.ownerMine", { count: mineCount })}
                     </div>
                   </SelectItem>
                   <SelectItem value="unassigned">
                     <div className="flex items-center gap-2">
                       <span className="h-4 w-4 rounded-full border-2 border-dashed border-muted-foreground/40" />
-                      Otilldelade ({unassignedCount})
+                      {t("leadsList.ownerUnassigned", { count: unassignedCount })}
                     </div>
                   </SelectItem>
                   {isAdmin && members.length > 0 && (
                     <>
                       <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground border-t mt-1 pt-2">
-                        Teammedlemmar
+                        {t("leadsList.teamMembers")}
                       </div>
                       {members
                         .filter(m => m.id !== user?.id)
@@ -596,13 +599,13 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
             {/* Enrichment Filter */}
             <Select value={enrichmentFilter} onValueChange={(v) => setEnrichmentFilter(v as EnrichmentFilter)}>
               <SelectTrigger className="w-full sm:w-[190px]">
-                <SelectValue placeholder="Berikningsstatus" />
+                <SelectValue placeholder={t("leadsList.enrichmentPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alla statusar</SelectItem>
-                <SelectItem value="ready_for_approval">Redo för godkännande</SelectItem>
-                <SelectItem value="processing">Under bearbetning</SelectItem>
-                <SelectItem value="failed">Misslyckade</SelectItem>
+                <SelectItem value="all">{t("leadsList.enrAll")}</SelectItem>
+                <SelectItem value="ready_for_approval">{t("leadsList.enrReadyApproval")}</SelectItem>
+                <SelectItem value="processing">{t("leadsList.enrUnderProcessing")}</SelectItem>
+                <SelectItem value="failed">{t("leadsList.enrFailedPlural")}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -610,13 +613,13 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
             <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
               <SelectTrigger className="w-full sm:w-[140px]">
                 <ArrowUpDown className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Sortera" />
+                <SelectValue placeholder={t("leadsList.sortPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="created_at">Datum</SelectItem>
-                <SelectItem value="company_name">Företag</SelectItem>
-                <SelectItem value="contact_name">Kontakt</SelectItem>
-                <SelectItem value="source">Källa</SelectItem>
+                <SelectItem value="created_at">{t("leadsList.sortDate")}</SelectItem>
+                <SelectItem value="company_name">{t("leadsList.sortCompany")}</SelectItem>
+                <SelectItem value="contact_name">{t("leadsList.sortContact")}</SelectItem>
+                <SelectItem value="source">{t("leadsList.sortSource")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -629,7 +632,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
               onCheckedChange={setHideNotInterested}
             />
             <Label htmlFor="hide-not-interested" className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap">
-              Dölj ej intresserade
+              {t("leadsList.hideNotInterested")}
             </Label>
           </div>
         </div>
@@ -639,12 +642,12 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
           <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center px-4">
             <Search className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1">
-              {leads.length === 0 ? "Inga leads ännu" : "Inga leads matchar sökningen"}
+              {leads.length === 0 ? t("leadsList.emptyNoLeads") : t("leadsList.emptyNoMatch")}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {leads.length === 0 
-                ? "Gå till Hitta leads för att börja"
-                : "Prova att ändra sökning eller filter"
+              {leads.length === 0
+                ? t("leadsList.emptyNoLeadsDesc")
+                : t("leadsList.emptyNoMatchDesc")
               }
             </p>
             {(ownerFilter !== "all" || searchQuery) && (
@@ -656,7 +659,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                   setSearchQuery("");
                 }}
               >
-                Rensa filter
+                {t("leadsList.clearFilters")}
               </Button>
             )}
           </div>
@@ -673,7 +676,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-sm truncate">{lead.company_name || "Inget företag"}</p>
+                        <p className="font-medium text-sm truncate">{lead.company_name || t("leadsList.noCompany")}</p>
                         {lead.website && (
                           <a 
                             href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} 
@@ -732,36 +735,36 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">Ägare</TableHead>
-                    <TableHead 
+                    <TableHead className="w-12">{t("leadsList.colOwner")}</TableHead>
+                    <TableHead
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleSort("company_name")}
                     >
                       <div className="flex items-center">
-                        Företag
+                        {t("leadsList.colCompany")}
                         <SortIcon field="company_name" />
                       </div>
                     </TableHead>
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleSort("contact_name")}
                     >
                       <div className="flex items-center">
-                        Kontakt
+                        {t("leadsList.colContact")}
                         <SortIcon field="contact_name" />
                       </div>
                     </TableHead>
-                    <TableHead>E-post</TableHead>
-                    <TableHead>Telefon</TableHead>
-                    <TableHead>Berikning</TableHead>
-                    <TableHead>Kontakt</TableHead>
-                    <TableHead>Analys</TableHead>
-                    <TableHead 
+                    <TableHead>{t("leadsList.colEmail")}</TableHead>
+                    <TableHead>{t("leadsList.colPhone")}</TableHead>
+                    <TableHead>{t("leadsList.colEnrichment")}</TableHead>
+                    <TableHead>{t("leadsList.colContactStatus")}</TableHead>
+                    <TableHead>{t("leadsList.colAnalysis")}</TableHead>
+                    <TableHead
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleSort("source")}
                     >
                       <div className="flex items-center">
-                        Källa
+                        {t("leadsList.colSource")}
                         <SortIcon field="source" />
                       </div>
                     </TableHead>
