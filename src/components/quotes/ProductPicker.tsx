@@ -13,6 +13,7 @@ import { Search, Plus, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Product {
   id: string;
@@ -31,6 +32,8 @@ interface ProductPickerProps {
 export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
   const organizationId = useOrganizationId();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
+  const numberLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -87,10 +90,10 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
       .single();
 
     if (error) {
-      toast.error("Kunde inte skapa produkt");
+      toast.error(t("quotes.couldNotCreateProduct"));
       return;
     }
-    toast.success("Produkt skapad!");
+    toast.success(t("quotes.productCreated"));
     onSelect({
       id: data.id,
       name: data.name,
@@ -112,7 +115,7 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Välj produkt/tjänst</DialogTitle>
+          <DialogTitle>{t("quotes.selectProductService")}</DialogTitle>
         </DialogHeader>
 
         {!showCreate ? (
@@ -120,7 +123,7 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Sök i katalogen..."
+                placeholder={t("quotes.searchCatalog")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -129,11 +132,11 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
 
             <div className="max-h-64 overflow-y-auto space-y-1">
               {loading ? (
-                <p className="text-center py-4 text-muted-foreground text-sm">Laddar...</p>
+                <p className="text-center py-4 text-muted-foreground text-sm">{t("quotes.loading")}</p>
               ) : filtered.length === 0 ? (
                 <div className="text-center py-8">
                   <FileText className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-                  <p className="text-muted-foreground text-sm">Inga produkter hittades</p>
+                  <p className="text-muted-foreground text-sm">{t("quotes.noProductsFound")}</p>
                 </div>
               ) : (
                 filtered.map((p) => (
@@ -150,7 +153,7 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
                         )}
                       </div>
                       <span className="text-sm font-medium whitespace-nowrap ml-4">
-                        {p.unit_price.toLocaleString("sv-SE")} kr/{p.unit}
+                        {p.unit_price.toLocaleString(numberLocale)} kr/{p.unit}
                       </span>
                     </div>
                   </button>
@@ -164,7 +167,7 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
               onClick={() => setShowCreate(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Skapa ny produkt
+              {t("quotes.createNewProduct")}
             </Button>
           </div>
         ) : (

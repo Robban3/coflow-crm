@@ -10,8 +10,10 @@ import { Calendar, Clock, Plus, Link2, Copy } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function MeetingsPage() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { user, isAdmin } = useAuth();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -21,22 +23,22 @@ export default function MeetingsPage() {
   const copyBookingUrl = () => {
     navigator.clipboard.writeText(bookingUrl);
     toast({
-      title: "Länk kopierad",
-      description: "Bokningslänken har kopierats till urklipp",
+      title: t("meetings.linkCopiedTitle"),
+      description: t("meetings.linkCopiedDesc"),
     });
   };
 
   return (
-    <AppLayout title="Möten">
+    <AppLayout title={t("meetings.title")}>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Möten</h2>
-            <p className="text-muted-foreground">Hantera din kalender och bokningar</p>
+            <h2 className="text-2xl font-bold text-foreground">{t("meetings.title")}</h2>
+            <p className="text-muted-foreground">{t("meetings.subtitle")}</p>
           </div>
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Skapa möte
+            {t("meetings.createMeeting")}
           </Button>
         </div>
 
@@ -44,9 +46,9 @@ export default function MeetingsPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Link2 className="h-4 w-4" />
-              Din bokningslänk
+              {t("meetings.bookingLinkTitle")}
             </CardTitle>
-            <CardDescription>Dela denna länk så att leads kan boka möten med dig</CardDescription>
+            <CardDescription>{t("meetings.bookingLinkDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex gap-2">
@@ -62,11 +64,11 @@ export default function MeetingsPage() {
           <TabsList>
             <TabsTrigger value="calendar" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Kalender</span>
+              <span className="hidden sm:inline">{t("meetings.tabCalendar")}</span>
             </TabsTrigger>
             <TabsTrigger value="availability" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">Tillgänglighet</span>
+              <span className="hidden sm:inline">{t("meetings.tabAvailability")}</span>
             </TabsTrigger>
           </TabsList>
 

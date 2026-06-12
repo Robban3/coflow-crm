@@ -7,8 +7,10 @@ import { TicketKanban } from "@/components/tickets/TicketKanban";
 import { TicketList } from "@/components/tickets/TicketList";
 import { TicketStats } from "@/components/tickets/TicketStats";
 import { CreateTicketDialog } from "@/components/tickets/CreateTicketDialog";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function TicketsPage() {
+  const { t } = useTranslation();
   const [createOpen, setCreateOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -17,11 +19,11 @@ export default function TicketsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Ärenden</h1>
-            <p className="text-sm text-muted-foreground">Hantera sälj- och supportärenden</p>
+            <h1 className="text-2xl font-bold tracking-tight">{t("tickets.title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("tickets.subtitle")}</p>
           </div>
           <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Nytt ärende
+            <Plus className="h-4 w-4 mr-1" /> {t("tickets.new")}
           </Button>
         </div>
 
