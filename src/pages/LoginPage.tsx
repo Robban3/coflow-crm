@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -16,6 +18,7 @@ export default function LoginPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,15 +28,15 @@ export default function LoginPage() {
 
     if (error) {
       toast({
-        title: "Inloggning misslyckades",
+        title: t("login.failedTitle"),
         description: error.message,
         variant: "destructive",
       });
       setIsLoading(false);
     } else {
       toast({
-        title: "Välkommen tillbaka!",
-        description: "Du är nu inloggad.",
+        title: t("login.successTitle"),
+        description: t("login.successDesc"),
       });
       navigate("/dashboard");
     }
@@ -41,8 +44,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 relative">
-      {/* Theme toggle in corner */}
-      <div className="absolute top-4 right-4">
+      {/* Language + theme toggle in corner */}
+      <div className="absolute top-4 right-4 flex items-center gap-1">
+        <LanguageSwitcher />
         <ThemeToggle />
       </div>
 
@@ -58,9 +62,9 @@ export default function LoginPage() {
             <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-5 shadow-md">
               <span className="text-primary-foreground font-bold text-xl tracking-tight">WA</span>
             </div>
-            <CardTitle className="text-2xl font-semibold tracking-tight">Välkommen tillbaka</CardTitle>
+            <CardTitle className="text-2xl font-semibold tracking-tight">{t("login.welcome")}</CardTitle>
             <CardDescription className="text-muted-foreground/80">
-              Logga in för att fortsätta till ditt CRM
+              {t("login.subtitle")}
             </CardDescription>
           </CardHeader>
 
@@ -68,12 +72,12 @@ export default function LoginPage() {
             <CardContent className="space-y-5 pt-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
-                  E-postadress
+                  {t("login.email")}
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="din@epost.se"
+                  placeholder={t("login.emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -85,13 +89,13 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-sm font-medium">
-                    Lösenord
+                    {t("login.password")}
                   </Label>
                   <button
                     type="button"
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    Glömt lösenord?
+                    {t("login.forgotPassword")}
                   </button>
                 </div>
                 <Input
@@ -111,19 +115,19 @@ export default function LoginPage() {
                 disabled={isLoading}
               >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Logga in
+                {t("login.submit")}
               </Button>
             </CardContent>
           </form>
 
           <div className="px-6 pb-8 pt-2">
             <p className="text-sm text-muted-foreground text-center">
-              Har du inget konto?{" "}
-              <Link 
-                to="/register" 
+              {t("login.noAccount")}{" "}
+              <Link
+                to="/register"
                 className="text-primary font-medium hover:underline underline-offset-4 transition-colors"
               >
-                Skapa ett konto
+                {t("login.createAccount")}
               </Link>
             </p>
           </div>
@@ -131,7 +135,7 @@ export default function LoginPage() {
 
         {/* Footer text */}
         <p className="text-center text-xs text-muted-foreground/60 mt-6">
-          Säker inloggning med krypterad anslutning
+          {t("login.secureFooter")}
         </p>
       </div>
     </div>

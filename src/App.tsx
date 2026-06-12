@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { LanguageProvider } from "@/i18n/LanguageProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ModulesProvider } from "@/hooks/useModules";
 import { OrganizationProvider } from "@/hooks/useOrganization";
@@ -84,6 +85,7 @@ function PageFallback() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
+      <LanguageProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -205,6 +207,7 @@ const App = () => (
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
+      </LanguageProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

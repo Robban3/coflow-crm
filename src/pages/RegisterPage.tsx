@@ -9,6 +9,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Key, CheckCircle2, XCircle, Building2, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
@@ -23,6 +26,7 @@ export default function RegisterPage() {
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
 
   // Pre-fill invite code from URL and switch to join tab
@@ -78,8 +82,8 @@ export default function RegisterPage() {
     if (registrationType === "join") {
       if (!inviteCode) {
         toast({
-          title: "Inbjudningskod krävs",
-          description: "Du behöver en inbjudningskod för att gå med i en organisation.",
+          title: t("register.inviteRequiredTitle"),
+          description: t("register.inviteRequiredDesc"),
           variant: "destructive",
         });
         return;
@@ -87,8 +91,8 @@ export default function RegisterPage() {
 
       if (codeValidation !== "valid") {
         toast({
-          title: "Ogiltig inbjudningskod",
-          description: "Kontrollera att koden är korrekt och fortfarande giltig.",
+          title: t("register.inviteInvalidTitle"),
+          description: t("register.inviteInvalidDesc"),
           variant: "destructive",
         });
         return;
@@ -97,8 +101,8 @@ export default function RegisterPage() {
 
     if (password !== confirmPassword) {
       toast({
-        title: "Lösenorden matchar inte",
-        description: "Kontrollera att lösenorden är identiska.",
+        title: t("register.passwordMismatchTitle"),
+        description: t("register.passwordMismatchDesc"),
         variant: "destructive",
       });
       return;
@@ -106,8 +110,8 @@ export default function RegisterPage() {
 
     if (password.length < 6) {
       toast({
-        title: "Lösenordet är för kort",
-        description: "Lösenordet måste vara minst 6 tecken.",
+        title: t("register.passwordShortTitle"),
+        description: t("register.passwordShortDesc"),
         variant: "destructive",
       });
       return;
@@ -125,7 +129,7 @@ export default function RegisterPage() {
         });
 
         if (inviteError || !consumedOrgId) {
-          throw new Error("Inbjudningskoden är ogiltig");
+          throw new Error(t("register.inviteInvalidError"));
         }
 
         organizationId = consumedOrgId;
@@ -156,22 +160,22 @@ export default function RegisterPage() {
         }
 
         toast({
-          title: "Konto skapat!",
-          description: "Du har gått med i organisationen.",
+          title: t("register.createdTitle"),
+          description: t("register.joinedDesc"),
         });
         navigate("/dashboard");
       } else {
         // New organization - redirect to onboarding
         toast({
-          title: "Konto skapat!",
-          description: "Låt oss konfigurera din organisation.",
+          title: t("register.createdTitle"),
+          description: t("register.configureDesc"),
         });
         navigate("/onboarding");
       }
     } catch (error: any) {
       toast({
-        title: "Registrering misslyckades",
-        description: error.message || "Ett oväntat fel uppstod",
+        title: t("register.failedTitle"),
+        description: error.message || t("register.unexpectedError"),
         variant: "destructive",
       });
     } finally {
@@ -180,15 +184,19 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      <div className="absolute top-4 right-4 flex items-center gap-1">
+        <LanguageSwitcher />
+        <ThemeToggle />
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
             <span className="text-primary-foreground font-bold text-lg">CRM</span>
           </div>
-          <CardTitle className="text-2xl">Skapa konto</CardTitle>
+          <CardTitle className="text-2xl">{t("register.title")}</CardTitle>
           <CardDescription>
-            Registrera dig för att använda CRM-systemet
+            {t("register.subtitle")}
           </CardDescription>
         </CardHeader>
 
@@ -203,17 +211,17 @@ export default function RegisterPage() {
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="new" className="flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
-                  Ny organisation
+                  {t("register.newOrg")}
                 </TabsTrigger>
                 <TabsTrigger value="join" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Gå med
+                  {t("register.join")}
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="new" className="mt-4">
                 <p className="text-sm text-muted-foreground text-center">
-                  Skapa en helt ny organisation och bjud in ditt team efteråt.
+                  {t("register.newOrgDesc")}
                 </p>
               </TabsContent>
 
@@ -221,7 +229,7 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   <Label htmlFor="inviteCode" className="flex items-center gap-2">
                     <Key className="h-3.5 w-3.5" />
-                    Inbjudningskod
+                    {t("register.inviteCode")}
                   </Label>
                   <div className="relative">
                     <Input
@@ -246,7 +254,7 @@ export default function RegisterPage() {
                   </div>
                   {codeValidation === "invalid" && (
                     <p className="text-xs text-destructive">
-                      Koden är ogiltig eller har redan använts
+                      {t("register.inviteInvalid")}
                     </p>
                   )}
                 </div>
@@ -254,11 +262,11 @@ export default function RegisterPage() {
             </Tabs>
 
             <div className="space-y-2">
-              <Label htmlFor="fullName">Namn</Label>
+              <Label htmlFor="fullName">{t("register.name")}</Label>
               <Input
                 id="fullName"
                 type="text"
-                placeholder="Ditt namn"
+                placeholder={t("register.namePlaceholder")}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
@@ -266,11 +274,11 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">E-post</Label>
+              <Label htmlFor="email">{t("register.email")}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="din@epost.se"
+                placeholder={t("login.emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -278,7 +286,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Lösenord</Label>
+              <Label htmlFor="password">{t("register.password")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -289,7 +297,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Bekräfta lösenord</Label>
+              <Label htmlFor="confirmPassword">{t("register.confirmPassword")}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -307,12 +315,12 @@ export default function RegisterPage() {
               disabled={isLoading || (registrationType === "join" && codeValidation !== "valid")}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {registrationType === "new" ? "Skapa organisation" : "Gå med i organisation"}
+              {registrationType === "new" ? t("register.createOrg") : t("register.joinOrg")}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              Har du redan ett konto?{" "}
+              {t("register.hasAccount")}{" "}
               <Link to="/login" className="text-primary hover:underline">
-                Logga in
+                {t("register.login")}
               </Link>
             </p>
           </CardFooter>
