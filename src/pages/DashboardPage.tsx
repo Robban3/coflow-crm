@@ -29,11 +29,14 @@ import {
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format, startOfDay, startOfWeek, isToday, isThisWeek } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function DashboardPage() {
   const { user, isAdmin } = useAuth();
   const { hasModuleAccess } = useModules();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
 
   // Fetch sent emails stats
   const { data: emailStats } = useQuery({
@@ -260,7 +263,7 @@ export default function DashboardPage() {
 
   // Recent activity
   const { data: recentActivity } = useQuery({
-    queryKey: ['dashboard-recent-activity', user?.id, isAdmin],
+    queryKey: ['dashboard-recent-activity', user?.id, isAdmin, language],
     queryFn: async () => {
       const activities: Array<{
         id: string;
@@ -285,7 +288,7 @@ export default function DashboardPage() {
         activities.push({
           id: e.id,
           type: 'email',
-          title: `Mail skickat till ${e.recipient_name || e.recipient_email}`,
+          title: t("dashboard.mailSentTo", { name: e.recipient_name || e.recipient_email }),
           subtitle: e.subject,
           timestamp: e.created_at,
         });
@@ -307,7 +310,7 @@ export default function DashboardPage() {
         activities.push({
           id: a.id,
           type: 'analysis',
-          title: `Webbanalys slutförd`,
+          title: t("dashboard.webAnalysisDone"),
           subtitle: domain,
           timestamp: a.created_at,
         });
@@ -343,38 +346,38 @@ export default function DashboardPage() {
     highlight: boolean;
     highlightType?: 'warning';
   }> = [
-    { 
-      label: "Mail idag", 
-      value: emailStats?.todayCount?.toString() || "0", 
-      change: `${emailStats?.weekCount || 0} denna vecka`, 
+    {
+      label: t("dashboard.statMailToday"),
+      value: emailStats?.todayCount?.toString() || "0",
+      change: t("dashboard.statThisWeekCount", { count: emailStats?.weekCount || 0 }),
       icon: Mail,
       moduleId: 'outreach',
       path: '/mail',
       highlight: (emailStats?.todayCount || 0) > 0,
     },
-    { 
-      label: "Öppna tasks", 
-      value: tasksStats?.openTasks?.toString() || "0", 
-      change: `${tasksStats?.overdue || 0} förfallna`, 
+    {
+      label: t("dashboard.statOpenTasks"),
+      value: tasksStats?.openTasks?.toString() || "0",
+      change: t("dashboard.statOverdue", { count: tasksStats?.overdue || 0 }),
       icon: CheckSquare,
       moduleId: 'tasks',
       path: '/tasks',
       highlight: (tasksStats?.overdue || 0) > 0,
       highlightType: 'warning',
     },
-    { 
-      label: "Leads", 
-      value: leadsStats?.total?.toString() || "0", 
-      change: `+${leadsStats?.thisWeek || 0} denna vecka`, 
+    {
+      label: t("dashboard.statLeads"),
+      value: leadsStats?.total?.toString() || "0",
+      change: t("dashboard.statPlusThisWeek", { count: leadsStats?.thisWeek || 0 }),
       icon: Target,
       moduleId: 'leads',
       path: '/leads',
       highlight: (leadsStats?.thisWeek || 0) > 0,
     },
-    { 
-      label: "Analyser", 
-      value: analysesStats?.total?.toString() || "0", 
-      change: `+${analysesStats?.thisWeek || 0} denna vecka`, 
+    {
+      label: t("dashboard.statAnalyses"),
+      value: analysesStats?.total?.toString() || "0",
+      change: t("dashboard.statPlusThisWeek", { count: analysesStats?.thisWeek || 0 }),
       icon: BarChart3,
       moduleId: 'web_analysis',
       path: '/web-analysis',
@@ -383,20 +386,20 @@ export default function DashboardPage() {
   ];
 
   const quickActions = [
-    { label: "Sök leads", icon: Search, path: "/leads", moduleId: 'leads' as const },
-    { label: "Ny analys", icon: BarChart3, path: "/web-analysis", moduleId: 'web_analysis' as const },
-    { label: "Mail", icon: Mail, path: "/mail", moduleId: 'outreach' as const },
-    { label: "Ny task", icon: CheckSquare, path: "/tasks", moduleId: 'tasks' as const },
+    { label: t("dashboard.quickSearchLeads"), icon: Search, path: "/leads", moduleId: 'leads' as const },
+    { label: t("dashboard.quickNewAnalysis"), icon: BarChart3, path: "/web-analysis", moduleId: 'web_analysis' as const },
+    { label: t("dashboard.quickMail"), icon: Mail, path: "/mail", moduleId: 'outreach' as const },
+    { label: t("dashboard.quickNewTask"), icon: CheckSquare, path: "/tasks", moduleId: 'tasks' as const },
   ];
 
-  const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'Användare';
+  const firstName = user?.user_metadata?.full_name?.split(' ')[0] || t("userMenu.defaultName");
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return <Badge variant="destructive" className="text-xs">Brådskande</Badge>;
+        return <Badge variant="destructive" className="text-xs">{t("dashboard.priorityUrgent")}</Badge>;
       case 'high':
-        return <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Hög</Badge>;
+        return <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">{t("dashboard.priorityHigh")}</Badge>;
       default:
         return null;
     }
@@ -405,31 +408,31 @@ export default function DashboardPage() {
   const formatRelativeTime = (dateStr: string) => {
     const date = new Date(dateStr);
     if (isToday(date)) {
-      return `Idag ${format(date, 'HH:mm')}`;
+      return t("dashboard.relativeToday", { time: format(date, 'HH:mm') });
     }
     if (isThisWeek(date, { weekStartsOn: 1 })) {
-      return format(date, 'EEEE HH:mm', { locale: sv });
+      return format(date, 'EEEE HH:mm', { locale: dateLocale });
     }
-    return format(date, 'd MMM HH:mm', { locale: sv });
+    return format(date, 'd MMM HH:mm', { locale: dateLocale });
   };
 
   return (
-    <AppLayout title="Dashboard">
+    <AppLayout title={t("dashboard.title")}>
       <div className="space-y-6 md:space-y-8">
         {/* Welcome */}
         <div>
           <div className="flex items-center gap-3">
             <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
-              Välkommen tillbaka, {firstName}
+              {t("dashboard.welcome", { name: firstName })}
             </h2>
             {isAdmin && (
               <Badge variant="outline" className="text-xs font-medium">
-                Admin
+                {t("userMenu.admin")}
               </Badge>
             )}
           </div>
           <p className="text-muted-foreground mt-1">
-            {isAdmin ? "Organisationsöversikt och ditt teams aktivitet" : "Din personliga översikt och aktivitet"}
+            {isAdmin ? t("dashboard.overviewAdmin") : t("dashboard.overviewUser")}
           </p>
         </div>
 
@@ -439,9 +442,9 @@ export default function DashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <CalendarDays className="h-5 w-5 text-primary" />
-                Idag
+                {t("dashboard.today")}
               </CardTitle>
-              <CardDescription>Saker som behöver din uppmärksamhet</CardDescription>
+              <CardDescription>{t("dashboard.todayDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Overdue tasks */}
@@ -449,7 +452,7 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <AlertTriangle className="h-4 w-4 text-destructive" />
-                    <span className="text-sm font-medium text-destructive">Förfallna uppgifter</span>
+                    <span className="text-sm font-medium text-destructive">{t("dashboard.overdueTasks")}</span>
                   </div>
                   <div className="space-y-1.5">
                     {overdueTasks.map((task) => (
@@ -463,7 +466,7 @@ export default function DashboardPage() {
                           <span className="text-sm truncate">{task.title}</span>
                         </div>
                         <span className="text-xs text-destructive shrink-0 ml-2">
-                          {format(new Date(task.due_date!), 'd MMM', { locale: sv })}
+                          {format(new Date(task.due_date!), 'd MMM', { locale: dateLocale })}
                         </span>
                       </Link>
                     ))}
@@ -476,7 +479,7 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Calendar className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">Dagens möten</span>
+                    <span className="text-sm font-medium">{t("dashboard.todayMeetings")}</span>
                   </div>
                   <div className="space-y-1.5">
                     {todayMeetings.map((meeting) => (
@@ -489,7 +492,7 @@ export default function DashboardPage() {
                           <Calendar className="h-3.5 w-3.5 text-primary shrink-0" />
                           <span className="text-sm truncate">{meeting.title}</span>
                           {meeting.guest_name && (
-                            <span className="text-xs text-muted-foreground">med {meeting.guest_name}</span>
+                            <span className="text-xs text-muted-foreground">{t("dashboard.meetingWith", { name: meeting.guest_name })}</span>
                           )}
                         </div>
                         <span className="text-xs text-muted-foreground shrink-0 ml-2">
@@ -506,7 +509,7 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Phone className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                    <span className="text-sm font-medium text-amber-800 dark:text-amber-300">Behöver uppföljning</span>
+                    <span className="text-sm font-medium text-amber-800 dark:text-amber-300">{t("dashboard.needsFollowUp")}</span>
                   </div>
                   <div className="space-y-1.5">
                     {followUpLeads.map((lead) => (
@@ -520,7 +523,7 @@ export default function DashboardPage() {
                           <span className="text-sm truncate">{lead.company_name || lead.contact_name}</span>
                         </div>
                         <span className="text-xs text-muted-foreground shrink-0 ml-2">
-                          Senast {format(new Date(lead.last_call_at!), 'd MMM', { locale: sv })}
+                          {t("dashboard.lastContact", { date: format(new Date(lead.last_call_at!), 'd MMM', { locale: dateLocale }) })}
                         </span>
                       </Link>
                     ))}
@@ -533,12 +536,12 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    <span className="text-sm font-medium">Outreach att granska</span>
+                    <span className="text-sm font-medium">{t("dashboard.outreachToReview")}</span>
                     <Badge variant="secondary" className="text-xs">{pendingApprovals.length}</Badge>
                   </div>
                   <Button variant="outline" size="sm" asChild>
                     <Link to="/mail">
-                      Granska utkast
+                      {t("dashboard.reviewDrafts")}
                       <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                     </Link>
                   </Button>
@@ -604,7 +607,7 @@ export default function DashboardPage() {
               <Card className="h-full hover-lift cursor-pointer transition-all">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Teammedlemmar
+                    {t("dashboard.teamMembers")}
                   </CardTitle>
                   <div className="p-2 rounded-lg bg-muted/50 group-hover:bg-muted transition-colors">
                     <UserCheck className="h-4 w-4 text-muted-foreground/70" />
@@ -613,7 +616,7 @@ export default function DashboardPage() {
                 <CardContent>
                   <div className="text-3xl font-semibold tracking-tight">{teamStats.totalUsers}</div>
                   <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
-                    I organisationen
+                    {t("dashboard.inOrganization")}
                   </p>
                 </CardContent>
               </Card>
@@ -629,13 +632,13 @@ export default function DashboardPage() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <MailOpen className="h-5 w-5 text-muted-foreground" />
-                    E-postprestanda
+                    {t("dashboard.emailPerformance")}
                   </CardTitle>
-                  <CardDescription>Öppningsfrekvens och engagemang</CardDescription>
+                  <CardDescription>{t("dashboard.emailPerformanceDesc")}</CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
                   <Link to="/mail">
-                    Visa alla 
+                    {t("dashboard.viewAll")}
                     <ArrowRight className="ml-1.5 h-4 w-4" />
                   </Link>
                 </Button>
@@ -645,15 +648,15 @@ export default function DashboardPage() {
               <div className="grid grid-cols-3 gap-6">
                 <div className="text-center">
                   <div className="text-3xl font-semibold text-foreground">{emailStats.totalCount}</div>
-                  <div className="text-sm text-muted-foreground mt-1">Totalt skickade</div>
+                  <div className="text-sm text-muted-foreground mt-1">{t("dashboard.totalSent")}</div>
                 </div>
                 <div className="text-center border-x border-border">
                   <div className="text-3xl font-semibold text-foreground">{emailStats.openRate}%</div>
-                  <div className="text-sm text-muted-foreground mt-1">Öppningsfrekvens</div>
+                  <div className="text-sm text-muted-foreground mt-1">{t("dashboard.openRate")}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-semibold text-foreground">{emailStats.weekCount}</div>
-                  <div className="text-sm text-muted-foreground mt-1">Denna vecka</div>
+                  <div className="text-sm text-muted-foreground mt-1">{t("dashboard.thisWeek")}</div>
                 </div>
               </div>
             </CardContent>
@@ -664,8 +667,8 @@ export default function DashboardPage() {
           {/* Quick Actions */}
           <Card className="overflow-hidden w-full max-w-full">
             <CardHeader className="pb-4">
-              <CardTitle>Snabbåtgärder</CardTitle>
-              <CardDescription>Vanliga åtgärder för att komma igång</CardDescription>
+              <CardTitle>{t("dashboard.quickActions")}</CardTitle>
+              <CardDescription>{t("dashboard.quickActionsDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-2 sm:gap-3 p-4 sm:p-5 pt-0 w-full max-w-full overflow-hidden">
               {quickActions.filter(action => hasModuleAccess(action.moduleId)).map((action) => {
@@ -694,12 +697,12 @@ export default function DashboardPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div>
-                  <CardTitle>Kommande uppgifter</CardTitle>
-                  <CardDescription>Tasks som behöver uppmärksamhet</CardDescription>
+                  <CardTitle>{t("dashboard.upcomingTasks")}</CardTitle>
+                  <CardDescription>{t("dashboard.upcomingTasksDesc")}</CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
                   <Link to="/tasks">
-                    Visa alla 
+                    {t("dashboard.viewAll")}
                     <ArrowRight className="ml-1.5 h-4 w-4" />
                   </Link>
                 </Button>
@@ -724,7 +727,7 @@ export default function DashboardPage() {
                                   ? "text-destructive" 
                                   : "text-muted-foreground"
                               )}>
-                                {format(new Date(task.due_date), 'd MMM', { locale: sv })}
+                                {format(new Date(task.due_date), 'd MMM', { locale: dateLocale })}
                               </p>
                             )}
                           </div>
@@ -738,11 +741,11 @@ export default function DashboardPage() {
                     <div className="p-3 rounded-xl bg-muted/50 mb-3">
                       <Clock className="h-6 w-6 text-muted-foreground/50" />
                     </div>
-                    <p className="text-muted-foreground font-medium">Inga uppgifter schemalagda</p>
+                    <p className="text-muted-foreground font-medium">{t("dashboard.noTasksScheduled")}</p>
                     <Button variant="link" size="sm" className="mt-2 text-muted-foreground" asChild>
                       <Link to="/tasks">
-                        <Plus className="mr-1.5 h-4 w-4" /> 
-                        Skapa första uppgiften
+                        <Plus className="mr-1.5 h-4 w-4" />
+                        {t("dashboard.createFirstTask")}
                       </Link>
                     </Button>
                   </div>
@@ -757,10 +760,10 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-muted-foreground" />
-              Senaste aktivitet
+              {t("dashboard.recentActivity")}
             </CardTitle>
             <CardDescription>
-              {isAdmin ? "Aktiviteter från hela teamet" : "Din senaste aktivitet"}
+              {isAdmin ? t("dashboard.recentActivityAdmin") : t("dashboard.recentActivityUser")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -796,9 +799,9 @@ export default function DashboardPage() {
                 <div className="p-3 rounded-xl bg-muted/50 mb-3">
                   <Clock className="h-6 w-6 text-muted-foreground/50" />
                 </div>
-                <p className="text-muted-foreground font-medium">Ingen aktivitet ännu</p>
+                <p className="text-muted-foreground font-medium">{t("dashboard.noActivity")}</p>
                 <p className="text-sm text-muted-foreground/70 mt-1">
-                  Aktiviteter visas här när du börjar använda systemet
+                  {t("dashboard.noActivityDesc")}
                 </p>
               </div>
             )}
