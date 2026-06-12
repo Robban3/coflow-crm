@@ -6,11 +6,13 @@ import { Settings, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export function MobileSidebar() {
   const location = useLocation();
   const { enabledModules } = useModules();
   const { settings } = useOrganization();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const navigationModules = enabledModules.filter(m => m.id !== 'settings' && !m.isLeadSection);
@@ -37,7 +39,7 @@ export function MobileSidebar() {
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="md:hidden h-9 w-9">
           <Menu className="h-5 w-5" />
-          <span className="sr-only">Öppna meny</span>
+          <span className="sr-only">{t("sidebar.openMenu")}</span>
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-72 p-0">
@@ -65,7 +67,7 @@ export function MobileSidebar() {
           <ul className="space-y-1">
             {navigationModules.map((module) => {
               const Icon = module.icon;
-              const isActive = location.pathname === module.path || 
+              const isActive = location.pathname === module.path ||
                 (module.path !== '/dashboard' && location.pathname.startsWith(module.path));
 
               return (
@@ -81,7 +83,7 @@ export function MobileSidebar() {
                     )}
                   >
                     <Icon className="h-5 w-5 shrink-0" />
-                    <span>{module.name}</span>
+                    <span>{t(`nav.${module.id}`)}</span>
                   </Link>
                 </li>
               );
@@ -102,7 +104,7 @@ export function MobileSidebar() {
             )}
           >
             <Settings className="h-5 w-5 shrink-0" />
-            <span>Inställningar</span>
+            <span>{t("sidebar.settings")}</span>
           </Link>
         </div>
       </SheetContent>

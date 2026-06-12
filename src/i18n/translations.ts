@@ -63,6 +63,44 @@ export const translations: Record<Language, Dict> = {
     "register.unexpectedError": "Ett oväntat fel uppstod",
     "register.inviteInvalidError": "Inbjudningskoden är ogiltig",
 
+    // Navigation (module names)
+    "nav.dashboard": "Dashboard",
+    "nav.customers": "Kunder",
+    "nav.pipeline": "Pipeline",
+    "nav.leads": "Leads",
+    "nav.prospecting": "Prospektering",
+    "nav.tasks": "Tasks",
+    "nav.tickets": "Ärenden",
+    "nav.web_analysis": "Webbanalys",
+    "nav.geo_analysis": "GEO / AI-synlighet",
+    "nav.outreach": "Outreach",
+    "nav.outreach_pro": "Power Call",
+    "nav.mail": "Mail",
+    "nav.templates": "Mallar",
+    "nav.offers": "Offerter (Block)",
+    "nav.quotes": "Offerter",
+    "nav.reports": "Rapporter",
+    "nav.meetings": "Möten",
+    "nav.fleet_data": "Fordonsdata & Telefoni",
+    "nav.seo_intelligence": "SEO Intelligence",
+    "nav.statistics": "Statistik",
+    "nav.settings": "Inställningar",
+
+    // Header
+    "header.searchPlaceholder": "Sök...",
+
+    // User menu
+    "userMenu.profile": "Profil",
+    "userMenu.settings": "Inställningar",
+    "userMenu.signOut": "Logga ut",
+    "userMenu.defaultName": "Användare",
+    "userMenu.admin": "Admin",
+
+    // Sidebar
+    "sidebar.openMenu": "Öppna meny",
+    "sidebar.collapse": "Minimera",
+    "sidebar.settings": "Inställningar",
+
     // Language switcher
     "language.label": "Språk",
   },
@@ -114,6 +152,44 @@ export const translations: Record<Language, Dict> = {
     "register.unexpectedError": "An unexpected error occurred",
     "register.inviteInvalidError": "The invite code is invalid",
 
+    // Navigation (module names)
+    "nav.dashboard": "Dashboard",
+    "nav.customers": "Customers",
+    "nav.pipeline": "Pipeline",
+    "nav.leads": "Leads",
+    "nav.prospecting": "Prospecting",
+    "nav.tasks": "Tasks",
+    "nav.tickets": "Tickets",
+    "nav.web_analysis": "Web analysis",
+    "nav.geo_analysis": "GEO / AI visibility",
+    "nav.outreach": "Outreach",
+    "nav.outreach_pro": "Power Call",
+    "nav.mail": "Mail",
+    "nav.templates": "Templates",
+    "nav.offers": "Offers (Block)",
+    "nav.quotes": "Quotes",
+    "nav.reports": "Reports",
+    "nav.meetings": "Meetings",
+    "nav.fleet_data": "Vehicle data & Telephony",
+    "nav.seo_intelligence": "SEO Intelligence",
+    "nav.statistics": "Statistics",
+    "nav.settings": "Settings",
+
+    // Header
+    "header.searchPlaceholder": "Search...",
+
+    // User menu
+    "userMenu.profile": "Profile",
+    "userMenu.settings": "Settings",
+    "userMenu.signOut": "Sign out",
+    "userMenu.defaultName": "User",
+    "userMenu.admin": "Admin",
+
+    // Sidebar
+    "sidebar.openMenu": "Open menu",
+    "sidebar.collapse": "Collapse",
+    "sidebar.settings": "Settings",
+
     // Language switcher
     "language.label": "Language",
   },
@@ -164,6 +240,44 @@ export const translations: Record<Language, Dict> = {
     "register.failedTitle": "Error en el registro",
     "register.unexpectedError": "Se produjo un error inesperado",
     "register.inviteInvalidError": "El código de invitación no es válido",
+
+    // Navigation (module names)
+    "nav.dashboard": "Panel",
+    "nav.customers": "Clientes",
+    "nav.pipeline": "Embudo",
+    "nav.leads": "Leads",
+    "nav.prospecting": "Prospección",
+    "nav.tasks": "Tareas",
+    "nav.tickets": "Tickets",
+    "nav.web_analysis": "Análisis web",
+    "nav.geo_analysis": "GEO / visibilidad IA",
+    "nav.outreach": "Outreach",
+    "nav.outreach_pro": "Power Call",
+    "nav.mail": "Correo",
+    "nav.templates": "Plantillas",
+    "nav.offers": "Ofertas (Bloques)",
+    "nav.quotes": "Presupuestos",
+    "nav.reports": "Informes",
+    "nav.meetings": "Reuniones",
+    "nav.fleet_data": "Datos de vehículos y telefonía",
+    "nav.seo_intelligence": "SEO Intelligence",
+    "nav.statistics": "Estadísticas",
+    "nav.settings": "Ajustes",
+
+    // Header
+    "header.searchPlaceholder": "Buscar...",
+
+    // User menu
+    "userMenu.profile": "Perfil",
+    "userMenu.settings": "Ajustes",
+    "userMenu.signOut": "Cerrar sesión",
+    "userMenu.defaultName": "Usuario",
+    "userMenu.admin": "Admin",
+
+    // Sidebar
+    "sidebar.openMenu": "Abrir menú",
+    "sidebar.collapse": "Minimizar",
+    "sidebar.settings": "Ajustes",
 
     // Language switcher
     "language.label": "Idioma",
