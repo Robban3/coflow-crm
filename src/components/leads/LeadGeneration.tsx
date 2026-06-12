@@ -28,12 +28,14 @@ import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { firecrawlApi } from "@/lib/api/firecrawl";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface LeadGenerationProps {
   onLeadCreated: () => void;
 }
 
 export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -64,13 +66,13 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
         });
         setShowAddDialog(true);
         toast({
-          title: "Data extraherad!",
-          description: "Granska och komplettera informationen",
+          title: t("leadGen.toastExtractedTitle"),
+          description: t("leadGen.toastExtractedDesc"),
         });
       } else {
         toast({
-          title: "Kunde inte extrahera data",
-          description: response.error || "Försök lägga till manuellt",
+          title: t("leadGen.toastExtractFailTitle"),
+          description: response.error || t("leadGen.toastExtractFailDesc"),
           variant: "destructive",
         });
         setFormData(prev => ({ ...prev, website: searchQuery }));
@@ -78,8 +80,8 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
       }
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Ett oväntat fel uppstod",
+        title: t("common.error"),
+        description: t("common.unexpectedError"),
         variant: "destructive",
       });
     } finally {
@@ -90,7 +92,7 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
   const handleSaveLead = async () => {
     if (!formData.companyName) {
       toast({
-        title: "Företagsnamn krävs",
+        title: t("leadGen.toastCompanyReq"),
         variant: "destructive",
       });
       return;
@@ -99,9 +101,9 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
     setIsSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
-        toast({ title: "Ej inloggad", variant: "destructive" });
+        toast({ title: t("leadGen.toastNotLoggedIn"), variant: "destructive" });
         return;
       }
 
@@ -120,8 +122,8 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
       if (error) throw error;
 
       toast({
-        title: "Lead skapad!",
-        description: `${formData.companyName} har lagts till`,
+        title: t("leadGen.toastCreatedTitle"),
+        description: t("leadGen.toastCreatedDesc", { name: formData.companyName }),
       });
 
       setShowAddDialog(false);
@@ -132,8 +134,8 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
     } catch (error) {
       console.error('Error saving lead:', error);
       toast({
-        title: "Fel",
-        description: "Kunde inte spara lead",
+        title: t("common.error"),
+        description: t("leadGen.toastSaveFail"),
         variant: "destructive",
       });
     } finally {
@@ -151,14 +153,14 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-foreground">Lägg till enskild lead</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-foreground">{t("leadGen.title")}</h2>
           <p className="text-sm md:text-base text-muted-foreground">
-            Extrahera data från en webbplats eller fyll i uppgifterna för hand
+            {t("leadGen.subtitle")}
           </p>
         </div>
         <Button onClick={openManualDialog} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
-          Lägg till manuellt
+          {t("leadGen.addManually")}
         </Button>
       </div>
 
@@ -170,15 +172,15 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
               <Telescope className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground">Söker du många företag?</h3>
+              <h3 className="font-semibold text-foreground">{t("leadGen.manyCompaniesTitle")}</h3>
               <p className="text-sm text-muted-foreground">
-                Använd Prospektering för att hitta, berika och kontakta nya leads i bulk via Google Places.
+                {t("leadGen.manyCompaniesDesc")}
               </p>
             </div>
           </div>
           <Button asChild variant="outline" className="w-full sm:w-auto shrink-0">
             <Link to="/prospecting">
-              Gå till Prospektering
+              {t("leadGen.goToProspecting")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -190,10 +192,10 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Sök via URL
+            {t("leadGen.searchViaUrl")}
           </CardTitle>
           <CardDescription>
-            Extrahera kontaktuppgifter och företagsinformation från webbplatser
+            {t("leadGen.searchViaUrlDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -212,14 +214,14 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
               {isExtracting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  <span className="hidden sm:inline">Extraherar...</span>
-                  <span className="sm:hidden">Laddar...</span>
+                  <span className="hidden sm:inline">{t("leadGen.extracting")}</span>
+                  <span className="sm:hidden">{t("common.loading")}</span>
                 </>
               ) : (
                 <>
                   <Zap className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Extrahera info</span>
-                  <span className="sm:hidden">Extrahera</span>
+                  <span className="hidden sm:inline">{t("leadGen.extractInfo")}</span>
+                  <span className="sm:hidden">{t("leadGen.extract")}</span>
                 </>
               )}
             </Button>
@@ -233,12 +235,12 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5" />
-              {formData.website ? "Granska extraherad data" : "Lägg till lead"}
+              {formData.website ? t("leadGen.reviewExtracted") : t("leadGen.addLead")}
             </DialogTitle>
             <DialogDescription>
-              {formData.website 
-                ? "Granska och komplettera informationen nedan"
-                : "Fyll i information om den nya leaden"
+              {formData.website
+                ? t("leadGen.reviewDesc")
+                : t("leadGen.fillDesc")
               }
             </DialogDescription>
           </DialogHeader>
@@ -247,26 +249,26 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
             <div className="space-y-2">
               <Label htmlFor="companyName" className="flex items-center gap-2">
                 <Building2 className="h-3 w-3" />
-                Företagsnamn *
+                {t("leadGen.companyNameReq")}
               </Label>
               <Input
                 id="companyName"
                 value={formData.companyName}
                 onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
-                placeholder="Företagets namn"
+                placeholder={t("leadGen.companyNamePlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="contactName" className="flex items-center gap-2">
                 <User className="h-3 w-3" />
-                Kontaktperson
+                {t("leadGen.contactPerson")}
               </Label>
               <Input
                 id="contactName"
                 value={formData.contactName}
                 onChange={(e) => setFormData(prev => ({ ...prev, contactName: e.target.value }))}
-                placeholder="Namn på kontaktperson"
+                placeholder={t("leadGen.contactPersonPlaceholder")}
               />
             </div>
 
@@ -274,7 +276,7 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
                   <Mail className="h-3 w-3" />
-                  E-post
+                  {t("leadGen.email")}
                 </Label>
                 <Input
                   id="email"
@@ -288,7 +290,7 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
               <div className="space-y-2">
                 <Label htmlFor="phone" className="flex items-center gap-2">
                   <Phone className="h-3 w-3" />
-                  Telefon
+                  {t("leadGen.phone")}
                 </Label>
                 <Input
                   id="phone"
@@ -302,7 +304,7 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
             <div className="space-y-2">
               <Label htmlFor="website" className="flex items-center gap-2">
                 <Globe className="h-3 w-3" />
-                Webbplats
+                {t("leadGen.website")}
               </Label>
               <Input
                 id="website"
@@ -315,16 +317,16 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-              Avbryt
+              {t("common.cancel")}
             </Button>
             <Button onClick={handleSaveLead} disabled={isSaving || !formData.companyName}>
               {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sparar...
+                  {t("common.saving")}
                 </>
               ) : (
-                "Skapa lead"
+                t("leadGen.createLead")
               )}
             </Button>
           </DialogFooter>
