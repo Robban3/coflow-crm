@@ -1,0 +1,24 @@
+// Aggregates per-feature dictionaries. Each entry contributes translation keys
+// for every supported language and is merged into the main `translations`
+// object (see ../translations.ts). Add new feature dictionaries to this array.
+import type { FeatureDictionary } from "../translations";
+
+import { tasksDict } from "./tasks";
+import { meetingsDict } from "./meetings";
+import { quotesDict } from "./quotes";
+import { ticketsDict } from "./tickets";
+import { statisticsDict } from "./statistics";
+import { reportsDict } from "./reports";
+import { prospectingDict } from "./prospecting";
+import { webAnalysisDict } from "./webAnalysis";
+
+export const featureDictionaries: FeatureDictionary[] = [
+  tasksDict,
+  meetingsDict,
+  quotesDict,
+  ticketsDict,
+  statisticsDict,
+  reportsDict,
+  prospectingDict,
+  webAnalysisDict,
+];

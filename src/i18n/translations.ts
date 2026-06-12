@@ -12,7 +12,9 @@ export type Language = (typeof LANGUAGES)[number]["code"];
 
 export const DEFAULT_LANGUAGE: Language = "sv";
 
-type Dict = Record<string, string>;
+export type Dict = Record<string, string>;
+/** A per-feature dictionary contributes keys for every supported language. */
+export type FeatureDictionary = Record<Language, Dict>;
 
 export const translations: Record<Language, Dict> = {
   sv: {
@@ -1009,3 +1011,13 @@ export const translations: Record<Language, Dict> = {
     "language.label": "Idioma",
   },
 };
+
+// Per-feature dictionaries live in ./dictionaries and are merged in here so
+// individual pages/components can keep their strings in dedicated files.
+import { featureDictionaries } from "./dictionaries";
+
+for (const dict of featureDictionaries) {
+  (Object.keys(dict) as Language[]).forEach((lang) => {
+    Object.assign(translations[lang], dict[lang]);
+  });
+}
