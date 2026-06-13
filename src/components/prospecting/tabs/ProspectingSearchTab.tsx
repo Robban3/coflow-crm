@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface PlaceResult {
   placeId: string;
@@ -90,6 +91,7 @@ function saveSavedSearches(searches: SavedSearch[]) {
 
 export default function ProspectingSearchTab() {
   const orgId = useOrganizationId();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { market } = useMarket();
   const { getCachedResults, cacheResults, clearCache } = useGooglePlacesCache();
@@ -160,7 +162,7 @@ export default function ProspectingSearchTab() {
         body: { query: sIndustry, location: sLocation, radius: 50000, market },
       });
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Sökningen misslyckades");
+      if (!data?.success) throw new Error(data?.error || t("prospecting.searchFailed"));
 
       const results = data.results as PlaceResult[];
 
@@ -220,9 +222,9 @@ export default function ProspectingSearchTab() {
     
     if (allNew.length > 0) {
       setAccumulatedResults(prev => [...prev, ...allNew]);
-      toast.success(`${allNew.length} nya resultat hittades`);
+      toast.success(t("prospecting.newResultsFound", { count: allNew.length }));
     } else {
-      toast.info("Inga fler unika resultat hittades i området");
+      toast.info(t("prospecting.noMoreResults"));
       setCanLoadMore(false);
     }
     
@@ -279,9 +281,9 @@ export default function ProspectingSearchTab() {
   // Import mutation
   const importMutation = useMutation({
     mutationFn: async () => {
-      if (!orgId) throw new Error("Ingen organisation");
+      if (!orgId) throw new Error(t("prospecting.noOrg"));
       const toImport = filteredResults.filter((r) => selectedIds.has(r.placeId));
-      if (!toImport.length) throw new Error("Inga leads valda");
+      if (!toImport.length) throw new Error(t("prospecting.noLeadsSelected"));
 
       const seen = new Set<string>();
       const uniqueToImport = toImport.filter((place) => {
@@ -361,10 +363,10 @@ export default function ProspectingSearchTab() {
     },
     onSuccess: async ({ inserted, reset }) => {
       const parts: string[] = [];
-      if (inserted > 0) parts.push(`${inserted} nya leads importerade`);
-      if (reset > 0) parts.push(`${reset} befintliga leads återställda`);
-      toast.success(parts.join(", ") || "Inga ändringar", {
-        description: (inserted + reset) > 0 ? "Analys och outreach-generering startar automatiskt" : undefined,
+      if (inserted > 0) parts.push(t("prospecting.newLeadsImported", { count: inserted }));
+      if (reset > 0) parts.push(t("prospecting.existingLeadsReset", { count: reset }));
+      toast.success(parts.join(", ") || t("prospecting.noChanges"), {
+        description: (inserted + reset) > 0 ? t("prospecting.autoStartDesc") : undefined,
       });
       setSelectedIds(new Set());
       queryClient.invalidateQueries({ queryKey: ["prospecting-existing-leads"] });
@@ -383,7 +385,7 @@ export default function ProspectingSearchTab() {
       }
     },
     onError: (err: Error) => {
-      toast.error(`Import misslyckades: ${err.message}`);
+      toast.error(t("prospecting.importFailed", { message: err.message }));
     },
   });
 
@@ -439,15 +441,15 @@ export default function ProspectingSearchTab() {
       {/* ── Search form ── */}
       <form onSubmit={handleSearch} className="flex gap-2 items-end flex-wrap">
         <div className="flex-1 min-w-[200px]">
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">Bransch</label>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("prospecting.industry")}</label>
           <Input
-            placeholder="t.ex. Frisör, Restaurang, Tandläkare"
+            placeholder={t("prospecting.industryPlaceholder")}
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
           />
         </div>
         <div className="w-[180px]">
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">Stad</label>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("prospecting.city")}</label>
           <Input
             placeholder={MARKET_LOCATION_PLACEHOLDER[market]}
             value={location}
@@ -456,9 +458,9 @@ export default function ProspectingSearchTab() {
         </div>
         <Button type="submit" disabled={!industry.trim() || searchQuery.isFetching} className="gap-1.5">
           {searchQuery.isFetching ? (
-            <><Loader2 className="h-4 w-4 animate-spin" />Söker…</>
+            <><Loader2 className="h-4 w-4 animate-spin" />{t("prospecting.searching")}</>
           ) : (
-            <><Search className="h-4 w-4" />Sök</>
+            <><Search className="h-4 w-4" />{t("prospecting.search")}</>
           )}
         </Button>
         <Button
@@ -469,7 +471,7 @@ export default function ProspectingSearchTab() {
           className="gap-1.5"
         >
           <Trash2 className="h-4 w-4" />
-          Rensa
+          {t("prospecting.clear")}
         </Button>
       </form>
 
@@ -502,7 +504,7 @@ export default function ProspectingSearchTab() {
       {searchQuery.isError && (
         <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
           <AlertCircle className="h-4 w-4 shrink-0" />
-          {searchQuery.error instanceof Error ? searchQuery.error.message : "Sökningen misslyckades"}
+          {searchQuery.error instanceof Error ? searchQuery.error.message : t("prospecting.searchFailed")}
         </div>
       )}
 
@@ -519,20 +521,20 @@ export default function ProspectingSearchTab() {
                   disabled={newResults.length === 0}
                 />
                 <div className="text-sm">
-                  <strong>{newResults.length}</strong> nya leads med hemsida
+                  <strong>{newResults.length}</strong> {t("prospecting.newLeadsWithSiteSuffix")}
                   {duplicateResults.length > 0 && (
                     <span className="text-muted-foreground ml-2">
-                      ({duplicateResults.length} redan i systemet)
+                      {t("prospecting.alreadyInSystem", { count: duplicateResults.length })}
                     </span>
                   )}
                   {noWebsiteCount > 0 && (
                     <span className="text-muted-foreground ml-2">
-                      ({noWebsiteCount} utan hemsida dolda)
+                      {t("prospecting.withoutSiteHidden", { count: noWebsiteCount })}
                     </span>
                   )}
                   {accumulatedResults.length > 20 && (
                     <span className="text-muted-foreground ml-2">
-                      · {accumulatedResults.length} totalt
+                      {t("prospecting.totalCount", { count: accumulatedResults.length })}
                     </span>
                   )}
                 </div>
@@ -543,9 +545,9 @@ export default function ProspectingSearchTab() {
                 className="gap-1.5"
               >
                 {importMutation.isPending ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" />Importerar…</>
+                  <><Loader2 className="h-4 w-4 animate-spin" />{t("prospecting.importing")}</>
                 ) : (
-                  <><Download className="h-4 w-4" />Importera {selectedIds.size} leads</>
+                  <><Download className="h-4 w-4" />{t("prospecting.importLeads", { count: selectedIds.size })}</>
                 )}
               </Button>
             </CardContent>
@@ -587,7 +589,7 @@ export default function ProspectingSearchTab() {
                       <span className="font-medium text-sm truncate">{place.name}</span>
                       {dupInfo.isDuplicate && (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                          {dupInfo.emailSent ? "Mail skickat" : "Finns redan"}
+                          {dupInfo.emailSent ? t("prospecting.mailSent") : t("prospecting.alreadyExists")}
                         </Badge>
                       )}
                     </div>
@@ -632,9 +634,9 @@ export default function ProspectingSearchTab() {
                 className="gap-2"
               >
                 {isLoadingMore ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" />Söker fler i området…</>
+                  <><Loader2 className="h-4 w-4 animate-spin" />{t("prospecting.searchingMore")}</>
                 ) : (
-                  <><ChevronDown className="h-4 w-4" />Ladda fler resultat</>
+                  <><ChevronDown className="h-4 w-4" />{t("prospecting.loadMore")}</>
                 )}
               </Button>
             </div>
@@ -645,15 +647,15 @@ export default function ProspectingSearchTab() {
       {submitted && !searchQuery.isFetching && filteredResults.length === 0 && !searchQuery.isError && (
         <div className="text-center py-16 text-muted-foreground">
           <Search className="h-8 w-8 mx-auto mb-3 opacity-40" />
-          <p className="text-sm">Inga resultat med hemsida hittades. Försök med andra söktermer.</p>
+          <p className="text-sm">{t("prospecting.noResultsWithSite")}</p>
         </div>
       )}
 
       {!submitted && savedSearches.length === 0 && (
         <div className="text-center py-16 text-muted-foreground">
           <Search className="h-8 w-8 mx-auto mb-3 opacity-40" />
-          <p className="text-sm font-medium mb-1">Sök efter företag i en bransch och stad</p>
-          <p className="text-xs">Granska resultaten och importera de du vill kontakta</p>
+          <p className="text-sm font-medium mb-1">{t("prospecting.emptyTitle")}</p>
+          <p className="text-xs">{t("prospecting.emptyDesc")}</p>
         </div>
       )}
     </div>

@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import ProspectingSearchTab from "./tabs/ProspectingSearchTab";
 import ProspectingQueueTab from "./tabs/ProspectingQueueTab";
 import ProspectingReviewTab from "./tabs/ProspectingReviewTab";
@@ -88,6 +89,7 @@ function useProspectingCounts(orgId: string | null) {
 
 export default function ProspectingModule() {
   const orgId = useOrganizationId();
+  const { t } = useTranslation();
   const { draftCount, queueCount } = useProspectingCounts(orgId);
   const [activeTab, setActiveTab] = useState("search");
 
@@ -100,13 +102,13 @@ export default function ProspectingModule() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold tracking-tight">Prospektering</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t("prospecting.title")}</h1>
             {draftCount > 0 && (
-              <Badge variant="secondary">{draftCount} utkast att granska</Badge>
+              <Badge variant="secondary">{t("prospecting.draftsToReview", { count: draftCount })}</Badge>
             )}
           </div>
           <p className="text-muted-foreground text-sm mt-1">
-            Hitta nya leads, analysera automatiskt och skicka mail i bulk
+            {t("prospecting.subtitle")}
           </p>
         </div>
       </div>
@@ -116,11 +118,11 @@ export default function ProspectingModule() {
         <TabsList>
           <TabsTrigger value="search" className="gap-1.5">
             <Search className="h-4 w-4" />
-            Hämta leads
+            {t("prospecting.tabSearch")}
           </TabsTrigger>
           <TabsTrigger value="queue" className="gap-1.5">
             <Clock className="h-4 w-4" />
-            Kö
+            {t("prospecting.tabQueue")}
             {queueCount > 0 && (
               <Badge variant="outline" className="ml-1 h-5 min-w-[20px] px-1.5 text-xs">
                 {queueCount}
@@ -129,7 +131,7 @@ export default function ProspectingModule() {
           </TabsTrigger>
           <TabsTrigger value="review" className="gap-1.5">
             <Send className="h-4 w-4" />
-            Granska & Skicka
+            {t("prospecting.tabReview")}
             {draftCount > 0 && (
               <Badge className="ml-1 h-5 min-w-[20px] px-1.5 text-xs bg-primary text-primary-foreground">
                 {draftCount}
