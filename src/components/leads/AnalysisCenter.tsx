@@ -676,7 +676,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                       <div className="flex flex-wrap gap-1">
                         {seoData.primary_keywords.slice(0, 8).map((kw: any, i: number) => (
                           <Badge key={i} variant="secondary" className="text-[10px]">
-                            {kw.keyword} {kw.position ? `#${kw.position}` : ''}{kw.search_volume ? ` · ${kw.search_volume} sök/mån` : ''}
+                            {kw.keyword} {kw.position ? `#${kw.position}` : ''}{kw.search_volume ? ` · ${t("leadDetail.ac2_searchVolPerMonth", { volume: kw.search_volume })}` : ''}
                           </Badge>
                         ))}
                       </div>
@@ -748,7 +748,7 @@ function QuickScanSection({ leadId, website }: { leadId: string; website: string
   const handleCreate = async () => {
     if (!lead?.email || !website) {
       toast({
-        title: "Saknar information",
+        title: t("leadDetail.ac2_missingInfo"),
         description: t("leadDetail.ac2_quickScanReq"),
         variant: "destructive",
       });
@@ -766,7 +766,7 @@ function QuickScanSection({ leadId, website }: { leadId: string; website: string
       });
       if (res.error) throw new Error(res.error.message);
       toast({
-        title: "Mini-rapport skapad",
+        title: t("leadDetail.ac2_miniReportCreated"),
         description: `Status: ${res.data.status}`,
       });
       refetch();

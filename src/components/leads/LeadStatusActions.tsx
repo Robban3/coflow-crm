@@ -48,7 +48,7 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
         .eq("id", leadId);
 
       if (error) throw error;
-      toast({ title: "Status uppdaterad" });
+      toast({ title: t("leadDetail.lsa_statusUpdated") });
       onStatusChange();
     } catch (e: any) {
       toast({ title: "Fel", description: e.message, variant: "destructive" });
@@ -96,7 +96,7 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
             <>
               <DropdownMenuItem onClick={() => setShowNotInterestedDialog(true)}>
                 <XCircle className="h-4 w-4 mr-2 text-destructive" />
-                Markera som Ej intresserad
+                {t("leadDetail.lsa_markNotInterested")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleInvalidPhone}>
                 <PhoneOff className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -119,7 +119,7 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
       <Dialog open={showNotInterestedDialog} onOpenChange={setShowNotInterestedDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Markera som Ej intresserad</DialogTitle>
+            <DialogTitle>{t("leadDetail.lsa_markNotInterested")}</DialogTitle>
             <DialogDescription>
               Ange en valfri anledning. Leaden kommer att filtreras bort från uppföljning.
             </DialogDescription>

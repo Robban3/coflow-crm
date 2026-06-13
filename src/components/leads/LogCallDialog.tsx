@@ -257,7 +257,7 @@ export function LogCallDialog({
                   selectedOutcome.key === "not_interested"
                     ? t("leadDetail.lc_notePlaceholderNotInterested")
                     : selectedOutcome.key === "answered"
-                    ? "Kort sammanfattning av samtalet"
+                    ? t("leadDetail.lcd_summaryPlaceholder")
                     : t("leadDetail.lc_notePlaceholderDefault")
                 }
                 rows={3}

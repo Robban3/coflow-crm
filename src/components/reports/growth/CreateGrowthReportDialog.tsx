@@ -59,7 +59,7 @@ export function CreateGrowthReportDialog({ open, onOpenChange, lead }: Props) {
     setIsGenerating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Ej inloggad");
+      if (!user) throw new Error(t("reports.create.notLoggedIn"));
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -97,7 +97,7 @@ export function CreateGrowthReportDialog({ open, onOpenChange, lead }: Props) {
       console.error(err);
       toast({
         title: t("reports.generator.error"),
-        description: err.message || "Kunde inte skapa rapporten",
+        description: err.message || t("reports.create.createError"),
         variant: "destructive",
       });
     } finally {

@@ -237,7 +237,7 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
 
       toast({
         title: t("outreach.seq.createdTitle"),
-        description: `${newSequence.name} har skapats med ${newSequence.steps.length} steg`,
+        description: t("outreach.seq.createdDesc", { name: newSequence.name, count: newSequence.steps.length }),
       });
 
       setShowCreateDialog(false);
@@ -664,12 +664,12 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="0">{t("outreach.seq.immediate")}</SelectItem>
-                              <SelectItem value="1">1 dag</SelectItem>
-                              <SelectItem value="2">2 dagar</SelectItem>
-                              <SelectItem value="3">3 dagar</SelectItem>
-                              <SelectItem value="5">5 dagar</SelectItem>
-                              <SelectItem value="7">1 vecka</SelectItem>
-                              <SelectItem value="14">2 veckor</SelectItem>
+                              <SelectItem value="1">{t("outreach.mgr.delay1Day")}</SelectItem>
+                              <SelectItem value="2">{t("outreach.mgr.delay2Days")}</SelectItem>
+                              <SelectItem value="3">{t("outreach.mgr.delay3Days")}</SelectItem>
+                              <SelectItem value="5">{t("outreach.mgr.delay5Days")}</SelectItem>
+                              <SelectItem value="7">{t("outreach.mgr.delay1Week")}</SelectItem>
+                              <SelectItem value="14">{t("outreach.mgr.delay2Weeks")}</SelectItem>
                             </SelectContent>
                           </Select>
                           <span className="text-sm text-muted-foreground">

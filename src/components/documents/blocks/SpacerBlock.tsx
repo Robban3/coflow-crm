@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { type DocumentBlock, type SpacerBlockConfig } from "./types";
 import {
   Select,
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function SpacerBlockRenderer({ block, readOnly, onChange }: Props) {
+  const { t } = useTranslation();
   const config = block.config as SpacerBlockConfig;
 
   return (
@@ -29,10 +31,10 @@ export function SpacerBlockRenderer({ block, readOnly, onChange }: Props) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="16">Litet (16px)</SelectItem>
-              <SelectItem value="32">Medium (32px)</SelectItem>
-              <SelectItem value="48">Stort (48px)</SelectItem>
-              <SelectItem value="64">Extra stort (64px)</SelectItem>
+              <SelectItem value="16">{t("templates.spacerSmall")}</SelectItem>
+              <SelectItem value="32">{t("templates.spacerMedium")}</SelectItem>
+              <SelectItem value="48">{t("templates.spacerLarge")}</SelectItem>
+              <SelectItem value="64">{t("templates.spacerXLarge")}</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -41,14 +41,14 @@ export function TechnicalAISummary({ result, url }: TechnicalAISummaryProps) {
 
       if (error) {
         console.error("Error generating technical summary:", error);
-        toast.error("Kunde inte generera sammanfattning");
+        toast.error(t("webAnalysis.couldNotGenerateSummary"));
         return;
       }
 
       if (data?.success && data?.summary) {
         setSummary(data.summary);
       } else {
-        toast.error(data?.error || "Kunde inte generera sammanfattning");
+        toast.error(data?.error || t("webAnalysis.couldNotGenerateSummary"));
       }
     } catch (error) {
       console.error("Error:", error);

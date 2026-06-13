@@ -80,7 +80,7 @@ export function TemplateCreationWizard({ open, onOpenChange }: Props) {
         .insert({
           name: templateName,
           type: docType,
-          description: `Skapad med guiden (${structure})`,
+          description: t("templates.createdWithWizard", { structure }),
           organization_id: orgId!,
           created_by: user?.id,
           brand_settings: brandSettings,

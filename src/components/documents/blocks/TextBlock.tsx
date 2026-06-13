@@ -68,8 +68,8 @@ export function TextBlockRenderer({ block, readOnly, structureLocked, onChange }
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="h1">Rubrik 1</SelectItem>
-              <SelectItem value="h2">Rubrik 2</SelectItem>
+              <SelectItem value="h1">{t("templates.heading1")}</SelectItem>
+              <SelectItem value="h2">{t("templates.heading2")}</SelectItem>
               <SelectItem value="p">{t("templates.textBlockBody")}</SelectItem>
             </SelectContent>
           </Select>

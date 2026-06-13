@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState } from "react";
 import { type DocumentBlock, type ArticleTableBlockConfig, type ArticleRow } from "./types";
 import { calculateRowTotal } from "./totals";
@@ -27,6 +28,7 @@ function newRow(): ArticleRow {
 }
 
 export function ArticleTableBlockRenderer({ block, readOnly, onChange }: Props) {
+  const { t } = useTranslation();
   const config = block.config as ArticleTableBlockConfig;
   const rows = config.rows || [];
   const [showProductPicker, setShowProductPicker] = useState(false);
@@ -100,13 +102,13 @@ export function ArticleTableBlockRenderer({ block, readOnly, onChange }: Props) 
                     <div className="space-y-1">
                       <Input
                         value={row.title}
-                        placeholder="Titel"
+                        placeholder={t("templates.artTitle")}
                         className="h-7 text-sm"
                         onChange={(e) => updateRow(idx, { title: e.target.value })}
                       />
                       <Input
                         value={row.description}
-                        placeholder="Beskrivning (valfri)"
+                        placeholder={t("templates.artDescOptional")}
                         className="h-7 text-xs"
                         onChange={(e) => updateRow(idx, { description: e.target.value })}
                       />

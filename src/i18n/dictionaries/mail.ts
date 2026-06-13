@@ -84,6 +84,8 @@ export const mailDict: FeatureDictionary = {
     "mail.followUp.notInterestedPlaceholder": "T.ex. har redan leverantör, inte aktuellt...",
     "mail.followUp.actions": "Åtgärder",
     "mail.followUp.filteredOut": "Denna lead filtreras bort från uppföljning.",
+    "mail.followUp.filteredOutPlural": "{count} leads filtreras bort från uppföljning.",
+    "mail.followUp.markNotInterested": "Markera som Ej intresserad",
   },
   en: {
     "mail.title": "Mail",
@@ -168,6 +170,8 @@ export const mailDict: FeatureDictionary = {
     "mail.followUp.notInterestedPlaceholder": "E.g. already has a supplier, not relevant...",
     "mail.followUp.actions": "Actions",
     "mail.followUp.filteredOut": "This lead is filtered out from follow-up.",
+    "mail.followUp.filteredOutPlural": "{count} leads are filtered out from follow-up.",
+    "mail.followUp.markNotInterested": "Mark as Not interested",
   },
   es: {
     "mail.title": "Correo",
@@ -252,5 +256,7 @@ export const mailDict: FeatureDictionary = {
     "mail.followUp.notInterestedPlaceholder": "P. ej. ya tiene proveedor, no procede...",
     "mail.followUp.actions": "Acciones",
     "mail.followUp.filteredOut": "Este lead se excluye del seguimiento.",
+    "mail.followUp.filteredOutPlural": "{count} leads se excluyen del seguimiento.",
+    "mail.followUp.markNotInterested": "Marcar como No interesado",
   },
 };

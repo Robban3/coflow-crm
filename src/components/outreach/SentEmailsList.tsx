@@ -309,7 +309,7 @@ export function SentEmailsList({ currentUserOnly = false }: SentEmailsListProps)
             <h3 className="text-lg font-semibold text-foreground mb-1">{t("outreach.sent.emptyTitle")}</h3>
             <p className="text-muted-foreground">
               {searchQuery || (!currentUserOnly && senderFilter !== "all") || openedFilter !== "all"
-                ? "Inga mail matchar dina filter"
+                ? t("outreach.sent.noFilterMatch")
                 : t("outreach.sent.emptyDefault")}
             </p>
           </CardContent>

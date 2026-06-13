@@ -84,8 +84,8 @@ export function LeadOwnerSelect({
 
       const member = allMembers.find((m) => m.id === memberId);
       toast({
-        title: "Medlem tillagd",
-        description: `${member?.full_name || member?.email} har lagts till på leaden`,
+        title: t("leadDetail.owner_memberAdded"),
+        description: t("leadDetail.owner_addedDesc", { name: member?.full_name || member?.email }),
       });
 
       if (memberId !== user?.id) {
@@ -121,11 +121,11 @@ export function LeadOwnerSelect({
           .eq("id", leadId);
       }
 
-      toast({ title: "Medlem borttagen" });
+      toast({ title: t("leadDetail.owner_memberRemoved") });
       await fetchData();
       onOwnerChange?.(null);
     } catch (error) {
-      toast({ title: "Fel", description: "Kunde inte ta bort medlem", variant: "destructive" });
+      toast({ title: t("leadDetail.owner_errorTitle"), description: t("leadDetail.owner_removeError"), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }

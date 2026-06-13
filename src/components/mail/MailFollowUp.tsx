@@ -373,11 +373,11 @@ export function MailFollowUp() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Markera som Ej intresserad</DialogTitle>
+            <DialogTitle>{t("mail.followUp.markNotInterested")}</DialogTitle>
             <DialogDescription>
               {notInterestedLeadIds.length === 1
                 ? t("mail.followUp.filteredOut")
-                : `${notInterestedLeadIds.length} leads filtreras bort från uppföljning.`}
+                : t("mail.followUp.filteredOutPlural", { count: notInterestedLeadIds.length })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">

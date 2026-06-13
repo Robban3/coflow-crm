@@ -386,7 +386,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
                         variant="ghost"
                         onClick={() => handleDelete(competitor.id)}
                         className="text-destructive hover:text-destructive"
-                        title="Ta bort"
+                        title={t("leadDetail.co2_remove")}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -441,7 +441,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
       <Dialog open={showAutoDialog} onOpenChange={setShowAutoDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Hitta konkurrenter automatiskt</DialogTitle>
+            <DialogTitle>{t("leadDetail.co2_findAuto")}</DialogTitle>
             <DialogDescription>{t("leadDetail.co2_searchDesc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

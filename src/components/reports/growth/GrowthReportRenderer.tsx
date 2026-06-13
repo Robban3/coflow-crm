@@ -750,7 +750,7 @@ function OrderModal({
     setIsCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Ej inloggad");
+      if (!user) throw new Error(t("reports.order.notLoggedIn"));
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -775,7 +775,7 @@ function OrderModal({
         .select("id")
         .single();
 
-      if (qErr || !quote) throw qErr || new Error("Kunde inte skapa offert");
+      if (qErr || !quote) throw qErr || new Error(t("reports.order.couldNotCreateQuote"));
 
       // Add line items
       const items: any[] = [

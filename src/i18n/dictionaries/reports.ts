@@ -312,6 +312,8 @@ export const reportsDict: FeatureDictionary = {
     "reports.generator.improveBp": "✅ <strong>Följ best practices</strong> - Uppdatera säkerhetsinställningar och följ moderna webbstandarder.",
     "reports.generator.greatJob": "🎉 <strong>Bra jobbat!</strong> - Webbplatsen presterar väl. Fortsätt övervaka och optimera för ännu bättre resultat.",
     "reports.renderer.theWebsite": "webbplatsen",
+    "reports.order.notLoggedIn": "Ej inloggad",
+    "reports.order.couldNotCreateQuote": "Kunde inte skapa offert",
   },
   en: {
     "reports.title": "Reports",
@@ -624,6 +626,8 @@ export const reportsDict: FeatureDictionary = {
     "reports.generator.improveBp": "✅ <strong>Follow best practices</strong> - Update security settings and follow modern web standards.",
     "reports.generator.greatJob": "🎉 <strong>Great job!</strong> - The website performs well. Keep monitoring and optimizing for even better results.",
     "reports.renderer.theWebsite": "the website",
+    "reports.order.notLoggedIn": "Not logged in",
+    "reports.order.couldNotCreateQuote": "Could not create quote",
   },
   es: {
     "reports.title": "Informes",
@@ -936,5 +940,7 @@ export const reportsDict: FeatureDictionary = {
     "reports.generator.improveBp": "✅ <strong>Sigue las mejores prácticas</strong> - Actualiza la configuración de seguridad y sigue los estándares web modernos.",
     "reports.generator.greatJob": "🎉 <strong>¡Buen trabajo!</strong> - El sitio web funciona bien. Sigue supervisando y optimizando para obtener mejores resultados.",
     "reports.renderer.theWebsite": "el sitio web",
+    "reports.order.notLoggedIn": "No has iniciado sesión",
+    "reports.order.couldNotCreateQuote": "No se pudo crear el presupuesto",
   },
 };

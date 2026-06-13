@@ -47,7 +47,7 @@ export function ServiceBusinessPlugin({ url, rawData }: ServiceBusinessPluginPro
           <FeatureItem 
             label={t("webAnalysis.featPricing")}
             present={features.hasPricing}
-            description="Priser eller prisintervall synliga"
+            description={t("webAnalysis.featPricesVisibleDesc")}
             importance="high"
           />
           <FeatureItem 

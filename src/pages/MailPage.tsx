@@ -14,7 +14,7 @@ export default function MailPage() {
   const [activeTab, setActiveTab] = useState("inbox");
 
   return (
-    <AppLayout title="Mail">
+    <AppLayout title={t("mail.title")}>
       <div className="space-y-4 md:space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>

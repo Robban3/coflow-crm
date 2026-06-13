@@ -148,7 +148,7 @@ export function OrganizationDashboard() {
     if (profile?.organization_id) {
       await supabase.from("organizations").update({ auto_enrich_enabled: enabled } as any).eq("id", profile.organization_id);
       setAutoEnrichEnabled(enabled);
-      toast({ title: enabled ? "Automatisk analys aktiverad" : "Automatisk analys inaktiverad" });
+      toast({ title: enabled ? t("settings.autoAnalyzeEnabled") : t("settings.autoAnalyzeDisabled") });
     }
     setIsSavingAutoEnrich(false);
   };
@@ -275,7 +275,7 @@ export function OrganizationDashboard() {
       }
 
       toast({
-        title: enabled ? "Modul aktiverad" : "Modul inaktiverad",
+        title: enabled ? t("settings.moduleEnabled") : t("settings.moduleDisabled"),
         description: t("settings.moduleForUser", { module: MODULE_REGISTRY.find(m => m.dbModuleKey === moduleKey)?.name ?? "" }),
       });
     } catch (error) {
@@ -370,7 +370,7 @@ export function OrganizationDashboard() {
     setIsCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Ej inloggad");
+      if (!user) throw new Error(t("settings.notLoggedIn"));
 
       const code = generateInviteCode();
 
@@ -429,7 +429,7 @@ export function OrganizationDashboard() {
 
       toast({
         title: t("settings.userCreatedTitle"),
-        description: `${newUserForm.email} har lagts till i teamet`,
+        description: t("settings.userAddedToTeam", { email: newUserForm.email }),
       });
 
       setShowAddDialog(false);

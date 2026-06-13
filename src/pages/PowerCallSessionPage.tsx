@@ -781,7 +781,7 @@ export default function PowerCallSessionPage() {
                             ) : (
                               <Sparkles className="h-3.5 w-3.5 mr-1.5" />
                             )}
-                            {isGeneratingAnalysis ? "Genererar analys…" : "Generera analys"}
+                            {isGeneratingAnalysis ? t("powerCall.session.generatingAnalysis") : t("powerCall.session.generateAnalysis")}
                           </Button>
                           {/* Debug: show which endpoint was used */}
                           {lastUsedEndpoints && (
@@ -1005,7 +1005,7 @@ export default function PowerCallSessionPage() {
                     selectedOutcome.key === "not_interested"
                       ? "Anledning..."
                       : selectedOutcome.key === "answered"
-                      ? "Kort sammanfattning av samtalet"
+                      ? t("powerCall.session.summaryPlaceholder")
                       : "Notering..."
                   }
                   rows={3}

@@ -243,6 +243,7 @@ export const outreachDict: FeatureDictionary = {
     "outreach.mgr.generatingEmail": "Genererar e-post med AI...",
     "outreach.mgr.close": "Stäng",
     "outreach.mgr.generateNew": "Generera nytt",
+    "outreach.sent.noFilterMatch": "Inga mail matchar dina filter",
   },
   en: {
     // OutreachPage
@@ -486,6 +487,7 @@ export const outreachDict: FeatureDictionary = {
     "outreach.mgr.generatingEmail": "Generating email with AI...",
     "outreach.mgr.close": "Close",
     "outreach.mgr.generateNew": "Generate new",
+    "outreach.sent.noFilterMatch": "No emails match your filters",
   },
   es: {
     // OutreachPage
@@ -729,5 +731,6 @@ export const outreachDict: FeatureDictionary = {
     "outreach.mgr.generatingEmail": "Generando correo con IA...",
     "outreach.mgr.close": "Cerrar",
     "outreach.mgr.generateNew": "Generar nuevo",
+    "outreach.sent.noFilterMatch": "Ningún correo coincide con tus filtros",
   },
 };

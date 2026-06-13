@@ -386,7 +386,7 @@ export default function LeadDetailPage() {
       if (error) throw error;
 
       toast({
-        title: "Aktivitet tillagd",
+        title: t("leadDetail.ldp_activityAdded"),
         description: `${activityForm.title} har loggats`,
       });
 
@@ -422,8 +422,8 @@ export default function LeadDetailPage() {
       if (error) throw error;
 
       toast({
-        title: "Sparad!",
-        description: "Leadinformationen har uppdaterats",
+        title: t("leadDetail.ldp_saved"),
+        description: t("leadDetail.ldp_leadInfoUpdated"),
       });
 
       setIsEditMode(false);
@@ -459,7 +459,7 @@ export default function LeadDetailPage() {
         if (error) throw error;
 
         toast({
-          title: "Uppgift uppdaterad",
+          title: t("leadDetail.ldp_taskUpdated"),
           description: `"${taskForm.title}" har sparats`,
         });
       } else {
@@ -478,8 +478,8 @@ export default function LeadDetailPage() {
         if (error) throw error;
 
         toast({
-          title: "Uppgift skapad",
-          description: `"${taskForm.title}" har lagts till`,
+          title: t("leadDetail.ldp_taskCreated"),
+          description: t("leadDetail.ldp_taskAddedDesc", { title: taskForm.title }),
         });
       }
 
@@ -490,8 +490,8 @@ export default function LeadDetailPage() {
 
     } catch (error) {
       toast({
-        title: "Fel",
-        description: editingTask ? "Kunde inte uppdatera uppgift" : "Kunde inte skapa uppgift",
+        title: t("leadDetail.ldp_error"),
+        description: editingTask ? t("leadDetail.ldp_couldNotUpdateTask") : t("leadDetail.ldp_couldNotCreateTask"),
         variant: "destructive",
       });
     } finally {
@@ -518,8 +518,8 @@ export default function LeadDetailPage() {
       if (error) throw error;
 
       toast({
-        title: "Uppgift borttagen",
-        description: "Uppgiften har tagits bort",
+        title: t("leadDetail.ldp_taskDeleted"),
+        description: t("leadDetail.ldp_taskRemoved"),
       });
       
       invalidateLead();
@@ -551,8 +551,8 @@ export default function LeadDetailPage() {
       invalidateLead();
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte uppdatera uppgift",
+        title: t("leadDetail.ldp_error"),
+        description: t("leadDetail.ldp_couldNotUpdateTask"),
         variant: "destructive",
       });
     }
@@ -596,7 +596,7 @@ export default function LeadDetailPage() {
 
   if (isLoading) {
     return (
-      <AppLayout title="Laddar...">
+      <AppLayout title={t("leadDetail.ldp_loading")}>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -1075,7 +1075,7 @@ export default function LeadDetailPage() {
                           <button
                             onClick={() => handleCompleteTask(task.id)}
                             className="shrink-0 w-4 h-4 rounded border border-muted-foreground/30 hover:border-primary hover:bg-primary/10 transition-colors flex items-center justify-center"
-                            title="Markera som klar"
+                            title={t("leadDetail.ldp_markAsDone")}
                           >
                             <CheckCircle className="h-3 w-3 text-transparent hover:text-primary" />
                           </button>
@@ -1233,7 +1233,7 @@ export default function LeadDetailPage() {
                   onChange={(e) => setActivityForm(prev => ({ ...prev, title: e.target.value }))}
                   placeholder={
                     activityForm.type === 'call' ? 'T.ex. Uppföljningssamtal' :
-                    activityForm.type === 'email' ? 'T.ex. Skickade offert' :
+                    activityForm.type === 'email' ? t("leadDetail.ldp_activityExample") :
                     activityForm.type === 'meeting' ? 'T.ex. Presentation av tjänster' :
                     'T.ex. Intern anteckning'
                   }
@@ -1281,7 +1281,7 @@ export default function LeadDetailPage() {
             <DialogHeader>
               <DialogTitle>{editingTask ? t("leadDetail.ldp_editTask") : t("leadDetail.ldp_createTask")}</DialogTitle>
               <DialogDescription>
-                {editingTask ? 'Uppdatera uppgiftens information' : 'Lägg till en uppgift kopplad till denna lead'}
+                {editingTask ? t("leadDetail.ldp_editTaskDesc") : t("leadDetail.ldp_addTaskDesc")}
               </DialogDescription>
             </DialogHeader>
 
@@ -1348,7 +1348,7 @@ export default function LeadDetailPage() {
                 ) : editingTask ? (
                   t("leadDetail.ldp_saveChanges")
                 ) : (
-                  "Skapa uppgift"
+                  t("leadDetail.ldp_createTask")
                 )}
               </Button>
             </DialogFooter>

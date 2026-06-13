@@ -325,9 +325,9 @@ export default function PublicGeoReportPage() {
             <h2 className="text-sm font-semibold text-white mb-4 tracking-tight">{t("publicPages.geo.fullAnalysisTitle")}</h2>
             <ul className="space-y-2.5 text-sm text-slate-300">
               {[
-                "Djupanalys av upp till 25 sidor",
+                t("publicPages.geoFeatDeepAnalysis"),
                 "Komplett schema.org-granskning",
-                "AI-citatanalys och entitetsoptimering",
+                t("publicPages.geoFeatCitation"),
                 t("publicPages.geo.fullAnalysis4"),
                 t("publicPages.geo.fullAnalysis5"),
                 "Anpassad kundrapport i PDF-format",

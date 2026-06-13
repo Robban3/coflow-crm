@@ -67,7 +67,7 @@ export function KeyValueBlockRenderer({ block, readOnly, structureLocked, onChan
         <div key={i} className="flex items-center gap-2">
           <Input
             value={p.label}
-            placeholder="Etikett"
+            placeholder={t("templates.kvLabelPlaceholder")}
             className="h-8 text-sm w-1/3"
             onChange={(e) => updatePair(i, { label: e.target.value })}
           />

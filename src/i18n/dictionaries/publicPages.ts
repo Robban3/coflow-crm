@@ -165,6 +165,8 @@ export const publicPagesDict: FeatureDictionary = {
     "publicPages.geoDesc": "GEO & AI-synlighetsrapport för {name}",
     "publicPages.geoDescNoName": "GEO & AI-synlighetsrapport",
     "publicPages.perMonth": "/mån",
+    "publicPages.geoFeatDeepAnalysis": "Djupanalys av upp till 25 sidor",
+    "publicPages.geoFeatCitation": "AI-citatanalys och entitetsoptimering",
   },
   en: {
     // PublicBookingPage
@@ -330,6 +332,8 @@ export const publicPagesDict: FeatureDictionary = {
     "publicPages.geoDesc": "GEO & AI visibility report for {name}",
     "publicPages.geoDescNoName": "GEO & AI visibility report",
     "publicPages.perMonth": "/mo",
+    "publicPages.geoFeatDeepAnalysis": "Deep analysis of up to 25 pages",
+    "publicPages.geoFeatCitation": "AI citation analysis and entity optimization",
   },
   es: {
     // PublicBookingPage
@@ -495,6 +499,8 @@ export const publicPagesDict: FeatureDictionary = {
     "publicPages.geoDesc": "Informe de visibilidad GEO e IA para {name}",
     "publicPages.geoDescNoName": "Informe de visibilidad GEO e IA",
     "publicPages.perMonth": "/mes",
+    "publicPages.geoFeatDeepAnalysis": "Análisis profundo de hasta 25 páginas",
+    "publicPages.geoFeatCitation": "Análisis de citas de IA y optimización de entidades",
   },
 };
 </content>

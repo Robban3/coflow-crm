@@ -101,13 +101,13 @@ export function QuickOutreachDialog({
         title: t("webAnalysis.mailGeneratedTitle"),
         description: seoData 
           ? "Inkluderar SEO Intelligence-data i mailet"
-          : "Granska och redigera mailet innan du skickar",
+          : t("webAnalysis.qoReviewBeforeSend"),
       });
     } catch (error) {
       console.error("Error generating email:", error);
       toast({
         title: t("webAnalysis.errorGenerating"),
-        description: error instanceof Error ? error.message : "Kunde inte generera mail",
+        description: error instanceof Error ? error.message : t("webAnalysis.qoCouldNotGenerate"),
         variant: "destructive",
       });
     } finally {
@@ -129,7 +129,7 @@ export function QuickOutreachDialog({
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error("Ej inloggad");
+        throw new Error(t("webAnalysis.notLoggedIn"));
       }
 
       const response = await supabase.functions.invoke("send-quick-outreach-email", {
@@ -146,7 +146,7 @@ export function QuickOutreachDialog({
 
       toast({
         title: t("webAnalysis.mailSentTitle"),
-        description: `Mailet har skickats till ${recipientEmail}`,
+        description: t("webAnalysis.qoSentTo", { email: recipientEmail }),
       });
 
       // Reset and close
@@ -156,7 +156,7 @@ export function QuickOutreachDialog({
       console.error("Error sending email:", error);
       toast({
         title: t("webAnalysis.errorSending"),
-        description: error instanceof Error ? error.message : "Kunde inte skicka mail",
+        description: error instanceof Error ? error.message : t("webAnalysis.qoCouldNotSend"),
         variant: "destructive",
       });
     } finally {
