@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ const DEFAULTS: PricingRow = {
 };
 
 export function GrowthReportPricingSettings() {
+  const { t } = useTranslation();
   const { organization } = useOrganization();
   const { toast } = useToast();
   const [form, setForm] = useState<PricingRow>(DEFAULTS);
@@ -98,9 +100,9 @@ export function GrowthReportPricingSettings() {
         setForm((prev) => ({ ...prev, id: data.id }));
       }
 
-      toast({ title: "Sparat!", description: "Priskonfigurationen har uppdaterats." });
+      toast({ title: t("reports.pricing.saved"), description: t("reports.pricing.savedDesc") });
     } catch (err) {
-      toast({ title: "Fel", description: "Kunde inte spara priskonfigurationen.", variant: "destructive" });
+      toast({ title: t("reports.generator.error"), description: t("reports.pricing.saveError"), variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
@@ -120,26 +122,24 @@ export function GrowthReportPricingSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Rapportpriser</CardTitle>
-        <CardDescription>
-          Konfigurera priser som visas i kompletta tillväxtrapporter. Endast presentation — ingen fakturering.
-        </CardDescription>
+        <CardTitle className="text-lg">{t("reports.pricing.title")}</CardTitle>
+        <CardDescription>{t("reports.pricing.desc")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* AI-synlighet */}
         <div>
-          <h4 className="text-sm font-semibold mb-3">AI-synlighet — SEO + GEO (kr/mån)</h4>
+          <h4 className="text-sm font-semibold mb-3">{t("reports.pricing.aiVisibilityHeading")}</h4>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs">Start</Label>
+              <Label className="text-xs">{t("reports.pricing.start")}</Label>
               <Input type="number" value={form.ai_visibility_start_monthly} onChange={(e) => n("ai_visibility_start_monthly", e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Tillväxt</Label>
+              <Label className="text-xs">{t("reports.pricing.growth")}</Label>
               <Input type="number" value={form.ai_visibility_growth_monthly} onChange={(e) => n("ai_visibility_growth_monthly", e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Dominate</Label>
+              <Label className="text-xs">{t("reports.pricing.dominate")}</Label>
               <Input type="number" value={form.ai_visibility_dominate_monthly} onChange={(e) => n("ai_visibility_dominate_monthly", e.target.value)} />
             </div>
           </div>
@@ -147,36 +147,36 @@ export function GrowthReportPricingSettings() {
 
         {/* Website rebuild */}
         <div>
-          <h4 className="text-sm font-semibold mb-3">Ny AI-optimerad hemsida</h4>
+          <h4 className="text-sm font-semibold mb-3">{t("reports.pricing.websiteHeading")}</h4>
           <div className="flex items-center gap-4 mb-3">
             <div className="flex items-center gap-2">
               <Switch
                 checked={form.show_website_upsell}
                 onCheckedChange={(v) => setForm((p) => ({ ...p, show_website_upsell: v }))}
               />
-              <Label className="text-xs">Visa hemsida-upsell i rapporter</Label>
+              <Label className="text-xs">{t("reports.pricing.showUpsell")}</Label>
             </div>
           </div>
           <div className="max-w-xs space-y-1">
-            <Label className="text-xs">Frånpris (kr, engångs)</Label>
+            <Label className="text-xs">{t("reports.pricing.fromPrice")}</Label>
             <Input type="number" value={form.website_rebuild_from_price} onChange={(e) => n("website_rebuild_from_price", e.target.value)} />
           </div>
         </div>
 
         {/* Contact */}
         <div>
-          <h4 className="text-sm font-semibold mb-3">Kontaktinformation i rapport</h4>
+          <h4 className="text-sm font-semibold mb-3">{t("reports.pricing.contactHeading")}</h4>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="space-y-1">
-              <Label className="text-xs">Bokningslänk</Label>
+              <Label className="text-xs">{t("reports.pricing.bookingLink")}</Label>
               <Input value={form.booking_url} onChange={(e) => s("booking_url", e.target.value)} placeholder="https://..." />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">E-post</Label>
+              <Label className="text-xs">{t("reports.pricing.email")}</Label>
               <Input value={form.contact_email} onChange={(e) => s("contact_email", e.target.value)} placeholder="hej@kodco.se" />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Telefon</Label>
+              <Label className="text-xs">{t("reports.booking.phone")}</Label>
               <Input value={form.contact_phone} onChange={(e) => s("contact_phone", e.target.value)} placeholder="+46..." />
             </div>
           </div>

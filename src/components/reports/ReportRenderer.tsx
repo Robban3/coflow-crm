@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,27 +49,27 @@ const scoreRingColor = (v: number | null) => {
 };
 
 const scoreLabel = (v: number | null) => {
-  if (v === null) return "Ej beräknad";
+  if (v === null) return t("reports.renderer.scoreNotCalculated");
   if (v >= 80) return "Stark AI-synlighet";
   if (v >= 50) return "Bra potential";
-  return "Låg AI-synlighet";
+  return t("reports.renderer.scoreLow");
 };
 
 const severityConfig: Record<string, { label: string; color: string; icon: typeof AlertCircle; bgClass: string }> = {
   high: {
-    label: "Kritisk",
+    label: t("reports.renderer.severityHigh"),
     color: "text-red-600 dark:text-red-400",
     icon: AlertCircle,
     bgClass: "bg-red-500/8 border-red-500/15 dark:bg-red-500/10 dark:border-red-500/20",
   },
   medium: {
-    label: "Viktig",
+    label: t("reports.renderer.severityMedium"),
     color: "text-amber-600 dark:text-amber-400",
     icon: AlertTriangle,
     bgClass: "bg-amber-500/8 border-amber-500/15 dark:bg-amber-500/10 dark:border-amber-500/20",
   },
   low: {
-    label: "Förbättring",
+    label: t("reports.renderer.severityLow"),
     color: "text-blue-600 dark:text-blue-400",
     icon: Circle,
     bgClass: "bg-blue-500/8 border-blue-500/15 dark:bg-blue-500/10 dark:border-blue-500/20",
@@ -76,9 +77,9 @@ const severityConfig: Record<string, { label: string; color: string; icon: typeo
 };
 
 const priorityConfig: Record<string, { label: string; timeline: string; icon: typeof Zap }> = {
-  quick_win: { label: "Snabba vinster", timeline: "0–30 dagar", icon: Zap },
-  medium: { label: "Medellång sikt", timeline: "1–3 månader", icon: Target },
-  long_term: { label: "Strategiskt", timeline: "3–6 månader", icon: Clock },
+  quick_win: { label: t("reports.renderer.priorityQuickWin"), timeline: "0–30 dagar", icon: Zap },
+  medium: { label: t("reports.renderer.priorityMedium"), timeline: "1–3 månader", icon: Target },
+  long_term: { label: t("reports.renderer.priorityLongTerm"), timeline: "3–6 månader", icon: Clock },
 };
 
 /* ─── Score Ring SVG ──────────────────────────────────────────────────── */
@@ -124,7 +125,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function SummarySection({ content }: { content: any }) {
   return (
     <div className="report-section">
-      <SectionLabel>Executive Summary</SectionLabel>
+      <SectionLabel>{t("reports.renderer.executiveSummary")}</SectionLabel>
       <div className="mt-3 text-sm leading-[1.8] text-foreground/90">
         {content.text}
       </div>
@@ -170,13 +171,13 @@ function FindingsSection({ content }: { content: any }) {
                       )}
                       {f.description && (
                         <div className="mt-2">
-                          <SectionLabel>Affärspåverkan</SectionLabel>
+                          <SectionLabel>{t("reports.renderer.businessImpact")}</SectionLabel>
                           <p className="text-xs text-muted-foreground leading-relaxed">{f.description}</p>
                         </div>
                       )}
                       {f.recommendation && (
                         <div className="mt-2">
-                          <SectionLabel>Rekommenderad åtgärd</SectionLabel>
+                          <SectionLabel>{t("reports.renderer.recommendedAction")}</SectionLabel>
                           <p className="text-xs text-foreground/80 leading-relaxed">{f.recommendation}</p>
                         </div>
                       )}
@@ -229,20 +230,20 @@ function ActionsSection({ content }: { content: any }) {
                           <p className="text-sm font-medium text-foreground">{a.title}</p>
                           {a.steps && (
                             <div className="mt-1.5">
-                              <SectionLabel>Vad ska göras</SectionLabel>
+                              <SectionLabel>{t("reports.renderer.whatToDo")}</SectionLabel>
                               <p className="text-xs text-muted-foreground leading-relaxed">{a.steps}</p>
                             </div>
                           )}
                           <div className="flex gap-6 mt-2">
                             {a.estimated_impact && (
                               <div>
-                                <SectionLabel>Effekt</SectionLabel>
+                                <SectionLabel>{t("reports.renderer.impact")}</SectionLabel>
                                 <span className="text-xs font-medium text-foreground">{a.estimated_impact}</span>
                               </div>
                             )}
                             {a.estimated_effort && (
                               <div>
-                                <SectionLabel>Insats</SectionLabel>
+                                <SectionLabel>{t("reports.renderer.effort")}</SectionLabel>
                                 <span className="text-xs font-medium text-foreground">{a.estimated_effort}</span>
                               </div>
                             )}
@@ -306,6 +307,7 @@ function renderSection(section: ReportSection, onBook?: () => void) {
 /* ─── Main Renderer ──────────────────────────────────────────────────── */
 
 export function ReportRenderer({ data, publicMode, reportId, leadId }: Props) {
+  const { t } = useTranslation();
   const [techOpen, setTechOpen] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const geoScore = data.meta.scores?.geo ?? null;
@@ -328,7 +330,7 @@ export function ReportRenderer({ data, publicMode, reportId, leadId }: Props) {
       <header className="report-hero mb-12">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
           <div className="flex-1 min-w-0">
-            <SectionLabel>GEO / AI-synlighetsrapport</SectionLabel>
+            <SectionLabel>{t("reports.renderer.heroLabel")}</SectionLabel>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mt-1 leading-tight">
               {data.meta.companyName}
             </h1>
@@ -389,13 +391,13 @@ export function ReportRenderer({ data, publicMode, reportId, leadId }: Props) {
         <Collapsible open={techOpen} onOpenChange={setTechOpen}>
           <CollapsibleTrigger className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer group">
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${techOpen ? "rotate-180" : ""}`} />
-            <span className="font-medium">Teknisk bilaga</span>
+            <span className="font-medium">{t("reports.renderer.techAppendix")}</span>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-4">
             <div className="rounded-xl border bg-muted/20 p-5 text-xs text-muted-foreground leading-relaxed space-y-2">
               <p>Rapporten baseras på automatisk crawl och heuristisk analys av {data.meta.domain || "webbplatsen"}.</p>
-              <p>Analysmetod: GEO Heuristic Engine v1.0 – kontrollerar schema markup, entitetsdefinitioner, FAQ-strukturer, indexerbarhet och intern länkning.</p>
-              <p>Genererad: {data.meta.createdAt ? new Date(data.meta.createdAt).toLocaleString("sv-SE") : "Okänt datum"}</p>
+              <p>{t("reports.renderer.techMethod")}</p>
+              <p>Genererad: {data.meta.createdAt ? new Date(data.meta.createdAt).toLocaleString("sv-SE") : t("reports.renderer.unknownDate")}</p>
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -411,8 +413,7 @@ export function ReportRenderer({ data, publicMode, reportId, leadId }: Props) {
       {/* ─── FOOTER ─── */}
       {publicMode && (
         <footer className="mt-14 pt-6 border-t border-border/30 text-center report-footer">
-          <p className="text-[11px] text-muted-foreground">
-            Rapport framtagen av <span className="font-medium">Kod & Co</span>
+          <p className="text-[11px] text-muted-foreground">{t("reports.renderer.footerBy")}<span className="font-medium">Kod & Co</span>
           </p>
         </footer>
       )}

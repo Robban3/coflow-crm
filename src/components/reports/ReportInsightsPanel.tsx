@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -116,14 +117,14 @@ function computeInsights(
 
 const SECTION_LABELS: Record<string, string> = {
   executive: "Executive",
-  nuläge: "Nuläge",
-  barrier: "Tillväxthinder",
+  nuläge: t("reports.insights.section.nuläge"),
+  barrier: t("reports.insights.section.barrier"),
   roadmap: "Roadmap",
   pricing: "Investering & Paket",
-  next_steps: "Nästa steg",
+  next_steps: t("reports.insights.section.next_steps"),
   summary: "Sammanfattning",
   findings: "Fynd",
-  actions: "Åtgärder",
+  actions: t("reports.insights.section.actions"),
   cta: "CTA",
 };
 
@@ -145,6 +146,7 @@ function formatDuration(ms: number): string {
 }
 
 export function ReportInsightsPanel({ reportId, shareToken }: Props) {
+  const { t } = useTranslation();
   const { data: insights, isLoading } = useQuery({
     queryKey: ["report-insights", reportId, shareToken],
     queryFn: async () => {
@@ -190,11 +192,11 @@ export function ReportInsightsPanel({ reportId, shareToken }: Props) {
       <div className="rounded-xl border bg-card p-5">
         <div className="flex items-center gap-2 mb-2">
           <Activity className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-sm font-semibold text-foreground">Report Insights</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("reports.insights.title")}</h3>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <EyeOff className="h-3.5 w-3.5" />
-          <span>Inte öppnad ännu</span>
+          <span>{t("reports.insights.notOpened")}</span>
         </div>
       </div>
     );
@@ -206,17 +208,13 @@ export function ReportInsightsPanel({ reportId, shareToken }: Props) {
     <div className="rounded-xl border bg-card p-5 space-y-4">
       <div className="flex items-center gap-2">
         <Activity className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">Report Insights</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("reports.insights.title")}</h3>
         {d.pricing_dropoff && (
           <Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/5 ml-auto">
-            <AlertTriangle className="h-2.5 w-2.5 mr-1" />
-            Drop-off vid pris
-          </Badge>
+            <AlertTriangle className="h-2.5 w-2.5 mr-1" />{t("reports.insights.dropoff")}</Badge>
         )}
         {d.reached_pricing && !d.pricing_dropoff && Object.keys(d.cta_clicks).length === 0 && (
-          <Badge variant="outline" className="text-[9px] border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-500/5 ml-auto">
-            Nådde pris, ej bokad
-          </Badge>
+          <Badge variant="outline" className="text-[9px] border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-500/5 ml-auto">{t("reports.insights.reachedNotBooked")}</Badge>
         )}
       </div>
 
@@ -224,24 +222,24 @@ export function ReportInsightsPanel({ reportId, shareToken }: Props) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <MetricCard
           icon={<Eye className="h-3.5 w-3.5" />}
-          label="Öppnad"
+          label={t("reports.insights.opened")}
           value="Ja"
           sub={d.first_opened ? format(new Date(d.first_opened), "d MMM HH:mm", { locale: sv }) : undefined}
         />
         <MetricCard
           icon={<Activity className="h-3.5 w-3.5" />}
-          label="Sessioner"
+          label={t("reports.insights.sessions")}
           value={String(d.session_count)}
           sub={d.total_active_ms > 0 ? `~${formatDuration(d.total_active_ms)}` : undefined}
         />
         <MetricCard
           icon={<ArrowDown className="h-3.5 w-3.5" />}
-          label="Scroll"
+          label={t("reports.insights.scroll")}
           value={`${d.max_scroll_depth}%`}
         />
         <MetricCard
           icon={<Target className="h-3.5 w-3.5" />}
-          label="CTA-klick"
+          label={t("reports.insights.ctaClicks")}
           value={String(Object.values(d.cta_clicks).reduce((a, b) => a + b, 0))}
         />
       </div>
@@ -249,7 +247,7 @@ export function ReportInsightsPanel({ reportId, shareToken }: Props) {
       {/* Sections reached */}
       {d.sections_reached.length > 0 && (
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Sektioner nådda</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">{t("reports.insights.sectionsReached")}</p>
           <div className="flex flex-wrap gap-1.5">
             {d.sections_reached.map((s) => (
               <Badge
@@ -271,7 +269,7 @@ export function ReportInsightsPanel({ reportId, shareToken }: Props) {
       {/* CTA breakdown */}
       {Object.keys(d.cta_clicks).length > 0 && (
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">CTA-klick</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">{t("reports.insights.ctaClicks")}</p>
           <div className="space-y-1">
             {Object.entries(d.cta_clicks).map(([key, count]) => (
               <div key={key} className="flex items-center justify-between text-xs">

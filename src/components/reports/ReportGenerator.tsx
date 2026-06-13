@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
@@ -54,6 +55,7 @@ interface WebAnalysis {
 }
 
 export function ReportGenerator() {
+  const { t } = useTranslation();
   const { organization } = useOrganization();
   const { toast } = useToast();
   
@@ -109,7 +111,7 @@ export function ReportGenerator() {
       
       // Fetch the selected analysis
       const analysis = analyses.find(a => a.id === selectedAnalysisId);
-      if (!analysis) throw new Error('Analys hittades inte');
+      if (!analysis) throw new Error(t("reports.generator.analysisNotFound"));
 
       // Generate HTML content
       const htmlContent = generateWebAnalysisHtml(analysis, organization);
@@ -128,8 +130,8 @@ export function ReportGenerator() {
       if (error) throw error;
 
       toast({
-        title: "Rapport skapad!",
-        description: "Rapporten har genererats och sparats",
+        title: t("reports.generator.created"),
+        description: t("reports.generator.createdDesc"),
       });
 
       setShowDialog(false);
@@ -143,8 +145,8 @@ export function ReportGenerator() {
     } catch (error) {
       console.error('Error generating report:', error);
       toast({
-        title: "Fel",
-        description: "Kunde inte generera rapport",
+        title: t("reports.generator.error"),
+        description: t("reports.generator.generateError"),
         variant: "destructive",
       });
     } finally {
@@ -173,14 +175,14 @@ export function ReportGenerator() {
       if (error) throw error;
       
       toast({
-        title: "Rapport borttagen",
+        title: t("reports.generator.deleted"),
       });
       
       fetchData();
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte ta bort rapport",
+        title: t("reports.generator.error"),
+        description: t("reports.generator.deleteError"),
         variant: "destructive",
       });
     }
@@ -211,9 +213,9 @@ export function ReportGenerator() {
 
   const getReportTypeLabel = (type: string) => {
     switch (type) {
-      case 'web_analysis': return 'Webbanalys';
-      case 'seo': return 'SEO';
-      case 'competitor': return 'Konkurrentanalys';
+      case 'web_analysis': return t("reports.generator.typeWebAnalysis");
+      case 'seo': return t("reports.generator.typeSeo");
+      case 'competitor': return t("reports.generator.typeCompetitor");
       default: return type;
     }
   };
@@ -236,52 +238,34 @@ export function ReportGenerator() {
         }}>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              Webbanalysrapport
-            </CardTitle>
-            <CardDescription>
-              Professionell rapport med poäng och förbättringsförslag
-            </CardDescription>
+              <BarChart3 className="h-5 w-5 text-primary" />{t("reports.generator.webCardTitle")}</CardTitle>
+            <CardDescription>{t("reports.generator.webCardDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="outline" className="w-full">
-              <FileText className="mr-2 h-4 w-4" />
-              Skapa rapport
-            </Button>
+              <FileText className="mr-2 h-4 w-4" />{t("reports.generator.createReport")}</Button>
           </CardContent>
         </Card>
 
         <Card className="hover:shadow-md transition-shadow cursor-pointer opacity-60">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Search className="h-5 w-5 text-primary" />
-              SEO-rapport
-            </CardTitle>
-            <CardDescription>
-              Fokuserad rapport på sökmotoroptimering
-            </CardDescription>
+              <Search className="h-5 w-5 text-primary" />{t("reports.generator.seoCardTitle")}</CardTitle>
+            <CardDescription>{t("reports.generator.seoCardDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full" disabled>
-              Kommer snart
-            </Button>
+            <Button variant="outline" className="w-full" disabled>{t("reports.generator.comingSoon")}</Button>
           </CardContent>
         </Card>
 
         <Card className="hover:shadow-md transition-shadow cursor-pointer opacity-60">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Konkurrentrapport
-            </CardTitle>
-            <CardDescription>
-              Jämförelse med konkurrenter i branschen
-            </CardDescription>
+              <FileText className="h-5 w-5 text-primary" />{t("reports.generator.competitorCardTitle")}</CardTitle>
+            <CardDescription>{t("reports.generator.competitorCardDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full" disabled>
-              Kommer snart
-            </Button>
+            <Button variant="outline" className="w-full" disabled>{t("reports.generator.comingSoon")}</Button>
           </CardContent>
         </Card>
       </div>
@@ -289,19 +273,15 @@ export function ReportGenerator() {
       {/* Saved Reports */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Sparade rapporter</CardTitle>
-          <CardDescription>Dina genererade rapporter</CardDescription>
+          <CardTitle className="text-lg">{t("reports.generator.savedReports")}</CardTitle>
+          <CardDescription>{t("reports.generator.savedReportsDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           {reports.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-              <h3 className="font-semibold text-foreground mb-1">
-                Inga rapporter ännu
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Välj en rapporttyp ovan för att generera din första rapport
-              </p>
+              <h3 className="font-semibold text-foreground mb-1">{t("reports.generator.noReports")}</h3>
+              <p className="text-sm text-muted-foreground">{t("reports.generator.noReportsDesc")}</p>
             </div>
           ) : (
             <div className="divide-y divide-border">
@@ -337,17 +317,15 @@ export function ReportGenerator() {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Skapa webbanalysrapport</DialogTitle>
-            <DialogDescription>
-              Välj en webbanalys att basera rapporten på
-            </DialogDescription>
+            <DialogTitle>{t("reports.generator.dialogTitle")}</DialogTitle>
+            <DialogDescription>{t("reports.generator.dialogDesc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Välj analys</label>
+              <label className="text-sm font-medium">{t("reports.generator.selectAnalysis")}</label>
               <Select value={selectedAnalysisId} onValueChange={setSelectedAnalysisId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Välj en webbanalys..." />
+                  <SelectValue placeholder={t("reports.generator.selectAnalysisPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {analyses.map((analysis) => (
@@ -367,9 +345,7 @@ export function ReportGenerator() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialog(false)}>
-              Avbryt
-            </Button>
+            <Button variant="outline" onClick={() => setShowDialog(false)}>{t("reports.generator.cancel")}</Button>
             <Button onClick={generateReport} disabled={!selectedAnalysisId || isGenerating}>
               {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Generera rapport
@@ -382,20 +358,16 @@ export function ReportGenerator() {
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Förhandsgranskning</DialogTitle>
+            <DialogTitle>{t("reports.generator.preview")}</DialogTitle>
           </DialogHeader>
           <div 
             className="prose prose-sm max-w-none dark:prose-invert"
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPreview(false)}>
-              Stäng
-            </Button>
+            <Button variant="outline" onClick={() => setShowPreview(false)}>{t("reports.generator.close")}</Button>
             <Button onClick={printReport}>
-              <Download className="mr-2 h-4 w-4" />
-              Skriv ut / Spara som PDF
-            </Button>
+              <Download className="mr-2 h-4 w-4" />{t("reports.generator.printSave")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -431,10 +403,10 @@ function generateWebAnalysisHtml(analysis: WebAnalysis, organization: { name: st
   };
 
   const scores = [
-    { label: 'Prestanda', value: analysis.performance_score },
-    { label: 'Tillgänglighet', value: analysis.accessibility_score },
-    { label: 'SEO', value: analysis.seo_score },
-    { label: 'Best Practices', value: analysis.best_practices_score },
+    { label: t("reports.growth.performance"), value: analysis.performance_score },
+    { label: t("reports.growth.accessibility"), value: analysis.accessibility_score },
+    { label: t("reports.generator.typeSeo"), value: analysis.seo_score },
+    { label: t("reports.growth.bestPractices"), value: analysis.best_practices_score },
   ];
 
   const avgScore = scores
@@ -478,7 +450,7 @@ function generateWebAnalysisHtml(analysis: WebAnalysis, organization: { name: st
 <body>
   <div class="header">
     <div>
-      <div class="title">Webbanalysrapport</div>
+      <div class="title">{t("reports.generator.webCardTitle")}</div>
       <div class="subtitle">${escapeHtml(analysis.leads?.company_name)} - ${escapeHtml(analysis.url)}</div>
     </div>
     ${organization.logo_url ? `<img src="${sanitizeUrl(organization.logo_url)}" alt="${escapeHtml(organization.name)}" class="logo">` : `<div style="font-weight:600">${escapeHtml(organization.name)}</div>`}

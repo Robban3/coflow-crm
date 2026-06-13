@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -87,20 +88,20 @@ const scoreBg = (v: number | null) => {
 };
 
 const severityConfig: Record<string, { label: string; color: string; icon: typeof AlertCircle; bgClass: string }> = {
-  high: { label: "Kritisk", color: "text-red-600 dark:text-red-400", icon: AlertCircle, bgClass: "bg-red-500/8 border-red-500/15 dark:bg-red-500/10 dark:border-red-500/20" },
-  medium: { label: "Viktig", color: "text-amber-600 dark:text-amber-400", icon: AlertTriangle, bgClass: "bg-amber-500/8 border-amber-500/15 dark:bg-amber-500/10 dark:border-amber-500/20" },
-  low: { label: "Förbättring", color: "text-blue-600 dark:text-blue-400", icon: Circle, bgClass: "bg-blue-500/8 border-blue-500/15 dark:bg-blue-500/10 dark:border-blue-500/20" },
+  high: { label: t("reports.renderer.severityHigh"), color: "text-red-600 dark:text-red-400", icon: AlertCircle, bgClass: "bg-red-500/8 border-red-500/15 dark:bg-red-500/10 dark:border-red-500/20" },
+  medium: { label: t("reports.renderer.severityMedium"), color: "text-amber-600 dark:text-amber-400", icon: AlertTriangle, bgClass: "bg-amber-500/8 border-amber-500/15 dark:bg-amber-500/10 dark:border-amber-500/20" },
+  low: { label: t("reports.renderer.severityLow"), color: "text-blue-600 dark:text-blue-400", icon: Circle, bgClass: "bg-blue-500/8 border-blue-500/15 dark:bg-blue-500/10 dark:border-blue-500/20" },
 };
 
 const priorityConfig: Record<string, { label: string; timeline: string; icon: typeof Zap }> = {
-  quick_win: { label: "Snabba vinster", timeline: "0–30 dagar", icon: Zap },
-  medium: { label: "Medellång sikt", timeline: "1–3 månader", icon: Target },
-  long_term: { label: "Strategiskt", timeline: "3–6 månader", icon: Clock },
+  quick_win: { label: t("reports.renderer.priorityQuickWin"), timeline: "0–30 dagar", icon: Zap },
+  medium: { label: t("reports.renderer.priorityMedium"), timeline: "1–3 månader", icon: Target },
+  long_term: { label: t("reports.renderer.priorityLongTerm"), timeline: "3–6 månader", icon: Clock },
 };
 
 const tierLabels: Record<string, string> = {
   start: "Start",
-  growth: "Tillväxt",
+  growth: t("reports.pricing.growth"),
   dominate: "Dominate",
 };
 
@@ -139,6 +140,7 @@ function SectionDivider() {
 /* ─── Main Renderer ─── */
 
 export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCtaClick, onPdfClick, onShareClick }: Props) {
+  const { t } = useTranslation();
   const [techOpen, setTechOpen] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
@@ -192,7 +194,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
 
       {/* ═══════════ 1. EXECUTIVE OVERVIEW ═══════════ */}
       <header className="growth-report-section mb-10" data-track-section="executive">
-        <SectionLabel>Komplett tillväxtrapport</SectionLabel>
+        <SectionLabel>{t("reports.growth.reportLabel")}</SectionLabel>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mt-1 leading-tight">
           {data.company.name}
         </h1>
@@ -207,9 +209,9 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
 
         {/* Three score badges */}
         <div className="grid grid-cols-3 gap-4 mt-8">
-          <ScoreBadge label="Webbprestanda" score={webScore} icon={<BarChart3 className="h-3.5 w-3.5" />} />
-          <ScoreBadge label="SEO" score={seoScore} icon={<Search className="h-3.5 w-3.5" />} />
-          <ScoreBadge label="AI-synlighet" score={geoScore} icon={<Eye className="h-3.5 w-3.5" />} />
+          <ScoreBadge label={t("reports.growth.webPerformance")} score={webScore} icon={<BarChart3 className="h-3.5 w-3.5" />} />
+          <ScoreBadge label={t("reports.generator.typeSeo")} score={seoScore} icon={<Search className="h-3.5 w-3.5" />} />
+          <ScoreBadge label={t("reports.growth.aiVisibility")} score={geoScore} icon={<Eye className="h-3.5 w-3.5" />} />
         </div>
 
         {/* Executive summary */}
@@ -225,29 +227,25 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
       {/* ═══════════ 2. NULÄGE ═══════════ */}
       <section className="growth-report-section" data-track-section="nuläge">
         <h2 className="text-lg font-semibold tracking-tight text-foreground mb-6 flex items-center gap-2">
-          <span className="w-1 h-5 rounded-full bg-primary/60 shrink-0" />
-          Nulägesanalys
-        </h2>
+          <span className="w-1 h-5 rounded-full bg-primary/60 shrink-0" />{t("reports.growth.currentState")}</h2>
 
         <div className="space-y-6">
           {data.included_modules.web && data.web && (
             <ModuleCard
-              title="Webbprestanda"
+              title={t("reports.growth.webPerformance")}
               icon={<BarChart3 className="h-4 w-4 text-primary/70" />}
               score={data.web.performance_score}
             >
               <div className="grid grid-cols-2 gap-3 mt-3">
-                <MiniScore label="Prestanda" value={data.web.performance_score} />
-                <MiniScore label="SEO" value={data.web.seo_score} />
-                <MiniScore label="Tillgänglighet" value={data.web.accessibility_score} />
-                <MiniScore label="Best Practices" value={data.web.best_practices_score} />
+                <MiniScore label={t("reports.growth.performance")} value={data.web.performance_score} />
+                <MiniScore label={t("reports.generator.typeSeo")} value={data.web.seo_score} />
+                <MiniScore label={t("reports.growth.accessibility")} value={data.web.accessibility_score} />
+                <MiniScore label={t("reports.growth.bestPractices")} value={data.web.best_practices_score} />
               </div>
               {data.web.performance_score !== null && data.web.performance_score < 70 && (
                 <div className="mt-3">
-                  <SectionLabel>Varför det spelar roll</SectionLabel>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    En långsam webbplats tappar besökare och rankas lägre i sökmotorer. Varje sekund extra laddtid kan minska konverteringar med upp till 7%.
-                  </p>
+                  <SectionLabel>{t("reports.growth.whyItMatters")}</SectionLabel>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{t("reports.growth.webPerfWhy")}</p>
                 </div>
               )}
             </ModuleCard>
@@ -255,7 +253,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
 
           {data.included_modules.seo && data.seo && (
             <ModuleCard
-              title="SEO Intelligence"
+              title={t("reports.create.seo")}
               icon={<Search className="h-4 w-4 text-primary/70" />}
               score={data.seo.visibility_score ?? null}
             >
@@ -264,7 +262,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
               )}
               {data.seo.primary_keywords && data.seo.primary_keywords.length > 0 && (
                 <div className="mt-3">
-                  <SectionLabel>Toppnyckelord</SectionLabel>
+                  <SectionLabel>{t("reports.growth.topKeywords")}</SectionLabel>
                   <div className="flex flex-wrap gap-1.5 mt-1">
                     {data.seo.primary_keywords.slice(0, 8).map((kw, i) => (
                       <Badge key={i} variant="outline" className="text-[10px] font-normal">
@@ -279,7 +277,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
 
           {data.included_modules.geo && data.geo && (
             <ModuleCard
-              title="GEO / AI-synlighet"
+              title={t("reports.create.geo")}
               icon={<Eye className="h-4 w-4 text-primary/70" />}
               score={data.geo.geo_score}
             >
@@ -290,7 +288,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
               )}
               {data.geo.findings.length > 0 && (
                 <div className="mt-3">
-                  <SectionLabel>Viktigaste fynden</SectionLabel>
+                  <SectionLabel>{t("reports.growth.keyFindings")}</SectionLabel>
                   <div className="space-y-1.5 mt-1">
                     {data.geo.findings
                       .sort((a, b) => {
@@ -320,9 +318,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
       {/* ═══════════ 3. STÖRSTA TILLVÄXTHINDRET ═══════════ */}
       <section className="growth-report-section" data-track-section="barrier">
         <h2 className="text-lg font-semibold tracking-tight text-foreground mb-4 flex items-center gap-2">
-          <span className="w-1 h-5 rounded-full bg-red-500/60 shrink-0" />
-          Största tillväxthindret
-        </h2>
+          <span className="w-1 h-5 rounded-full bg-red-500/60 shrink-0" />{t("reports.growth.biggestBarrier")}</h2>
         <div className="rounded-xl border border-red-500/15 bg-red-500/5 dark:bg-red-500/8 p-6">
           <h3 className="text-sm font-semibold text-foreground mb-2">{data.biggest_barrier.title}</h3>
           <p className="text-sm text-muted-foreground leading-relaxed">{data.biggest_barrier.description}</p>
@@ -335,9 +331,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
       {roadmapGroups.length > 0 && (
         <section className="growth-report-section" data-track-section="roadmap">
           <h2 className="text-lg font-semibold tracking-tight text-foreground mb-6 flex items-center gap-2">
-            <span className="w-1 h-5 rounded-full bg-primary/60 shrink-0" />
-            Åtgärdsplan
-          </h2>
+            <span className="w-1 h-5 rounded-full bg-primary/60 shrink-0" />{t("reports.growth.actionPlan")}</h2>
           <div className="space-y-8">
             {roadmapGroups.map((g, gi) => {
               const cfg = priorityConfig[g.priority] || priorityConfig.medium;
@@ -365,13 +359,13 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                                 <p className="text-sm font-medium text-foreground">{a.title}</p>
                                 {a.steps && (
                                   <div className="mt-1.5">
-                                    <SectionLabel>Vad ska göras</SectionLabel>
+                                    <SectionLabel>{t("reports.renderer.whatToDo")}</SectionLabel>
                                     <p className="text-xs text-muted-foreground leading-relaxed">{a.steps}</p>
                                   </div>
                                 )}
                                 {a.estimated_impact && (
                                   <div className="mt-2">
-                                    <SectionLabel>Effekt</SectionLabel><span className="text-xs font-medium text-foreground">{a.estimated_impact}</span>
+                                    <SectionLabel>{t("reports.renderer.impact")}</SectionLabel><span className="text-xs font-medium text-foreground">{a.estimated_impact}</span>
                                   </div>
                                 )}
                               </div>
@@ -390,12 +384,10 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
 
       <SectionDivider />
 
-      {/* ═══════════ 5. BRIDGE — "Vad krävs för att börja synas mer?" ═══════════ */}
+      {/* ═══════════ 5. BRIDGE — t("reports.growth.bridgeTitle") ═══════════ */}
       <section className="growth-report-section" data-track-section="bridge">
         <h2 className="text-lg font-semibold tracking-tight text-foreground mb-4 flex items-center gap-2">
-          <span className="w-1 h-5 rounded-full bg-primary/60 shrink-0" />
-          Vad krävs för att börja synas mer?
-        </h2>
+          <span className="w-1 h-5 rounded-full bg-primary/60 shrink-0" />{t("reports.growth.bridgeTitle")}</h2>
         <div className="space-y-3 text-sm text-foreground/85 leading-relaxed max-w-[640px]">
           <p>
             Analysen visar att {data.biggest_barrier.title.toLowerCase()} är det som begränsar er synlighet mest just nu.
@@ -405,9 +397,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
             De åtgärder som listas ovan adresserar grundorsakerna. Med rätt prioritering brukar de första
             förbättringarna synas inom 1–3 månader, ofta snabbare för de tekniska delarna.
           </p>
-          <p>
-            Nedan finns ett förslag på hur ett samarbete kan se ut baserat på ert nuläge.
-          </p>
+          <p>{t("reports.growth.bridgeP3")}</p>
         </div>
       </section>
 
@@ -417,12 +407,8 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
       {p && (
         <section className="growth-report-section" data-track-section="pricing">
           <h2 className="text-lg font-semibold tracking-tight text-foreground mb-2 flex items-center gap-2">
-            <span className="w-1 h-5 rounded-full bg-primary/60 shrink-0" />
-            Rekommenderad väg framåt
-          </h2>
-          <p className="text-sm text-muted-foreground mb-8 leading-relaxed max-w-[600px]">
-            Baserat på analysen rekommenderar vi ett upplägg som matchar er situation och ambitionsnivå.
-          </p>
+            <span className="w-1 h-5 rounded-full bg-primary/60 shrink-0" />{t("reports.growth.recommendedPath")}</h2>
+          <p className="text-sm text-muted-foreground mb-8 leading-relaxed max-w-[600px]">{t("reports.growth.recommendedPathDesc")}</p>
 
           {/* ── Recommended package (primary) ── */}
           {(() => {
@@ -433,17 +419,15 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
 
             // Contextual "why" based on scores
             const whyLines: string[] = [];
-            if (geoScore !== null && geoScore < 60) whyLines.push("Er AI-synlighet har tydlig förbättringspotential.");
-            if (seoScore !== null && seoScore < 60) whyLines.push("SEO-grunden behöver stärkas för att nå fler via sökmotorer.");
-            if (webScore !== null && webScore < 60) whyLines.push("Webbprestandan påverkar konvertering och ranking.");
-            if (whyLines.length === 0) whyLines.push("Ni har en bra grund – det här upplägget hjälper er ta nästa steg.");
+            if (geoScore !== null && geoScore < 60) whyLines.push(t("reports.growth.whyGeo"));
+            if (seoScore !== null && seoScore < 60) whyLines.push(t("reports.growth.whySeo"));
+            if (webScore !== null && webScore < 60) whyLines.push(t("reports.growth.whyWeb"));
+            if (whyLines.length === 0) whyLines.push(t("reports.growth.whyDefault"));
 
             return (
               <div className="rounded-xl border border-primary/25 bg-primary/[0.02] dark:bg-primary/[0.04] p-6 sm:p-7 mb-6">
                 <div className="flex items-center gap-2 mb-1">
-                  <Badge className="text-[9px] bg-primary/10 text-primary border-primary/20 px-2 py-0.5">
-                    Rekommenderad
-                  </Badge>
+                  <Badge className="text-[9px] bg-primary/10 text-primary border-primary/20 px-2 py-0.5">{t("reports.growth.recommended")}</Badge>
                 </div>
                 <h3 className="text-base font-semibold text-foreground mt-2">
                   AI-synlighet – {tierLabels[recTier]}
@@ -453,9 +437,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                   {whyLines.length > 1 && ` ${whyLines[1]}`}
                 </p>
                 <p className="text-xs text-muted-foreground/80 mt-3">
-                  <TrendingUp className="inline h-3 w-3 mr-1 -mt-0.5" />
-                  Förväntad effekt inom 90 dagar: mätbar förbättring av synlighet i sökmotorer och AI-tjänster.
-                </p>
+                  <TrendingUp className="inline h-3 w-3 mr-1 -mt-0.5" />{t("reports.growth.expectedEffect90")}</p>
 
                 <Button
                   variant="ghost"
@@ -463,7 +445,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                   className="mt-4 text-xs text-primary hover:text-primary/80"
                   onClick={() => setExpandedTier(isExpanded ? null : recTier)}
                 >
-                  {isExpanded ? "Dölj upplägg & pris" : "Se upplägg & pris"}
+                  {isExpanded ? t("reports.growth.hideSetupPrice") : t("reports.growth.showSetupPrice")}
                   <ChevronDown className={`ml-1 h-3.5 w-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                 </Button>
 
@@ -471,7 +453,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                   <div className="mt-5 pt-5 border-t border-border/40 space-y-5 animate-in fade-in-0 slide-in-from-top-2 duration-200">
                     {/* What's included */}
                     <div>
-                      <SectionLabel>Vad som ingår</SectionLabel>
+                      <SectionLabel>{t("reports.growth.whatsIncluded")}</SectionLabel>
                       <ul className="space-y-2 mt-2">
                         {recBullets.map((b, i) => (
                           <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground leading-relaxed">
@@ -484,12 +466,12 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
 
                     {/* How it works */}
                     <div>
-                      <SectionLabel>Hur samarbetet fungerar</SectionLabel>
+                      <SectionLabel>{t("reports.growth.howItWorks")}</SectionLabel>
                       <div className="space-y-1.5 mt-2">
                         {[
-                          "Månad 1: Teknisk grund, setup och första optimeringar",
-                          "Månad 2–3: Innehållsarbete och synlighetsförbättringar",
-                          "Löpande: Uppföljning, rapportering och justering",
+                          t("reports.growth.howStep1"),
+                          t("reports.growth.howStep2"),
+                          t("reports.growth.howStep3"),
                         ].map((step, i) => (
                           <p key={i} className="text-xs text-muted-foreground leading-relaxed flex items-start gap-2">
                             <span className="text-[10px] font-medium text-foreground/60 mt-px shrink-0">{i + 1}.</span>
@@ -501,7 +483,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
 
                     {/* Expected effect */}
                     <div>
-                      <SectionLabel>Förväntad effekt</SectionLabel>
+                      <SectionLabel>{t("reports.growth.expectedEffect")}</SectionLabel>
                       <p className="text-xs text-muted-foreground leading-relaxed mt-1">
                         De flesta ser mätbar förbättring inom 60–90 dagar. Tekniska åtgärder ger snabbare resultat,
                         medan innehålls- och synlighetsarbete bygger långsiktig tillväxt.
@@ -510,13 +492,10 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
 
                     {/* Price – last, subtle */}
                     <div className="rounded-lg bg-muted/30 dark:bg-muted/10 px-4 py-3">
-                      <p className="text-sm text-foreground">
-                        Från <span className="font-semibold">{formatPrice(recPrice)} kr</span>
+                      <p className="text-sm text-foreground">{t("reports.growth.from")}<span className="font-semibold">{formatPrice(recPrice)} kr</span>
                         <span className="text-xs text-muted-foreground ml-1">{p.billing_period_label}</span>
                       </p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">
-                        Avsluta när ni vill. Alla priser exkl. moms.
-                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{t("reports.growth.cancelAnytimeVat")}</p>
                     </div>
                   </div>
                 )}
@@ -535,9 +514,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
 
                 return (
                   <div key={tier} className="rounded-xl border border-border/50 bg-card/30 p-5">
-                    <p className="text-[10px] font-medium tracking-wide uppercase text-muted-foreground mb-1">
-                      Alternativ nivå
-                    </p>
+                    <p className="text-[10px] font-medium tracking-wide uppercase text-muted-foreground mb-1">{t("reports.growth.alternativeLevel")}</p>
                     <h4 className="text-sm font-semibold text-foreground">{tierLabels[tier]}</h4>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                       {TIER_FIT_LABELS[tier]}
@@ -549,7 +526,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                       className="mt-3 text-[11px] text-muted-foreground hover:text-foreground px-0"
                       onClick={() => setExpandedTier(isExpanded ? null : tier)}
                     >
-                      {isExpanded ? "Dölj" : "Se upplägg & pris"}
+                      {isExpanded ? t("reports.growth.hide") : t("reports.growth.showSetupPrice")}
                       <ChevronDown className={`ml-1 h-3 w-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                     </Button>
 
@@ -564,11 +541,10 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                           ))}
                         </ul>
                         <div className="rounded-lg bg-muted/20 px-3 py-2">
-                          <p className="text-sm text-foreground">
-                            Från <span className="font-semibold">{formatPrice(price)} kr</span>
+                          <p className="text-sm text-foreground">{t("reports.growth.from")}<span className="font-semibold">{formatPrice(price)} kr</span>
                             <span className="text-xs text-muted-foreground ml-1">{p.billing_period_label}</span>
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">Avsluta när ni vill. Exkl. moms.</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{t("reports.growth.cancelAnytimeVatShort")}</p>
                         </div>
                       </div>
                     )}
@@ -585,29 +561,21 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
           <SectionDivider />
           <section className="growth-report-section" data-track-section="website">
             <h2 className="text-lg font-semibold tracking-tight text-foreground mb-4 flex items-center gap-2">
-              <span className="w-1 h-5 rounded-full bg-primary/60 shrink-0" />
-              Ny webbplats — grunden för allt synlighetsarbete
-            </h2>
+              <span className="w-1 h-5 rounded-full bg-primary/60 shrink-0" />{t("reports.growth.websiteTitle")}</h2>
             <div className="rounded-xl border border-primary/25 bg-primary/[0.02] dark:bg-primary/[0.04] p-5 sm:p-6">
               <div className="flex items-start gap-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                   <Monitor className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <Badge className="text-[9px] bg-primary/10 text-primary border-primary/20 px-2 py-0.5 mb-2">
-                    Rekommenderas starkt
-                  </Badge>
-                  <p className="text-sm text-foreground/90 leading-relaxed">
-                    Med ett prestanda-poäng på <span className="font-semibold">{webScore}/100</span> begränsar er nuvarande webbplats effekten av allt SEO- och synlighetsarbete.
+                  <Badge className="text-[9px] bg-primary/10 text-primary border-primary/20 px-2 py-0.5 mb-2">{t("reports.growth.stronglyRecommended")}</Badge>
+                  <p className="text-sm text-foreground/90 leading-relaxed">{t("reports.growth.websiteDescPrefix")}<span className="font-semibold">{webScore}/100</span> begränsar er nuvarande webbplats effekten av allt SEO- och synlighetsarbete.
                     En modern, optimerad grund är det viktigaste steget för att maximera er digitala tillväxt.
                   </p>
                   <div className="mt-4 rounded-lg bg-muted/30 dark:bg-muted/10 px-4 py-3">
-                    <p className="text-sm text-foreground">
-                      Från <span className="font-semibold">{formatPrice(p.website_rebuild_from)} kr</span>
+                    <p className="text-sm text-foreground">{t("reports.growth.from")}<span className="font-semibold">{formatPrice(p.website_rebuild_from)} kr</span>
                     </p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      Upp till ca 10 sidor, GEO/SEO-redo struktur. Exkl. moms.
-                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{t("reports.growth.websitePriceNote")}</p>
                   </div>
                   {data.contact?.booking_url && (
                     <p className="text-xs text-muted-foreground mt-3">
@@ -617,9 +585,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                         target="_blank"
                         rel="noopener noreferrer"
                         className="underline underline-offset-2 hover:text-foreground transition-colors"
-                      >
-                        Diskutera upplägg vid genomgång →
-                      </a>
+                      >{t("reports.growth.websiteDiscuss")}</a>
                     </p>
                   )}
                 </div>
@@ -634,9 +600,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
       {/* ═══════════ 8. SLUT-CTA — TRYGG KONVERTERING ═══════════ */}
       <section className="growth-report-section growth-report-cta py-4" data-track-section="next_steps">
         <div className="max-w-[560px] mx-auto text-center">
-          <h2 className="text-lg font-semibold tracking-tight text-foreground mb-3">
-            Vill ni se hur detta skulle fungera för just er?
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight text-foreground mb-3">{t("reports.growth.finalCtaTitle")}</h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-8">
             En 15 minuters kostnadsfri genomgång där vi går igenom er situation
             och tar fram en konkret plan. Inga förpliktelser.
@@ -646,23 +610,17 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
             {data.contact?.booking_url ? (
               <Button size="lg" className="rounded-xl" asChild onClick={() => onCtaClick?.("book")}>
                 <a href={data.contact.booking_url} target="_blank" rel="noopener noreferrer">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Få konkret plan (15 min)
-                  <ExternalLink className="ml-1.5 h-3 w-3" />
+                  <Calendar className="mr-2 h-4 w-4" />{t("reports.growth.getPlan")}<ExternalLink className="ml-1.5 h-3 w-3" />
                 </a>
               </Button>
             ) : (
               <Button size="lg" className="rounded-xl" onClick={() => { onCtaClick?.("book"); handleBook(); }}>
-                <Calendar className="mr-2 h-4 w-4" />
-                Få konkret plan (15 min)
-              </Button>
+                <Calendar className="mr-2 h-4 w-4" />{t("reports.growth.getPlan")}</Button>
             )}
             {publicMode && data.contact?.email && (
               <Button variant="outline" size="lg" className="rounded-xl" asChild onClick={() => onCtaClick?.("send_report_as_offer")}>
                 <a href={`mailto:${data.contact.email}?subject=Rapport som offertunderlag – ${data.company.name}`}>
-                  <Mail className="mr-2 h-4 w-4" />
-                  Skicka rapport som offertunderlag
-                </a>
+                  <Mail className="mr-2 h-4 w-4" />{t("reports.growth.sendAsOffer")}</a>
               </Button>
             )}
           </div>
@@ -689,14 +647,14 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
         <Collapsible open={techOpen} onOpenChange={setTechOpen}>
           <CollapsibleTrigger className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer group">
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${techOpen ? "rotate-180" : ""}`} />
-            <span className="font-medium">Teknisk bilaga</span>
+            <span className="font-medium">{t("reports.renderer.techAppendix")}</span>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-4">
             <div className="rounded-xl border bg-muted/20 p-5 text-xs text-muted-foreground leading-relaxed space-y-2">
-              <p>Data baseras på befintliga analyser.</p>
-              {data.included_modules.web && <p>Webbanalys: Google PageSpeed Insights (Lighthouse)</p>}
-              {data.included_modules.geo && <p>GEO-analys: Heuristisk crawl + AI-synlighetsanalys</p>}
-              {data.included_modules.seo && <p>SEO Intelligence: DataForSEO Ranked Keywords</p>}
+              <p>{t("reports.growth.techDataNote")}</p>
+              {data.included_modules.web && <p>{t("reports.growth.techWeb")}</p>}
+              {data.included_modules.geo && <p>{t("reports.growth.techGeo")}</p>}
+              {data.included_modules.seo && <p>{t("reports.growth.techSeo")}</p>}
               <p>Genererad: {new Date(data.created_at).toLocaleString("sv-SE")}</p>
             </div>
 
@@ -713,10 +671,10 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                           <h5 className="text-xs font-semibold text-foreground">{f.title}</h5>
                           {f.category && <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{f.category}</span>}
                           {f.description && (
-                            <div className="mt-1.5"><SectionLabel>Affärspåverkan</SectionLabel><p className="text-xs text-muted-foreground leading-relaxed">{f.description}</p></div>
+                            <div className="mt-1.5"><SectionLabel>{t("reports.renderer.businessImpact")}</SectionLabel><p className="text-xs text-muted-foreground leading-relaxed">{f.description}</p></div>
                           )}
                           {f.recommendation && (
-                            <div className="mt-1.5"><SectionLabel>Rekommenderad åtgärd</SectionLabel><p className="text-xs text-foreground/80 leading-relaxed">{f.recommendation}</p></div>
+                            <div className="mt-1.5"><SectionLabel>{t("reports.renderer.recommendedAction")}</SectionLabel><p className="text-xs text-foreground/80 leading-relaxed">{f.recommendation}</p></div>
                           )}
                         </div>
                       </div>
@@ -732,8 +690,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
       {/* ─── FOOTER ─── */}
       {publicMode && (
         <footer className="mt-14 pt-6 border-t border-border/30 text-center growth-report-footer">
-          <p className="text-[11px] text-muted-foreground">
-            Rapport framtagen av <span className="font-medium">Kod & Co</span>
+          <p className="text-[11px] text-muted-foreground">{t("reports.renderer.footerBy")}<span className="font-medium">Kod & Co</span>
           </p>
         </footer>
       )}
@@ -801,7 +758,7 @@ function OrderModal({
 
   const handleCreateOffer = async () => {
     if (!leadId) {
-      toast({ title: "Ingen lead kopplad", description: "Kan inte skapa offert utan kopplad lead.", variant: "destructive" });
+      toast({ title: t("reports.order.noLead"), description: t("reports.order.noLeadDesc"), variant: "destructive" });
       return;
     }
     setIsCreating(true);
@@ -841,7 +798,7 @@ function OrderModal({
           description: `AI-synlighet – ${tierLabels[tier]} (SEO + GEO)`,
           quantity: 1,
           unit_price: tierPrice,
-          unit: "mån",
+          unit: t("reports.order.unitMonth"),
           billing_type: "recurring",
           sort_order: 0,
           vat_rate: 25,
@@ -851,7 +808,7 @@ function OrderModal({
       if (addWebsite) {
         items.push({
           quote_id: quote.id,
-          description: "Ny AI-optimerad hemsida (upp till ca 10 sidor)",
+          description: t("reports.order.lineWebsite"),
           quantity: 1,
           unit_price: pricing.website_rebuild_from,
           unit: "st",
@@ -868,10 +825,10 @@ function OrderModal({
       if (itemErr) throw itemErr;
 
       setCreatedOfferId(quote.id);
-      toast({ title: "Offert skapad!", description: `Offert för ${companyName} är redo.` });
+      toast({ title: t("reports.order.created"), description: `Offert för ${companyName} är redo.` });
     } catch (err: any) {
       console.error("Create offer error:", err);
-      toast({ title: "Fel", description: "Kunde inte skapa offert.", variant: "destructive" });
+      toast({ title: t("reports.generator.error"), description: t("reports.order.createError"), variant: "destructive" });
     } finally {
       setIsCreating(false);
     }
@@ -883,20 +840,16 @@ function OrderModal({
         <DialogContent className="sm:max-w-md">
           <div className="text-center py-6">
             <CheckCircle2 className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Offert skapad!</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("reports.order.created")}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed mb-6">
               Offert för <span className="font-medium text-foreground">{companyName}</span> har skapats som utkast.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button asChild>
-                <a href={`/quotes`}>
-                  Öppna offert
-                  <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                <a href={`/quotes`}>{t("reports.order.openQuote")}<ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                 </a>
               </Button>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Stäng
-              </Button>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>{t("reports.generator.close")}</Button>
             </div>
           </div>
         </DialogContent>
@@ -908,7 +861,7 @@ function OrderModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Beställning / Nästa steg</DialogTitle>
+          <DialogTitle>{t("reports.order.title")}</DialogTitle>
           <DialogDescription>
             Välj hur ni vill gå vidare med {companyName}.
           </DialogDescription>
@@ -921,7 +874,7 @@ function OrderModal({
               <p className="text-sm font-semibold text-foreground">
                 AI-synlighet – {tierLabels[tier]}
               </p>
-              <p className="text-xs text-muted-foreground">SEO + GEO, månatlig tjänst</p>
+              <p className="text-xs text-muted-foreground">{t("reports.order.monthlyService")}</p>
             </div>
             <p className="text-lg font-bold text-foreground">
               {formatPrice(tierPrice)} kr<span className="text-xs font-normal text-muted-foreground"> {pricing.billing_period_label}</span>
@@ -935,7 +888,7 @@ function OrderModal({
             <div className="flex items-center gap-3">
               <Monitor className="h-4 w-4 text-muted-foreground shrink-0" />
               <div>
-                <p className="text-sm font-medium text-foreground">Ny AI-optimerad hemsida</p>
+                <p className="text-sm font-medium text-foreground">{t("reports.pricing.websiteHeading")}</p>
                 <p className="text-xs text-muted-foreground">Från {formatPrice(pricing.website_rebuild_from)} kr (engångs)</p>
               </div>
             </div>
@@ -945,7 +898,7 @@ function OrderModal({
               className="shrink-0"
               onClick={() => setAddWebsite(!addWebsite)}
             >
-              {addWebsite ? "Tillagd ✓" : "Lägg till"}
+              {addWebsite ? "Tillagd ✓" : t("reports.order.add")}
             </Button>
           </div>
         )}
@@ -955,9 +908,7 @@ function OrderModal({
           {contact?.booking_url && (
             <Button size="lg" className="rounded-xl w-full" asChild>
               <a href={contact.booking_url} target="_blank" rel="noopener noreferrer">
-                <Calendar className="mr-2 h-4 w-4" />
-                Boka 15 min genomgång
-                <ExternalLink className="ml-1.5 h-3 w-3" />
+                <Calendar className="mr-2 h-4 w-4" />{t("reports.order.bookMeeting")}<ExternalLink className="ml-1.5 h-3 w-3" />
               </a>
             </Button>
           )}
@@ -978,9 +929,7 @@ function OrderModal({
           </Button>
         </div>
 
-        <p className="text-[10px] text-muted-foreground text-center mt-2">
-          Offerten skapas som utkast och kan redigeras innan den skickas.
-        </p>
+        <p className="text-[10px] text-muted-foreground text-center mt-2">{t("reports.order.draftNote")}</p>
       </DialogContent>
     </Dialog>
   );

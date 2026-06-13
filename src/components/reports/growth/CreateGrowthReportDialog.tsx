@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export function CreateGrowthReportDialog({ open, onOpenChange, lead }: Props) {
+  const { t } = useTranslation();
   const [isGenerating, setIsGenerating] = useState(false);
   const [modules, setModules] = useState<ModuleSelection>({ web: true, geo: true, seo: true });
   const [available, setAvailable] = useState<ModuleSelection>({ web: false, geo: false, seo: false });
@@ -88,13 +90,13 @@ export function CreateGrowthReportDialog({ open, onOpenChange, lead }: Props) {
 
       if (error) throw error;
 
-      toast({ title: "Rapport skapad!", description: "Rapporten har genererats som en snapshot." });
+      toast({ title: t("reports.generator.created"), description: t("reports.create.createdDesc") });
       onOpenChange(false);
       navigate(`/reports/${report.id}`);
     } catch (err: any) {
       console.error(err);
       toast({
-        title: "Fel",
+        title: t("reports.generator.error"),
         description: err.message || "Kunde inte skapa rapporten",
         variant: "destructive",
       });
@@ -106,7 +108,7 @@ export function CreateGrowthReportDialog({ open, onOpenChange, lead }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Skapa komplett rapport</DialogTitle>
+          <DialogTitle>{t("reports.create.title")}</DialogTitle>
           <DialogDescription>
             Sammanställer befintlig analysdata till en kundredo rapport.
             Ingen ny analys körs — endast existerande data används.
@@ -119,11 +121,10 @@ export function CreateGrowthReportDialog({ open, onOpenChange, lead }: Props) {
           </p>
           {checking ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" /> Kontrollerar tillgänglig data…
-            </div>
+              <Loader2 className="h-3 w-3 animate-spin" />{t("reports.create.checking")}</div>
           ) : (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">Välj vilka analyser som ska inkluderas:</p>
+              <p className="text-xs font-medium text-muted-foreground">{t("reports.create.selectModules")}</p>
               <label className={`flex items-center gap-2 text-sm ${!available.web ? 'opacity-50' : ''}`}>
                 <Checkbox
                   checked={modules.web}
@@ -156,14 +157,12 @@ export function CreateGrowthReportDialog({ open, onOpenChange, lead }: Props) {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Avbryt
-          </Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("reports.generator.cancel")}</Button>
           <Button onClick={handleCreate} disabled={isGenerating || !anySelected}>
             {isGenerating ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Genererar...</>
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("reports.create.generating")}</>
             ) : (
-              <><FileText className="mr-2 h-4 w-4" />Skapa rapport</>
+              <><FileText className="mr-2 h-4 w-4" />{t("reports.generator.createReport")}</>
             )}
           </Button>
         </DialogFooter>

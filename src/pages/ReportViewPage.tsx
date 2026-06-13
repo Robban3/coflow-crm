@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -23,6 +24,7 @@ import {
 import { CreateGrowthReportDialog } from "@/components/reports/growth/CreateGrowthReportDialog";
 
 export default function ReportViewPage() {
+  const { t } = useTranslation();
   const { reportId } = useParams<{ reportId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -81,7 +83,7 @@ export default function ReportViewPage() {
         .eq("id", share.id);
     }
     refetchShare();
-    toast({ title: share?.enabled ? "Delningslänk avaktiverad" : "Delningslänk aktiverad" });
+    toast({ title: share?.enabled ? t("reports.view.shareDisabled") : t("reports.view.shareEnabled") });
   };
 
   const shareUrl = share?.token
@@ -92,7 +94,7 @@ export default function ReportViewPage() {
     if (!shareUrl) return;
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
-    toast({ title: "Länk kopierad!" });
+    toast({ title: t("reports.view.linkCopied") });
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -102,7 +104,7 @@ export default function ReportViewPage() {
 
   if (isLoading) {
     return (
-      <AppLayout title="Rapport">
+      <AppLayout title={t("reports.view.title")}>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -112,12 +114,11 @@ export default function ReportViewPage() {
 
   if (!report || !isValid) {
     return (
-      <AppLayout title="Rapport">
+      <AppLayout title={t("reports.view.title")}>
         <div className="text-center py-20">
-          <p className="text-muted-foreground">Rapporten kunde inte laddas eller har ett ogiltigt format.</p>
+          <p className="text-muted-foreground">{t("reports.view.loadError")}</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Tillbaka
-          </Button>
+            <ArrowLeft className="mr-2 h-4 w-4" />{t("reports.view.back")}</Button>
         </div>
       </AppLayout>
     );
@@ -128,8 +129,7 @@ export default function ReportViewPage() {
       {/* Toolbar */}
       <div className="no-print flex items-center justify-between gap-3 mb-6 flex-wrap">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Tillbaka
-        </Button>
+          <ArrowLeft className="mr-2 h-4 w-4" />{t("reports.view.back")}</Button>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Switch
@@ -137,26 +137,22 @@ export default function ReportViewPage() {
               onCheckedChange={toggleShare}
               id="share-toggle"
             />
-            <Label htmlFor="share-toggle" className="text-sm cursor-pointer">
-              Delningslänk
-            </Label>
+            <Label htmlFor="share-toggle" className="text-sm cursor-pointer">{t("reports.view.shareLink")}</Label>
           </div>
 
           {share?.enabled && shareUrl && (
             <Button variant="outline" size="sm" onClick={handleCopy}>
               {copied ? <Check className="mr-1 h-3 w-3" /> : <Copy className="mr-1 h-3 w-3" />}
-              {copied ? "Kopierad" : "Kopiera länk"}
+              {copied ? "Kopierad" : t("reports.view.copyLink")}
             </Button>
           )}
 
           <Button variant="outline" size="sm" onClick={() => window.print()}>
-            <FileText className="mr-1 h-3 w-3" /> Exportera PDF
-          </Button>
+            <FileText className="mr-1 h-3 w-3" />{t("reports.view.exportPdf")}</Button>
 
           {isGrowth && report.lead_id && (
             <Button variant="outline" size="sm" onClick={() => setShowNewReportDialog(true)}>
-              <RefreshCw className="mr-1 h-3 w-3" /> Skapa ny rapport
-            </Button>
+              <RefreshCw className="mr-1 h-3 w-3" />{t("reports.view.createNew")}</Button>
           )}
         </div>
       </div>
