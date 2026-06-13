@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface SendOfferDialogProps {
   documentId: string;
@@ -31,6 +32,7 @@ export function SendOfferDialog({
   onSent,
   onClose,
 }: SendOfferDialogProps) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState(initialEmail);
   const [name, setName] = useState(initialName);
   const [message, setMessage] = useState("");
@@ -40,7 +42,7 @@ export function SendOfferDialog({
 
   const handleSend = async () => {
     if (!email) {
-      toast.error("Ange mottagarens e-postadress");
+      toast.error(t("templates.sendOffer.emailRequired"));
       return;
     }
     setSending(true);
@@ -57,10 +59,10 @@ export function SendOfferDialog({
 
       if (error) throw error;
 
-      toast.success(`Offerten skickades till ${email}`);
+      toast.success(t("templates.sendOffer.sentTo", { email }));
       onSent();
     } catch (err: any) {
-      toast.error("Kunde inte skicka: " + (err.message || "Okänt fel"));
+      toast.error(t("templates.sendOffer.sendError", { error: err.message || t("templates.sendOffer.unknownError") }));
     } finally {
       setSending(false);
     }
@@ -68,31 +70,31 @@ export function SendOfferDialog({
 
   const copyLink = () => {
     navigator.clipboard.writeText(offerUrl);
-    toast.success("Länk kopierad!");
+    toast.success(t("templates.sendOffer.linkCopied"));
   };
 
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Skicka offert</DialogTitle>
+          <DialogTitle>{t("templates.sendOffer.title")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label>Mottagare (namn)</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Kontaktperson" />
+            <Label>{t("templates.sendOffer.recipientName")}</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("templates.sendOffer.recipientNamePlaceholder")} />
           </div>
           <div>
-            <Label>E-postadress</Label>
+            <Label>{t("templates.sendOffer.email")}</Label>
             <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="kontakt@foretag.se" />
           </div>
           <div>
-            <Label>Personligt meddelande (valfritt)</Label>
+            <Label>{t("templates.sendOffer.message")}</Label>
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Hej! Här kommer offerten vi pratade om..."
+              placeholder={t("templates.sendOffer.messagePlaceholder")}
               rows={3}
             />
           </div>
@@ -107,11 +109,11 @@ export function SendOfferDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Avbryt
+            {t("templates.sendOffer.cancel")}
           </Button>
           <Button onClick={handleSend} disabled={sending}>
             <Send className="h-4 w-4 mr-2" />
-            {sending ? "Skickar..." : "Skicka via e-post"}
+            {sending ? t("templates.sendOffer.sending") : t("templates.sendOffer.sendViaEmail")}
           </Button>
         </DialogFooter>
       </DialogContent>

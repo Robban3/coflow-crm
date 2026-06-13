@@ -14,6 +14,148 @@ export const statisticsDict: FeatureDictionary = {
     "statistics.meetingsBooked": "Möten bokade",
     "statistics.dueToday": "{count} idag",
     "statistics.openCallbacks": "Öppna callbacks",
+
+    // CallOutcomesBreakdown
+    "statistics.callOverview": "Samtalsöversikt",
+    "statistics.total": "Totalt",
+    "statistics.answered": "Svar",
+    "statistics.answerPct": "Svar%",
+    "statistics.bookedPct": "Bokad%",
+    "statistics.noAnswerLabel": "Ej svar: {count}",
+    "statistics.callbackLabel": "Återkoppling: {count}",
+    "statistics.notInterestedLabel": "Ej intresserad: {count}",
+    "statistics.bookedLabel": "Bokad: {count}",
+    "statistics.wrongNumberLabel": "Nummer fel: {count}",
+    "statistics.callOutcomesOverTime": "Samtalsutfall över tid",
+    "statistics.legendAnswered": "Svar",
+    "statistics.legendNoAnswer": "Ej svar",
+    "statistics.legendCallback": "Återkoppling",
+    "statistics.legendBooked": "Bokad",
+    "statistics.legendNotInterested": "Ej intresserad",
+    "statistics.callsPerUser": "Samtal per användare",
+    "statistics.user": "Användare",
+    "statistics.calls": "Samtal",
+    "statistics.colNoAnswer": "Ej svar",
+    "statistics.colCallback": "Återk.",
+    "statistics.colNotInterested": "Ej intr.",
+    "statistics.colBooked": "Bokad",
+
+    // DailyActivityTable
+    "statistics.dailyActivity": "Daglig aktivitet",
+    "statistics.date": "Datum",
+    "statistics.email": "Mail",
+    "statistics.meetings": "Möten",
+    "statistics.documentsShort": "Dok",
+    "statistics.tasksShort": "Uppg",
+    "statistics.volume": "Volym",
+    "statistics.today": "Idag",
+    "statistics.yesterday": "Igår",
+
+    // EmailStatisticsTab
+    "statistics.periodLast7Days": "Senaste 7 dagar",
+    "statistics.periodLast30Days": "Senaste 30 dagar",
+    "statistics.periodThisMonth": "Denna månad",
+    "statistics.periodLast3Months": "Senaste 3 månader",
+    "statistics.periodLast6Months": "Senaste 6 månader",
+    "statistics.unknown": "Okänd",
+    "statistics.emailEmptyTitle": "Ingen maildata ännu",
+    "statistics.emailEmptyDesc": "Statistik visas här när mail har skickats under den valda perioden.",
+    "statistics.sent": "Skickade",
+    "statistics.opened": "Öppnade",
+    "statistics.reply": "Svar",
+    "statistics.delivered": "Levererade",
+    "statistics.failed": "Misslyckade",
+    "statistics.emailsOverTime": "Mail över tid",
+    "statistics.openRateOverTime": "Öppningsfrekvens över tid",
+    "statistics.openRate": "Öppningsfrekvens",
+    "statistics.perSource": "Per källa",
+    "statistics.source": "Källa",
+    "statistics.openPct": "Öppn. %",
+    "statistics.perSender": "Per avsändare",
+    "statistics.sender": "Avsändare",
+    "statistics.recentEmails": "Senaste mail",
+    "statistics.subject": "Ämne",
+    "statistics.recipient": "Mottagare",
+    "statistics.openedCol": "Öppnad",
+    "statistics.error": "Fel",
+    "statistics.yes": "Ja",
+    "statistics.sourceSequence": "Sekvens",
+    "statistics.sourceManual": "Manuell",
+    "statistics.sourceQuickOutreach": "Snabbmail",
+    "statistics.sourceAnalysis": "Analys",
+
+    // PersonalProgress
+    "statistics.meetingsThisWeek": "Möten denna vecka",
+    "statistics.callsThisWeek": "Samtal denna vecka",
+    "statistics.emailsThisWeek": "Mail denna vecka",
+    "statistics.myPerformance": "Min prestation",
+
+    // RevenuePerformance
+    "statistics.totalRevenue": "Total intäkt",
+    "statistics.dealsWon": "Affärer vunna",
+    "statistics.avgDealSize": "Snitt affärsstorlek",
+    "statistics.revenuePerUser": "Intäkt per användare",
+    "statistics.deals": "Affärer",
+    "statistics.revenue": "Intäkt",
+    "statistics.avg": "Snitt",
+    "statistics.closePct": "Close%",
+    "statistics.days": "Dagar",
+
+    // SalesFunnel
+    "statistics.salesFunnel": "Säljtratt",
+    "statistics.conversionPct": "{count}% konv.",
+
+    // StatisticsCharts
+    "statistics.documents": "Dokument",
+    "statistics.tasks": "Uppgifter",
+    "statistics.activityOverTime": "Aktivitet över tid",
+    "statistics.noDataForPeriod": "Ingen data för vald period",
+    "statistics.distributionByType": "Fördelning per typ",
+
+    // StatisticsFilters
+    "statistics.periodToday": "Idag",
+    "statistics.periodYesterday": "Igår",
+    "statistics.periodThisWeek": "Denna vecka",
+    "statistics.periodLastWeek": "Förra veckan",
+    "statistics.periodLastMonth": "Förra månaden",
+
+    // StatisticsInsights
+    "statistics.coachingInsights": "Coaching-insikter",
+
+    // StatisticsKPICards
+    "statistics.emailsSent": "Mail skickade",
+    "statistics.quotesSent": "Offerter skickade",
+    "statistics.tasksDone": "Uppgifter klara",
+
+    // StatisticsLeaderboard
+    "statistics.leaderboard": "Leaderboard",
+    "statistics.scoreModel": "Poängmodell",
+    "statistics.scoreModelDesc": "Mail × {emails}, Samtal × {calls}, Möten × {meetings}, Dokument × {documents}, Uppgifter × {tasks}",
+
+    // StatisticsUserDrawer
+    "statistics.quotes": "Offerter",
+    "statistics.score": "Poäng",
+    "statistics.activeDays": "Aktiva dagar",
+    "statistics.trend": "Trend",
+    "statistics.lastActivity": "Senaste aktivitet: {value}",
+
+    // StatisticsUserTable
+    "statistics.typeEmail": "Mail",
+    "statistics.typeCall": "Samtal",
+    "statistics.typeQuote": "Offert",
+    "statistics.typeMeeting": "Möte",
+    "statistics.typeTask": "Uppgift",
+    "statistics.userOverview": "Användaröversikt",
+    "statistics.latest": "Senaste",
+
+    // TimeToConvertInsights
+    "statistics.conversionTimes": "Konverteringstider",
+    "statistics.slowest": "Långsammast",
+    "statistics.fastestToClose": "Snabbast att stänga: ",
+    "statistics.avgDaysSuffix": "({count} dagar i snitt)",
+
+    // TodaySnapshot
+    "statistics.vsLast": "vs förra {day} ({count})",
   },
   en: {
     "statistics.title": "Statistics",
@@ -28,6 +170,148 @@ export const statisticsDict: FeatureDictionary = {
     "statistics.meetingsBooked": "Meetings booked",
     "statistics.dueToday": "{count} today",
     "statistics.openCallbacks": "Open callbacks",
+
+    // CallOutcomesBreakdown
+    "statistics.callOverview": "Call overview",
+    "statistics.total": "Total",
+    "statistics.answered": "Answered",
+    "statistics.answerPct": "Answer%",
+    "statistics.bookedPct": "Booked%",
+    "statistics.noAnswerLabel": "No answer: {count}",
+    "statistics.callbackLabel": "Callback: {count}",
+    "statistics.notInterestedLabel": "Not interested: {count}",
+    "statistics.bookedLabel": "Booked: {count}",
+    "statistics.wrongNumberLabel": "Wrong number: {count}",
+    "statistics.callOutcomesOverTime": "Call outcomes over time",
+    "statistics.legendAnswered": "Answered",
+    "statistics.legendNoAnswer": "No answer",
+    "statistics.legendCallback": "Callback",
+    "statistics.legendBooked": "Booked",
+    "statistics.legendNotInterested": "Not interested",
+    "statistics.callsPerUser": "Calls per user",
+    "statistics.user": "User",
+    "statistics.calls": "Calls",
+    "statistics.colNoAnswer": "No answer",
+    "statistics.colCallback": "Callb.",
+    "statistics.colNotInterested": "Not int.",
+    "statistics.colBooked": "Booked",
+
+    // DailyActivityTable
+    "statistics.dailyActivity": "Daily activity",
+    "statistics.date": "Date",
+    "statistics.email": "Email",
+    "statistics.meetings": "Meetings",
+    "statistics.documentsShort": "Doc",
+    "statistics.tasksShort": "Tasks",
+    "statistics.volume": "Volume",
+    "statistics.today": "Today",
+    "statistics.yesterday": "Yesterday",
+
+    // EmailStatisticsTab
+    "statistics.periodLast7Days": "Last 7 days",
+    "statistics.periodLast30Days": "Last 30 days",
+    "statistics.periodThisMonth": "This month",
+    "statistics.periodLast3Months": "Last 3 months",
+    "statistics.periodLast6Months": "Last 6 months",
+    "statistics.unknown": "Unknown",
+    "statistics.emailEmptyTitle": "No email data yet",
+    "statistics.emailEmptyDesc": "Statistics will appear here once emails have been sent during the selected period.",
+    "statistics.sent": "Sent",
+    "statistics.opened": "Opened",
+    "statistics.reply": "Replies",
+    "statistics.delivered": "Delivered",
+    "statistics.failed": "Failed",
+    "statistics.emailsOverTime": "Emails over time",
+    "statistics.openRateOverTime": "Open rate over time",
+    "statistics.openRate": "Open rate",
+    "statistics.perSource": "Per source",
+    "statistics.source": "Source",
+    "statistics.openPct": "Open %",
+    "statistics.perSender": "Per sender",
+    "statistics.sender": "Sender",
+    "statistics.recentEmails": "Recent emails",
+    "statistics.subject": "Subject",
+    "statistics.recipient": "Recipient",
+    "statistics.openedCol": "Opened",
+    "statistics.error": "Error",
+    "statistics.yes": "Yes",
+    "statistics.sourceSequence": "Sequence",
+    "statistics.sourceManual": "Manual",
+    "statistics.sourceQuickOutreach": "Quick email",
+    "statistics.sourceAnalysis": "Analysis",
+
+    // PersonalProgress
+    "statistics.meetingsThisWeek": "Meetings this week",
+    "statistics.callsThisWeek": "Calls this week",
+    "statistics.emailsThisWeek": "Emails this week",
+    "statistics.myPerformance": "My performance",
+
+    // RevenuePerformance
+    "statistics.totalRevenue": "Total revenue",
+    "statistics.dealsWon": "Deals won",
+    "statistics.avgDealSize": "Avg deal size",
+    "statistics.revenuePerUser": "Revenue per user",
+    "statistics.deals": "Deals",
+    "statistics.revenue": "Revenue",
+    "statistics.avg": "Avg",
+    "statistics.closePct": "Close%",
+    "statistics.days": "Days",
+
+    // SalesFunnel
+    "statistics.salesFunnel": "Sales funnel",
+    "statistics.conversionPct": "{count}% conv.",
+
+    // StatisticsCharts
+    "statistics.documents": "Documents",
+    "statistics.tasks": "Tasks",
+    "statistics.activityOverTime": "Activity over time",
+    "statistics.noDataForPeriod": "No data for selected period",
+    "statistics.distributionByType": "Distribution by type",
+
+    // StatisticsFilters
+    "statistics.periodToday": "Today",
+    "statistics.periodYesterday": "Yesterday",
+    "statistics.periodThisWeek": "This week",
+    "statistics.periodLastWeek": "Last week",
+    "statistics.periodLastMonth": "Last month",
+
+    // StatisticsInsights
+    "statistics.coachingInsights": "Coaching insights",
+
+    // StatisticsKPICards
+    "statistics.emailsSent": "Emails sent",
+    "statistics.quotesSent": "Quotes sent",
+    "statistics.tasksDone": "Tasks completed",
+
+    // StatisticsLeaderboard
+    "statistics.leaderboard": "Leaderboard",
+    "statistics.scoreModel": "Scoring model",
+    "statistics.scoreModelDesc": "Email × {emails}, Calls × {calls}, Meetings × {meetings}, Documents × {documents}, Tasks × {tasks}",
+
+    // StatisticsUserDrawer
+    "statistics.quotes": "Quotes",
+    "statistics.score": "Score",
+    "statistics.activeDays": "Active days",
+    "statistics.trend": "Trend",
+    "statistics.lastActivity": "Last activity: {value}",
+
+    // StatisticsUserTable
+    "statistics.typeEmail": "Email",
+    "statistics.typeCall": "Call",
+    "statistics.typeQuote": "Quote",
+    "statistics.typeMeeting": "Meeting",
+    "statistics.typeTask": "Task",
+    "statistics.userOverview": "User overview",
+    "statistics.latest": "Latest",
+
+    // TimeToConvertInsights
+    "statistics.conversionTimes": "Conversion times",
+    "statistics.slowest": "Slowest",
+    "statistics.fastestToClose": "Fastest to close: ",
+    "statistics.avgDaysSuffix": "({count} days on average)",
+
+    // TodaySnapshot
+    "statistics.vsLast": "vs last {day} ({count})",
   },
   es: {
     "statistics.title": "Estadísticas",
@@ -42,5 +326,147 @@ export const statisticsDict: FeatureDictionary = {
     "statistics.meetingsBooked": "Reuniones agendadas",
     "statistics.dueToday": "{count} hoy",
     "statistics.openCallbacks": "Callbacks abiertos",
+
+    // CallOutcomesBreakdown
+    "statistics.callOverview": "Resumen de llamadas",
+    "statistics.total": "Total",
+    "statistics.answered": "Contestadas",
+    "statistics.answerPct": "Resp.%",
+    "statistics.bookedPct": "Agend.%",
+    "statistics.noAnswerLabel": "Sin respuesta: {count}",
+    "statistics.callbackLabel": "Devolución: {count}",
+    "statistics.notInterestedLabel": "No interesado: {count}",
+    "statistics.bookedLabel": "Agendada: {count}",
+    "statistics.wrongNumberLabel": "Número erróneo: {count}",
+    "statistics.callOutcomesOverTime": "Resultados de llamadas a lo largo del tiempo",
+    "statistics.legendAnswered": "Contestadas",
+    "statistics.legendNoAnswer": "Sin respuesta",
+    "statistics.legendCallback": "Devolución",
+    "statistics.legendBooked": "Agendada",
+    "statistics.legendNotInterested": "No interesado",
+    "statistics.callsPerUser": "Llamadas por usuario",
+    "statistics.user": "Usuario",
+    "statistics.calls": "Llamadas",
+    "statistics.colNoAnswer": "Sin resp.",
+    "statistics.colCallback": "Devol.",
+    "statistics.colNotInterested": "No int.",
+    "statistics.colBooked": "Agendada",
+
+    // DailyActivityTable
+    "statistics.dailyActivity": "Actividad diaria",
+    "statistics.date": "Fecha",
+    "statistics.email": "Correo",
+    "statistics.meetings": "Reuniones",
+    "statistics.documentsShort": "Doc",
+    "statistics.tasksShort": "Tareas",
+    "statistics.volume": "Volumen",
+    "statistics.today": "Hoy",
+    "statistics.yesterday": "Ayer",
+
+    // EmailStatisticsTab
+    "statistics.periodLast7Days": "Últimos 7 días",
+    "statistics.periodLast30Days": "Últimos 30 días",
+    "statistics.periodThisMonth": "Este mes",
+    "statistics.periodLast3Months": "Últimos 3 meses",
+    "statistics.periodLast6Months": "Últimos 6 meses",
+    "statistics.unknown": "Desconocido",
+    "statistics.emailEmptyTitle": "Aún no hay datos de correo",
+    "statistics.emailEmptyDesc": "Las estadísticas aparecerán aquí cuando se hayan enviado correos durante el período seleccionado.",
+    "statistics.sent": "Enviados",
+    "statistics.opened": "Abiertos",
+    "statistics.reply": "Respuestas",
+    "statistics.delivered": "Entregados",
+    "statistics.failed": "Fallidos",
+    "statistics.emailsOverTime": "Correos a lo largo del tiempo",
+    "statistics.openRateOverTime": "Tasa de apertura a lo largo del tiempo",
+    "statistics.openRate": "Tasa de apertura",
+    "statistics.perSource": "Por fuente",
+    "statistics.source": "Fuente",
+    "statistics.openPct": "Apert. %",
+    "statistics.perSender": "Por remitente",
+    "statistics.sender": "Remitente",
+    "statistics.recentEmails": "Correos recientes",
+    "statistics.subject": "Asunto",
+    "statistics.recipient": "Destinatario",
+    "statistics.openedCol": "Abierto",
+    "statistics.error": "Error",
+    "statistics.yes": "Sí",
+    "statistics.sourceSequence": "Secuencia",
+    "statistics.sourceManual": "Manual",
+    "statistics.sourceQuickOutreach": "Correo rápido",
+    "statistics.sourceAnalysis": "Análisis",
+
+    // PersonalProgress
+    "statistics.meetingsThisWeek": "Reuniones esta semana",
+    "statistics.callsThisWeek": "Llamadas esta semana",
+    "statistics.emailsThisWeek": "Correos esta semana",
+    "statistics.myPerformance": "Mi rendimiento",
+
+    // RevenuePerformance
+    "statistics.totalRevenue": "Ingresos totales",
+    "statistics.dealsWon": "Tratos ganados",
+    "statistics.avgDealSize": "Tamaño medio de trato",
+    "statistics.revenuePerUser": "Ingresos por usuario",
+    "statistics.deals": "Tratos",
+    "statistics.revenue": "Ingresos",
+    "statistics.avg": "Media",
+    "statistics.closePct": "Cierre%",
+    "statistics.days": "Días",
+
+    // SalesFunnel
+    "statistics.salesFunnel": "Embudo de ventas",
+    "statistics.conversionPct": "{count}% conv.",
+
+    // StatisticsCharts
+    "statistics.documents": "Documentos",
+    "statistics.tasks": "Tareas",
+    "statistics.activityOverTime": "Actividad a lo largo del tiempo",
+    "statistics.noDataForPeriod": "No hay datos para el período seleccionado",
+    "statistics.distributionByType": "Distribución por tipo",
+
+    // StatisticsFilters
+    "statistics.periodToday": "Hoy",
+    "statistics.periodYesterday": "Ayer",
+    "statistics.periodThisWeek": "Esta semana",
+    "statistics.periodLastWeek": "Semana pasada",
+    "statistics.periodLastMonth": "Mes pasado",
+
+    // StatisticsInsights
+    "statistics.coachingInsights": "Sugerencias de coaching",
+
+    // StatisticsKPICards
+    "statistics.emailsSent": "Correos enviados",
+    "statistics.quotesSent": "Presupuestos enviados",
+    "statistics.tasksDone": "Tareas completadas",
+
+    // StatisticsLeaderboard
+    "statistics.leaderboard": "Clasificación",
+    "statistics.scoreModel": "Modelo de puntuación",
+    "statistics.scoreModelDesc": "Correo × {emails}, Llamadas × {calls}, Reuniones × {meetings}, Documentos × {documents}, Tareas × {tasks}",
+
+    // StatisticsUserDrawer
+    "statistics.quotes": "Presupuestos",
+    "statistics.score": "Puntos",
+    "statistics.activeDays": "Días activos",
+    "statistics.trend": "Tendencia",
+    "statistics.lastActivity": "Última actividad: {value}",
+
+    // StatisticsUserTable
+    "statistics.typeEmail": "Correo",
+    "statistics.typeCall": "Llamada",
+    "statistics.typeQuote": "Presupuesto",
+    "statistics.typeMeeting": "Reunión",
+    "statistics.typeTask": "Tarea",
+    "statistics.userOverview": "Resumen de usuarios",
+    "statistics.latest": "Reciente",
+
+    // TimeToConvertInsights
+    "statistics.conversionTimes": "Tiempos de conversión",
+    "statistics.slowest": "Más lento",
+    "statistics.fastestToClose": "Más rápido en cerrar: ",
+    "statistics.avgDaysSuffix": "({count} días de media)",
+
+    // TodaySnapshot
+    "statistics.vsLast": "vs {day} pasado ({count})",
   },
 };

@@ -27,7 +27,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMarket } from "@/hooks/useMarket";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface EmailExecution {
   id: string;
@@ -61,6 +62,8 @@ interface EmailApprovalCardProps {
 
 export function EmailApprovalCard({ execution, onApproved, onRejected }: EmailApprovalCardProps) {
   const { toast } = useToast();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const { market } = useMarket();
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
@@ -88,14 +91,14 @@ export function EmailApprovalCard({ execution, onApproved, onRejected }: EmailAp
       if (error) throw error;
 
       toast({
-        title: "Mailet godkänt",
-        description: "Mailet kommer att skickas vid nästa schemalagda tidpunkt",
+        title: t("outreach.approval.approvedTitle"),
+        description: t("outreach.approval.approvedDesc"),
       });
       onApproved();
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte godkänna mailet",
+        title: t("outreach.common.error"),
+        description: t("outreach.approval.approveError"),
         variant: "destructive",
       });
     } finally {
@@ -116,14 +119,14 @@ export function EmailApprovalCard({ execution, onApproved, onRejected }: EmailAp
       if (error) throw error;
 
       toast({
-        title: "Mailet avvisades",
-        description: "Steget hoppades över",
+        title: t("outreach.approval.rejectedTitle"),
+        description: t("outreach.approval.rejectedDesc"),
       });
       onRejected();
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte avvisa mailet",
+        title: t("outreach.common.error"),
+        description: t("outreach.approval.rejectError"),
         variant: "destructive",
       });
     } finally {
@@ -188,13 +191,13 @@ export function EmailApprovalCard({ execution, onApproved, onRejected }: EmailAp
       setEditedBody(response.data.body);
 
       toast({
-        title: "Nytt mail genererat",
-        description: "Granska och godkänn det nya innehållet",
+        title: t("outreach.approval.regeneratedTitle"),
+        description: t("outreach.approval.regeneratedDesc"),
       });
     } catch (error) {
       toast({
-        title: "Fel",
-        description: error instanceof Error ? error.message : "Kunde inte generera nytt mail",
+        title: t("outreach.common.error"),
+        description: error instanceof Error ? error.message : t("outreach.approval.regenerateError"),
         variant: "destructive",
       });
     } finally {
@@ -202,8 +205,8 @@ export function EmailApprovalCard({ execution, onApproved, onRejected }: EmailAp
     }
   };
 
-  const leadName = execution.lead_sequence?.lead?.company_name || "Okänt företag";
-  const sequenceName = execution.lead_sequence?.sequence?.name || "Okänd sekvens";
+  const leadName = execution.lead_sequence?.lead?.company_name || t("outreach.common.unknownCompany");
+  const sequenceName = execution.lead_sequence?.sequence?.name || t("outreach.approval.unknownSequence");
   const stepNumber = execution.step?.step_order || 1;
 
   return (
@@ -217,29 +220,29 @@ export function EmailApprovalCard({ execution, onApproved, onRejected }: EmailAp
             </div>
             <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300 text-[10px] sm:text-xs self-start sm:self-auto shrink-0">
               <Clock className="mr-1 h-3 w-3" />
-              <span className="hidden sm:inline">Väntar på godkännande</span>
-              <span className="sm:hidden">Väntar</span>
+              <span className="hidden sm:inline">{t("outreach.approval.pendingApproval")}</span>
+              <span className="sm:hidden">{t("outreach.approval.pendingShort")}</span>
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground truncate">
-            {sequenceName} • Steg {stepNumber}
+            {sequenceName} • {t("outreach.approval.stepLabel", { step: stepNumber })}
             {execution.scheduled_at && (
-              <> • {format(new Date(execution.scheduled_at), "d MMM HH:mm", { locale: sv })}</>
+              <> • {format(new Date(execution.scheduled_at), "d MMM HH:mm", { locale: dateLocale })}</>
             )}
           </p>
         </CardHeader>
         <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6 overflow-hidden">
           <div className="space-y-2">
-            <Label className="text-muted-foreground text-xs">Ämne</Label>
+            <Label className="text-muted-foreground text-xs">{t("outreach.common.subject")}</Label>
             <div className="p-3 rounded-lg bg-background border text-sm font-medium truncate">
-              {editedSubject || execution.generated_subject || "Inget ämne genererat"}
+              {editedSubject || execution.generated_subject || t("outreach.approval.noSubjectGenerated")}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-muted-foreground text-xs">Förhandsgranskning</Label>
+            <Label className="text-muted-foreground text-xs">{t("outreach.approval.preview")}</Label>
             <div className="p-3 rounded-lg bg-background border text-sm whitespace-pre-wrap break-words overflow-hidden line-clamp-4">
-              {editedBody || execution.generated_body || "Inget innehåll genererat"}
+              {editedBody || execution.generated_body || t("outreach.approval.noBodyGenerated")}
             </div>
           </div>
 
@@ -250,13 +253,13 @@ export function EmailApprovalCard({ execution, onApproved, onRejected }: EmailAp
               ) : (
                 <CheckCircle className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               )}
-              <span className="hidden sm:inline">Godkänn & Skicka</span>
-              <span className="sm:hidden">Godkänn</span>
+              <span className="hidden sm:inline">{t("outreach.approval.approveAndSend")}</span>
+              <span className="sm:hidden">{t("outreach.approval.approve")}</span>
             </Button>
             <Button variant="outline" size="sm" onClick={() => setShowEditDialog(true)} className="text-xs sm:text-sm">
               <Edit className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Redigera</span>
-              <span className="sm:hidden">Ändra</span>
+              <span className="hidden sm:inline">{t("outreach.approval.edit")}</span>
+              <span className="sm:hidden">{t("outreach.approval.change")}</span>
             </Button>
             <Button
               variant="outline"
@@ -270,8 +273,8 @@ export function EmailApprovalCard({ execution, onApproved, onRejected }: EmailAp
               ) : (
                 <Sparkles className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               )}
-              <span className="hidden sm:inline">Generera nytt</span>
-              <span className="sm:hidden">Ny</span>
+              <span className="hidden sm:inline">{t("outreach.approval.generateNew")}</span>
+              <span className="sm:hidden">{t("outreach.approval.new")}</span>
             </Button>
             <Button
               variant="ghost"
@@ -285,8 +288,8 @@ export function EmailApprovalCard({ execution, onApproved, onRejected }: EmailAp
               ) : (
                 <X className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               )}
-              <span className="hidden sm:inline">Hoppa över</span>
-              <span className="sm:hidden">Hoppa</span>
+              <span className="hidden sm:inline">{t("outreach.approval.skip")}</span>
+              <span className="sm:hidden">{t("outreach.approval.skipShort")}</span>
             </Button>
           </div>
         </CardContent>
@@ -298,28 +301,28 @@ export function EmailApprovalCard({ execution, onApproved, onRejected }: EmailAp
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="h-5 w-5" />
-              Redigera mail
+              {t("outreach.approval.editDialogTitle")}
             </DialogTitle>
             <DialogDescription>
-              Justera ämne och innehåll innan du godkänner
+              {t("outreach.approval.editDialogDesc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Ämne</Label>
+              <Label>{t("outreach.common.subject")}</Label>
               <Input
                 value={editedSubject}
                 onChange={(e) => setEditedSubject(e.target.value)}
-                placeholder="Ämnesrad..."
+                placeholder={t("outreach.approval.subjectPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Meddelande</Label>
+              <Label>{t("outreach.common.message")}</Label>
               <Textarea
                 value={editedBody}
                 onChange={(e) => setEditedBody(e.target.value)}
-                placeholder="Mailinnehåll..."
+                placeholder={t("outreach.approval.bodyPlaceholder")}
                 rows={12}
                 className="font-mono text-sm"
               />
@@ -328,16 +331,16 @@ export function EmailApprovalCard({ execution, onApproved, onRejected }: EmailAp
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-              Avbryt
+              {t("outreach.common.cancel")}
             </Button>
             <Button onClick={() => {
               setShowEditDialog(false);
               toast({
-                title: "Ändringar sparade",
-                description: "Klicka på 'Godkänn & Skicka' för att skicka mailet",
+                title: t("outreach.approval.changesSavedTitle"),
+                description: t("outreach.approval.changesSavedDesc"),
               });
             }}>
-              Spara ändringar
+              {t("outreach.approval.saveChanges")}
             </Button>
           </DialogFooter>
         </DialogContent>

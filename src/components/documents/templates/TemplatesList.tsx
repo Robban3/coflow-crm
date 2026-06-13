@@ -11,8 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, FileText, Pencil, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n/LanguageProvider";
+import { sv, enUS, es } from "date-fns/locale";
+import { format } from "date-fns";
 
 export function TemplatesList() {
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const navigate = useNavigate();
   const { user } = useAuth();
   const orgId = useOrganizationId();
@@ -58,15 +63,15 @@ export function TemplatesList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["document_templates"] });
-      toast.success("3 rekommenderade mallar skapade!");
+      toast.success(t("templates.list.seededTitle"));
     },
-    onError: () => toast.error("Kunde inte skapa startmallar"),
+    onError: () => toast.error(t("templates.list.seedError")),
   });
 
   const typeLabels: Record<string, string> = {
-    offer: "Offert",
-    contract: "Avtal",
-    other: "Övrigt",
+    offer: t("templates.list.typeOffer"),
+    contract: t("templates.list.typeContract"),
+    other: t("templates.list.typeOther"),
   };
 
   const isEmpty = !isLoading && (!templates || templates.length === 0);
@@ -75,26 +80,25 @@ export function TemplatesList() {
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Mallar</h1>
+          <h1 className="text-2xl font-bold">{t("templates.list.title")}</h1>
           <p className="text-muted-foreground text-sm">
-            Skapa och hantera dokumentmallar för offerter och avtal
+            {t("templates.list.subtitle")}
           </p>
         </div>
         <Button onClick={() => setShowWizard(true)}>
-          <Plus className="h-4 w-4 mr-1" /> Ny mall
+          <Plus className="h-4 w-4 mr-1" /> {t("templates.list.newTemplate")}
         </Button>
       </div>
 
       {isLoading ? (
-        <p className="text-muted-foreground text-sm">Laddar...</p>
+        <p className="text-muted-foreground text-sm">{t("templates.list.loading")}</p>
       ) : isEmpty ? (
         <Card>
           <CardContent className="py-12 text-center">
             <FileText className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
-            <h3 className="font-semibold text-lg mb-2">Kom igång snabbt</h3>
+            <h3 className="font-semibold text-lg mb-2">{t("templates.list.emptyTitle")}</h3>
             <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
-              Vi har förberett professionella mallar med CRM-fält som automatiskt fylls i med kunddata.
-              Skapa rekommenderade mallar med ett klick eller bygg din egen från grunden.
+              {t("templates.list.emptyDesc")}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
@@ -107,30 +111,30 @@ export function TemplatesList() {
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                Skapa rekommenderade mallar
+                {t("templates.list.createRecommended")}
               </Button>
               <Button variant="outline" onClick={() => setShowWizard(true)}>
-                <Plus className="h-4 w-4 mr-1" /> Skapa egen mall
+                <Plus className="h-4 w-4 mr-1" /> {t("templates.list.createOwn")}
               </Button>
             </div>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-3">
-          {templates!.map((t) => (
+          {templates!.map((tpl) => (
             <Card
-              key={t.id}
+              key={tpl.id}
               className="cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => navigate(`/settings/templates/${t.id}`)}
+              onClick={() => navigate(`/settings/templates/${tpl.id}`)}
             >
               <CardContent className="py-4 flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">{t.name}</h3>
+                  <h3 className="font-medium">{tpl.name}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {typeLabels[t.type] || t.type}
-                    {t.description && ` • ${t.description}`}
-                    {" • "}Skapad{" "}
-                    {new Date(t.created_at).toLocaleDateString("sv-SE")}
+                    {typeLabels[tpl.type] || tpl.type}
+                    {tpl.description && ` • ${tpl.description}`}
+                    {" • "}{t("templates.list.createdPrefix")}{" "}
+                    {format(new Date(tpl.created_at), "P", { locale: dateLocale })}
                   </p>
                 </div>
                 <Pencil className="h-4 w-4 text-muted-foreground" />

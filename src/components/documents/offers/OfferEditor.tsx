@@ -15,14 +15,15 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Save, Send, Search, UserPlus, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { OfferPreviewDialog } from "./OfferPreviewDialog";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
-const statusLabels: Record<string, string> = {
-  draft: "Utkast",
-  sent: "Skickad",
-  viewed: "Visad",
-  accepted: "Accepterad",
-  rejected: "Avböjd",
-  expired: "Utgången",
+const statusLabelKeys: Record<string, string> = {
+  draft: "templates.offerStatus.draft",
+  sent: "templates.offerStatus.sent",
+  viewed: "templates.offerStatus.viewed",
+  accepted: "templates.offerStatus.accepted",
+  rejected: "templates.offerStatus.rejected",
+  expired: "templates.offerStatus.expired",
 };
 
 interface LeadResult {
@@ -37,6 +38,7 @@ export function OfferEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const [blocks, setBlocks] = useState<DocumentBlock[]>([]);
   const [title, setTitle] = useState("");
@@ -154,7 +156,7 @@ export function OfferEditor() {
     // Update doc with lead_id
     await fromTable("documents").update({ lead_id: lead.id }).eq("id", id!);
     setDirty(true);
-    toast.success(`Kopplad till ${lead.company_name || lead.contact_name}`);
+    toast.success(t("templates.offerEditor.linkedTo", { name: lead.company_name || lead.contact_name || "" }));
   };
 
   const isLocked = doc?.status !== "draft";
@@ -201,9 +203,9 @@ export function OfferEditor() {
       queryClient.invalidateQueries({ queryKey: ["document", id] });
       queryClient.invalidateQueries({ queryKey: ["document_blocks", id] });
       setDirty(false);
-      toast.success("Offert sparad");
+      toast.success(t("templates.offerEditor.saved"));
     },
-    onError: () => toast.error("Kunde inte spara offert"),
+    onError: () => toast.error(t("templates.offerEditor.saveError")),
   });
 
   const totals = calculateDocumentTotals(blocks);
@@ -217,14 +219,14 @@ export function OfferEditor() {
         </Button>
         <div className="flex items-center gap-2">
           <Badge variant="outline">
-            {statusLabels[doc?.status || "draft"]}
+            {t(statusLabelKeys[doc?.status || "draft"])}
           </Badge>
           <Button
             size="sm"
             variant="outline"
             onClick={() => setShowPreview(true)}
           >
-            <Eye className="h-4 w-4 mr-1" /> Förhandsvisning
+            <Eye className="h-4 w-4 mr-1" /> {t("templates.offerEditor.preview")}
           </Button>
           {!isLocked && (
             <Button
@@ -232,7 +234,7 @@ export function OfferEditor() {
               onClick={() => saveMutation.mutate()}
               disabled={!dirty || saveMutation.isPending}
             >
-              <Save className="h-4 w-4 mr-1" /> Spara
+              <Save className="h-4 w-4 mr-1" /> {t("templates.offerEditor.save")}
             </Button>
           )}
           {doc?.status === "draft" && (
@@ -241,13 +243,13 @@ export function OfferEditor() {
               variant="default"
               onClick={() => {
                 if (dirty) {
-                  toast.error("Spara offerten innan du skickar");
+                  toast.error(t("templates.offerEditor.saveBeforeSend"));
                   return;
                 }
                 setShowSendDialog(true);
               }}
             >
-              <Send className="h-4 w-4 mr-1" /> Skicka
+              <Send className="h-4 w-4 mr-1" /> {t("templates.offerEditor.send")}
             </Button>
           )}
         </div>
@@ -261,7 +263,7 @@ export function OfferEditor() {
           setDirty(true);
         }}
         className="text-xl font-bold border-none shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2 h-auto rounded hover:bg-muted/50 transition-colors mb-6 w-full"
-        placeholder="Klicka för att ange offerttitel…"
+        placeholder={t("templates.offerEditor.titlePlaceholder")}
         disabled={isLocked}
       />
 
@@ -270,7 +272,7 @@ export function OfferEditor() {
         <div className="bg-muted/30 rounded-lg p-4 mb-6 space-y-4">
           {/* Lead search */}
           <div ref={leadSearchRef} className="relative">
-            <Label className="text-xs font-medium mb-1 block">Koppla till lead</Label>
+            <Label className="text-xs font-medium mb-1 block">{t("templates.offerEditor.linkToLead")}</Label>
             {linkedLead ? (
               <div className="flex items-center gap-2 bg-background rounded-md border border-border px-3 py-2">
                 <UserPlus className="h-4 w-4 text-muted-foreground" />
@@ -285,7 +287,7 @@ export function OfferEditor() {
                     className="ml-auto h-6 text-xs"
                     onClick={() => setLinkedLead(null)}
                   >
-                    Ändra
+                    {t("templates.offerEditor.change")}
                   </Button>
                 )}
               </div>
@@ -296,7 +298,7 @@ export function OfferEditor() {
                   <Input
                     value={leadSearch}
                     onChange={(e) => searchLeads(e.target.value)}
-                    placeholder="Sök lead på företagsnamn, kontakt eller e-post..."
+                    placeholder={t("templates.offerEditor.leadSearchPlaceholder")}
                     className="pl-9"
                   />
                 </div>
@@ -326,18 +328,18 @@ export function OfferEditor() {
           {/* Recipient fields */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label className="text-xs">Mottagarnamn</Label>
+              <Label className="text-xs">{t("templates.offerEditor.recipientName")}</Label>
               <Input
                 value={recipientName}
                 onChange={(e) => {
                   setRecipientName(e.target.value);
                   setDirty(true);
                 }}
-                placeholder="Företag eller kontakt"
+                placeholder={t("templates.offerEditor.recipientNamePlaceholder")}
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">E-post</Label>
+              <Label className="text-xs">{t("templates.offerEditor.email")}</Label>
               <Input
                 value={recipientEmail}
                 onChange={(e) => {
@@ -354,7 +356,7 @@ export function OfferEditor() {
       {/* Blocks */}
       {blocks.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
-          <p>Inga block ännu. Skapa en offert från en mall för att komma igång.</p>
+          <p>{t("templates.offerEditor.emptyBlocks")}</p>
         </div>
       ) : (
         <SortableBlockList
@@ -372,15 +374,15 @@ export function OfferEditor() {
         <div className="mt-6 flex justify-end">
           <div className="text-sm space-y-1 bg-muted/50 rounded-lg p-4">
             <div className="flex justify-between gap-8">
-              <span className="text-muted-foreground">Subtotal:</span>
+              <span className="text-muted-foreground">{t("templates.offerEditor.subtotal")}</span>
               <span className="font-medium">{totals.subtotal.toLocaleString("sv-SE")} kr</span>
             </div>
             <div className="flex justify-between gap-8">
-              <span className="text-muted-foreground">Moms:</span>
+              <span className="text-muted-foreground">{t("templates.offerEditor.vat")}</span>
               <span className="font-medium">{totals.vat_total.toLocaleString("sv-SE")} kr</span>
             </div>
             <div className="flex justify-between gap-8 border-t border-border pt-1 mt-1">
-              <span className="font-semibold">Totalt:</span>
+              <span className="font-semibold">{t("templates.offerEditor.total")}</span>
               <span className="font-bold text-lg">{totals.total.toLocaleString("sv-SE")} kr</span>
             </div>
           </div>

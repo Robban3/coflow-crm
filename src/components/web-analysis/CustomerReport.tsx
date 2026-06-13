@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageSpeedResult, webAnalysisApi } from "@/lib/api/webAnalysis";
 import { Sparkles, Loader2, ThumbsUp, ThumbsDown, AlertCircle, Zap, Target } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import ReactMarkdown from "react-markdown";
 
 interface CustomerReportProps {
@@ -17,6 +18,7 @@ interface CustomerReportProps {
 export function CustomerReport({ result, url, summary, onSummaryGenerated }: CustomerReportProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleGenerateSummary = async () => {
     setIsGenerating(true);
@@ -30,20 +32,20 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
       if (response.success && response.summary) {
         onSummaryGenerated(response.summary);
         toast({
-          title: "Sammanfattning genererad!",
-          description: "AI-analysen är klar",
+          title: t("webAnalysis.summaryGeneratedTitle"),
+          description: t("webAnalysis.summaryGeneratedDesc"),
         });
       } else {
         toast({
-          title: "Fel",
-          description: response.error || "Kunde inte generera sammanfattning",
+          title: t("webAnalysis.error"),
+          description: response.error || t("webAnalysis.couldNotGenerateSummary"),
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Ett oväntat fel uppstod",
+        title: t("webAnalysis.error"),
+        description: t("webAnalysis.unexpectedError"),
         variant: "destructive",
       });
     } finally {
@@ -53,10 +55,10 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
 
   const getOverallRating = () => {
     const avgScore = (result.performance_score + result.accessibility_score + result.seo_score + result.best_practices_score) / 4;
-    if (avgScore >= 90) return { label: "Utmärkt", color: "bg-green-500", icon: ThumbsUp };
-    if (avgScore >= 70) return { label: "Bra", color: "bg-green-400", icon: ThumbsUp };
-    if (avgScore >= 50) return { label: "Behöver förbättras", color: "bg-yellow-500", icon: AlertCircle };
-    return { label: "Kritiskt", color: "bg-red-500", icon: ThumbsDown };
+    if (avgScore >= 90) return { label: t("webAnalysis.ratingExcellent"), color: "bg-green-500", icon: ThumbsUp };
+    if (avgScore >= 70) return { label: t("webAnalysis.ratingGood"), color: "bg-green-400", icon: ThumbsUp };
+    if (avgScore >= 50) return { label: t("webAnalysis.ratingNeedsImprovement"), color: "bg-yellow-500", icon: AlertCircle };
+    return { label: t("webAnalysis.ratingCritical"), color: "bg-red-500", icon: ThumbsDown };
   };
 
   const rating = getOverallRating();
@@ -67,25 +69,25 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
   const quickInsights = [
     {
       icon: Zap,
-      title: "Laddningstid",
+      title: t("webAnalysis.insightLoadTime"),
       value: result.metrics ? webAnalysisApi.formatTime(lcp) : "N/A",
       status: lcp <= 2500 ? "good" : lcp <= 4000 ? "warning" : "bad",
-      description: lcp <= 2500 
-        ? "Snabb laddning – besökare får se innehållet direkt"
+      description: lcp <= 2500
+        ? t("webAnalysis.insightLoadTimeGood")
         : lcp <= 4000
-        ? "Lite långsam – kan förbättras för bättre upplevelse"
-        : "För långsam – besökare kan tappa tålamodet",
+        ? t("webAnalysis.insightLoadTimeWarning")
+        : t("webAnalysis.insightLoadTimeBad"),
     },
     {
       icon: Target,
-      title: "Synlighet i Google",
+      title: t("webAnalysis.insightGoogleVisibility"),
       value: `${result.seo_score}/100`,
       status: result.seo_score >= 90 ? "good" : result.seo_score >= 50 ? "warning" : "bad",
-      description: result.seo_score >= 90 
-        ? "Bra optimerad för sökmotorer"
+      description: result.seo_score >= 90
+        ? t("webAnalysis.insightGoogleVisibilityGood")
         : result.seo_score >= 50
-        ? "Viss potential för bättre placering i sökresultat"
-        : "Stora möjligheter att synas bättre i Google",
+        ? t("webAnalysis.insightGoogleVisibilityWarning")
+        : t("webAnalysis.insightGoogleVisibilityBad"),
     },
   ];
 
@@ -96,8 +98,8 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
         <CardHeader>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <CardTitle className="text-lg">Snabbsammanfattning</CardTitle>
-              <CardDescription>Enkla insikter om webbplatsens prestanda</CardDescription>
+              <CardTitle className="text-lg">{t("webAnalysis.quickSummary")}</CardTitle>
+              <CardDescription>{t("webAnalysis.quickSummaryDesc")}</CardDescription>
             </div>
             <Badge className={`${rating.color} text-white text-sm px-3 py-1`}>
               <RatingIcon className="h-4 w-4 mr-1" />
@@ -138,10 +140,10 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            AI-analys på svenska
+            {t("webAnalysis.aiAnalysisSwedish")}
           </CardTitle>
           <CardDescription>
-            Lättförståelig sammanfattning för dig och dina kunder
+            {t("webAnalysis.aiAnalysisSubtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -153,18 +155,18 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
             <div className="text-center py-8">
               <Sparkles className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">
-                Generera en AI-driven analys med säljargument och åtgärdsförslag
+                {t("webAnalysis.aiAnalysisPrompt")}
               </p>
               <Button onClick={handleGenerateSummary} disabled={isGenerating}>
                 {isGenerating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Genererar...
+                    {t("webAnalysis.generating")}
                   </>
                 ) : (
                   <>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Generera AI-sammanfattning
+                    {t("webAnalysis.generateAiSummary")}
                   </>
                 )}
               </Button>
@@ -177,9 +179,9 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
       {(result.opportunities?.length ?? 0) > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Topp förbättringar</CardTitle>
+            <CardTitle className="text-lg">{t("webAnalysis.topImprovements")}</CardTitle>
             <CardDescription>
-              De viktigaste åtgärderna för att förbättra webbplatsen
+              {t("webAnalysis.topImprovementsDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -196,7 +198,7 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
                     <p className="font-medium text-sm">{opp.title}</p>
                     {opp.savings && (
                       <Badge variant="secondary" className="mt-1 text-xs">
-                        Kan spara {opp.savings}
+                        {t("webAnalysis.canSave", { value: opp.savings })}
                       </Badge>
                     )}
                   </div>

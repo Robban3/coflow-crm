@@ -10,17 +10,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Mail, MailOpen, MessageSquare, TrendingUp, Eye } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line, Legend } from "recharts";
 import { format, parseISO, startOfMonth, startOfWeek, subDays, subMonths, isAfter } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 type Period = "last_7_days" | "last_30_days" | "this_month" | "last_3_months" | "last_6_months";
 type GroupBy = "day" | "week" | "month";
 
-const PERIOD_OPTIONS: { value: Period; label: string; defaultGroup: GroupBy }[] = [
-  { value: "last_7_days", label: "Senaste 7 dagar", defaultGroup: "day" },
-  { value: "last_30_days", label: "Senaste 30 dagar", defaultGroup: "day" },
-  { value: "this_month", label: "Denna månad", defaultGroup: "day" },
-  { value: "last_3_months", label: "Senaste 3 månader", defaultGroup: "week" },
-  { value: "last_6_months", label: "Senaste 6 månader", defaultGroup: "month" },
+const PERIOD_OPTIONS: { value: Period; labelKey: string; defaultGroup: GroupBy }[] = [
+  { value: "last_7_days", labelKey: "statistics.periodLast7Days", defaultGroup: "day" },
+  { value: "last_30_days", labelKey: "statistics.periodLast30Days", defaultGroup: "day" },
+  { value: "this_month", labelKey: "statistics.periodThisMonth", defaultGroup: "day" },
+  { value: "last_3_months", labelKey: "statistics.periodLast3Months", defaultGroup: "week" },
+  { value: "last_6_months", labelKey: "statistics.periodLast6Months", defaultGroup: "month" },
 ];
 
 function getStartDate(period: Period): Date {
@@ -62,6 +63,8 @@ interface SenderProfile {
 }
 
 export function EmailStatisticsTab() {
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const organizationId = useOrganizationId();
   const [period, setPeriod] = useState<Period>("last_30_days");
   const groupBy = PERIOD_OPTIONS.find(p => p.value === period)?.defaultGroup ?? "day";
@@ -116,9 +119,9 @@ export function EmailStatisticsTab() {
 
   const profileMap = useMemo(() => {
     const map = new Map<string, string>();
-    profiles?.forEach(p => map.set(p.id, p.full_name ?? "Okänd"));
+    profiles?.forEach(p => map.set(p.id, p.full_name ?? t("statistics.unknown")));
     return map;
-  }, [profiles]);
+  }, [profiles, t]);
 
   // Compute stats
   const stats = useMemo(() => {
@@ -176,10 +179,10 @@ export function EmailStatisticsTab() {
       .map(([key, val]) => ({
         date: key,
         label: groupBy === "month"
-          ? format(parseISO(key + "-01"), "MMM yyyy", { locale: sv })
+          ? format(parseISO(key + "-01"), "MMM yyyy", { locale: dateLocale })
           : groupBy === "week"
-            ? `v${format(parseISO(key), "w", { locale: sv })}`
-            : format(parseISO(key), "d MMM", { locale: sv }),
+            ? `v${format(parseISO(key), "w", { locale: dateLocale })}`
+            : format(parseISO(key), "d MMM", { locale: dateLocale }),
         ...val,
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
@@ -192,7 +195,7 @@ export function EmailStatisticsTab() {
       timeSeries,
       replySet,
     };
-  }, [emails, replies, groupBy]);
+  }, [emails, replies, groupBy, dateLocale]);
 
   if (loadingEmails) {
     return (

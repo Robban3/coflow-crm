@@ -35,8 +35,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface TeamMember {
   id: string;
@@ -78,6 +77,7 @@ export function TeamManagement() {
   });
 
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchTeamData();
@@ -145,7 +145,7 @@ export function TeamManagement() {
     setIsCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Ej inloggad");
+      if (!user) throw new Error(t("settings.notLoggedIn"));
 
       const code = generateInviteCode();
 
@@ -159,8 +159,8 @@ export function TeamManagement() {
       if (error) throw error;
 
       toast({
-        title: "Inbjudningskod skapad!",
-        description: `Koden ${code} kan nu användas vid registrering`,
+        title: t("settings.inviteCreatedTitle"),
+        description: t("settings.inviteCreatedDesc", { code }),
       });
 
       setShowInviteCodeDialog(false);
@@ -169,8 +169,8 @@ export function TeamManagement() {
     } catch (error) {
       console.error("Error creating invite code:", error);
       toast({
-        title: "Fel",
-        description: "Kunde inte skapa inbjudningskod",
+        title: t("settings.error"),
+        description: t("settings.inviteCreateErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -181,7 +181,7 @@ export function TeamManagement() {
   const handleAddUser = async () => {
     if (!newUserForm.email || !newUserForm.password) {
       toast({
-        title: "Fyll i alla fält",
+        title: t("settings.fillAllFields"),
         variant: "destructive",
       });
       return;
@@ -214,8 +214,8 @@ export function TeamManagement() {
       }
 
       toast({
-        title: "Användare skapad!",
-        description: `${newUserForm.email} har lagts till i teamet`,
+        title: t("settings.userCreatedTitle"),
+        description: t("settings.userCreatedDesc", { email: newUserForm.email }),
       });
 
       setShowAddDialog(false);
@@ -226,8 +226,8 @@ export function TeamManagement() {
     } catch (error: any) {
       console.error("Error creating user:", error);
       toast({
-        title: "Fel",
-        description: error.message || "Kunde inte skapa användare",
+        title: t("settings.error"),
+        description: error.message || t("settings.userCreateErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -249,12 +249,12 @@ export function TeamManagement() {
 
     if (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte ta bort inbjudningskoden",
+        title: t("settings.error"),
+        description: t("settings.inviteDeleteErrorDesc"),
         variant: "destructive",
       });
     } else {
-      toast({ title: "Inbjudningskod borttagen" });
+      toast({ title: t("settings.inviteDeletedTitle") });
       fetchTeamData();
     }
   };
@@ -282,12 +282,12 @@ export function TeamManagement() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
-            <CardTitle>Teammedlemmar</CardTitle>
-            <CardDescription>Användare i din organisation</CardDescription>
+            <CardTitle>{t("settings.teamMembersTitle")}</CardTitle>
+            <CardDescription>{t("settings.teamMembersDesc")}</CardDescription>
           </div>
           <Button onClick={() => setShowAddDialog(true)}>
             <UserPlus className="mr-2 h-4 w-4" />
-            Lägg till användare
+            {t("settings.addUser")}
           </Button>
         </CardHeader>
         <CardContent>
@@ -320,7 +320,7 @@ export function TeamManagement() {
                   ) : (
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <User className="h-3 w-3" />
-                      Användare
+                      {t("settings.roleUser")}
                     </Badge>
                   )}
                 </div>
@@ -336,22 +336,22 @@ export function TeamManagement() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Key className="h-5 w-5" />
-              Inbjudningskoder
+              {t("settings.inviteCodesTitle")}
             </CardTitle>
             <CardDescription>
-              Dela koder för att låta nya användare registrera sig
+              {t("settings.inviteCodesDesc")}
             </CardDescription>
           </div>
           <Button onClick={() => setShowInviteCodeDialog(true)}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Skapa kod
+            {t("settings.createCode")}
           </Button>
         </CardHeader>
         <CardContent>
           {inviteCodes.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Key className="h-10 w-10 text-muted-foreground/50 mb-3" />
-              <p className="text-muted-foreground">Inga aktiva inbjudningskoder</p>
+              <p className="text-muted-foreground">{t("settings.noActiveInvites")}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -379,10 +379,10 @@ export function TeamManagement() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-muted-foreground">
-                      {invite.uses}/{invite.max_uses} användningar
+                      {t("settings.usesLabel", { uses: invite.uses, max: invite.max_uses })}
                     </span>
                     {!invite.is_active && (
-                      <Badge variant="secondary">Inaktiv</Badge>
+                      <Badge variant="secondary">{t("settings.inactive")}</Badge>
                     )}
                     <Button
                       variant="ghost"
@@ -404,40 +404,40 @@ export function TeamManagement() {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Lägg till användare</DialogTitle>
+            <DialogTitle>{t("settings.addUserTitle")}</DialogTitle>
             <DialogDescription>
-              Skapa ett nytt konto för en teammedlem
+              {t("settings.addUserDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>E-post *</Label>
+              <Label>{t("settings.emailRequired")}</Label>
               <Input
                 type="email"
                 value={newUserForm.email}
                 onChange={(e) => setNewUserForm(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="email@företag.se"
+                placeholder={t("settings.emailPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Lösenord *</Label>
+              <Label>{t("settings.passwordRequired")}</Label>
               <Input
                 type="password"
                 value={newUserForm.password}
                 onChange={(e) => setNewUserForm(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="Minst 6 tecken"
+                placeholder={t("settings.passwordPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Namn</Label>
+              <Label>{t("settings.name")}</Label>
               <Input
                 value={newUserForm.fullName}
                 onChange={(e) => setNewUserForm(prev => ({ ...prev, fullName: e.target.value }))}
-                placeholder="Förnamn Efternamn"
+                placeholder={t("settings.fullNamePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Roll</Label>
+              <Label>{t("settings.role")}</Label>
               <Select
                 value={newUserForm.role}
                 onValueChange={(v) => setNewUserForm(prev => ({ ...prev, role: v as "admin" | "user" }))}
@@ -446,8 +446,8 @@ export function TeamManagement() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">Användare</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="user">{t("settings.roleUser")}</SelectItem>
+                  <SelectItem value="admin">{t("settings.roleAdmin")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

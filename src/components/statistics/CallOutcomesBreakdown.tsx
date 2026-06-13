@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import {
   BarChart,
   Bar,
@@ -70,6 +71,7 @@ interface Props {
 }
 
 export function CallOutcomesBreakdown({ data }: Props) {
+  const { t } = useTranslation();
   const { summary, per_user, trend } = data;
 
   return (
@@ -77,33 +79,33 @@ export function CallOutcomesBreakdown({ data }: Props) {
       {/* Summary KPIs */}
       <Card className="border-border/50">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Samtalsöversikt</CardTitle>
+          <CardTitle className="text-base">{t("statistics.callOverview")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="text-center">
               <p className="text-2xl font-bold">{summary.total}</p>
-              <p className="text-xs text-muted-foreground">Totalt</p>
+              <p className="text-xs text-muted-foreground">{t("statistics.total")}</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-green-600">{summary.answered}</p>
-              <p className="text-xs text-muted-foreground">Svar</p>
+              <p className="text-xs text-muted-foreground">{t("statistics.answered")}</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold">{summary.answer_rate}%</p>
-              <p className="text-xs text-muted-foreground">Svar%</p>
+              <p className="text-xs text-muted-foreground">{t("statistics.answerPct")}</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-primary">{summary.booked_rate}%</p>
-              <p className="text-xs text-muted-foreground">Bokad%</p>
+              <p className="text-xs text-muted-foreground">{t("statistics.bookedPct")}</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2 mt-4 justify-center">
-            <Badge variant="outline" className="text-xs">Ej svar: {summary.no_answer}</Badge>
-            <Badge variant="outline" className="text-xs">Återkoppling: {summary.callback}</Badge>
-            <Badge variant="outline" className="text-xs">Ej intresserad: {summary.not_interested}</Badge>
-            <Badge variant="outline" className="text-xs">Bokad: {summary.booked}</Badge>
-            <Badge variant="outline" className="text-xs">Nummer fel: {summary.wrong_number}</Badge>
+            <Badge variant="outline" className="text-xs">{t("statistics.noAnswerLabel", { count: summary.no_answer })}</Badge>
+            <Badge variant="outline" className="text-xs">{t("statistics.callbackLabel", { count: summary.callback })}</Badge>
+            <Badge variant="outline" className="text-xs">{t("statistics.notInterestedLabel", { count: summary.not_interested })}</Badge>
+            <Badge variant="outline" className="text-xs">{t("statistics.bookedLabel", { count: summary.booked })}</Badge>
+            <Badge variant="outline" className="text-xs">{t("statistics.wrongNumberLabel", { count: summary.wrong_number })}</Badge>
           </div>
         </CardContent>
       </Card>
@@ -112,7 +114,7 @@ export function CallOutcomesBreakdown({ data }: Props) {
       {trend.length > 1 && (
         <Card className="border-border/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Samtalsutfall över tid</CardTitle>
+            <CardTitle className="text-base">{t("statistics.callOutcomesOverTime")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>

@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { FileText, ScrollText, File, LayoutTemplate, Minus, ListChecks } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Props {
   open: boolean;
@@ -28,19 +29,21 @@ interface Props {
 type DocType = "offer" | "contract" | "other";
 type Structure = "standard" | "simple" | "detailed";
 
-const DOC_TYPES: { value: DocType; label: string; description: string; icon: React.ReactNode }[] = [
-  { value: "offer", label: "Offert", description: "Prissatt förslag till kund", icon: <FileText className="h-5 w-5" /> },
-  { value: "contract", label: "Avtal", description: "Bindande överenskommelse", icon: <ScrollText className="h-5 w-5" /> },
-  { value: "other", label: "Annat", description: "Eget dokumentformat", icon: <File className="h-5 w-5" /> },
-];
-
-const STRUCTURES: { value: Structure; label: string; description: string; icon: React.ReactNode; recommended?: boolean }[] = [
-  { value: "standard", label: "Standard", description: "Komplett med CRM-fält och villkor", icon: <LayoutTemplate className="h-5 w-5" />, recommended: true },
-  { value: "simple", label: "Enkel", description: "Minimalistisk med artikeltabell", icon: <Minus className="h-5 w-5" /> },
-  { value: "detailed", label: "Detaljerad", description: "Utökad med bakgrund och lösning", icon: <ListChecks className="h-5 w-5" /> },
-];
-
 export function TemplateCreationWizard({ open, onOpenChange }: Props) {
+  const { t } = useTranslation();
+
+  const DOC_TYPES: { value: DocType; label: string; description: string; icon: React.ReactNode }[] = [
+    { value: "offer", label: t("templates.docType.offer"), description: t("templates.docType.offerDesc"), icon: <FileText className="h-5 w-5" /> },
+    { value: "contract", label: t("templates.docType.contract"), description: t("templates.docType.contractDesc"), icon: <ScrollText className="h-5 w-5" /> },
+    { value: "other", label: t("templates.docType.other"), description: t("templates.docType.otherDesc"), icon: <File className="h-5 w-5" /> },
+  ];
+
+  const STRUCTURES: { value: Structure; label: string; description: string; icon: React.ReactNode; recommended?: boolean }[] = [
+    { value: "standard", label: t("templates.structure.standard"), description: t("templates.structure.standardDesc"), icon: <LayoutTemplate className="h-5 w-5" />, recommended: true },
+    { value: "simple", label: t("templates.structure.simple"), description: t("templates.structure.simpleDesc"), icon: <Minus className="h-5 w-5" /> },
+    { value: "detailed", label: t("templates.structure.detailed"), description: t("templates.structure.detailedDesc"), icon: <ListChecks className="h-5 w-5" /> },
+  ];
+
   const navigate = useNavigate();
   const { user } = useAuth();
   const orgId = useOrganizationId();
@@ -66,7 +69,7 @@ export function TemplateCreationWizard({ open, onOpenChange }: Props) {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const templateName = name.trim() || `${DOC_TYPES.find((d) => d.value === docType)?.label || "Dokument"} – ${STRUCTURES.find((s) => s.value === structure)?.label || ""}`;
+      const templateName = name.trim() || `${DOC_TYPES.find((d) => d.value === docType)?.label || t("templates.wizard.fallbackDocName")} – ${STRUCTURES.find((s) => s.value === structure)?.label || ""}`;
 
       const brandSettings: Record<string, any> = {};
       if (logoUrl) brandSettings.logo_url = logoUrl;
@@ -103,9 +106,9 @@ export function TemplateCreationWizard({ open, onOpenChange }: Props) {
       onOpenChange(false);
       reset();
       navigate(`/settings/templates/${data.id}`);
-      toast.success("Mall skapad med färdig struktur!");
+      toast.success(t("templates.wizard.createdTitle"));
     },
-    onError: () => toast.error("Kunde inte skapa mall"),
+    onError: () => toast.error(t("templates.wizard.createError")),
   });
 
   return (
@@ -113,14 +116,14 @@ export function TemplateCreationWizard({ open, onOpenChange }: Props) {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            Skapa ny mall
-            <span className="text-xs text-muted-foreground ml-2">Steg {step} av 3</span>
+            {t("templates.wizard.title")}
+            <span className="text-xs text-muted-foreground ml-2">{t("templates.wizard.stepOf", { step })}</span>
           </DialogTitle>
         </DialogHeader>
 
         {step === 1 && (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">Vilken typ av dokument?</p>
+            <p className="text-sm text-muted-foreground">{t("templates.wizard.step1Question")}</p>
             <div className="grid gap-2">
               {DOC_TYPES.map((dt) => (
                 <button
@@ -148,7 +151,7 @@ export function TemplateCreationWizard({ open, onOpenChange }: Props) {
 
         {step === 2 && (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">Välj struktur</p>
+            <p className="text-sm text-muted-foreground">{t("templates.wizard.step2Question")}</p>
             <div className="grid gap-2">
               {STRUCTURES.map((s) => (
                 <button
@@ -168,7 +171,7 @@ export function TemplateCreationWizard({ open, onOpenChange }: Props) {
                     <p className="font-medium text-sm flex items-center gap-2">
                       {s.label}
                       {s.recommended && (
-                        <Badge variant="secondary" className="text-[10px]">Rekommenderad</Badge>
+                        <Badge variant="secondary" className="text-[10px]">{t("templates.structure.recommended")}</Badge>
                       )}
                     </p>
                     <p className="text-xs text-muted-foreground">{s.description}</p>
@@ -181,10 +184,10 @@ export function TemplateCreationWizard({ open, onOpenChange }: Props) {
 
         {step === 3 && (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">Varumärke & namn</p>
+            <p className="text-sm text-muted-foreground">{t("templates.wizard.step3Question")}</p>
             <div className="space-y-3">
               <div>
-                <Label className="text-xs">Mallnamn (valfritt)</Label>
+                <Label className="text-xs">{t("templates.wizard.nameLabel")}</Label>
                 <Input
                   placeholder={`${DOC_TYPES.find((d) => d.value === docType)?.label} – ${STRUCTURES.find((s) => s.value === structure)?.label}`}
                   value={name}
@@ -192,7 +195,7 @@ export function TemplateCreationWizard({ open, onOpenChange }: Props) {
                 />
               </div>
               <div>
-                <Label className="text-xs">Logotyp-URL (valfritt)</Label>
+                <Label className="text-xs">{t("templates.wizard.logoLabel")}</Label>
                 <Input
                   placeholder="https://example.com/logo.png"
                   value={logoUrl}
@@ -201,7 +204,7 @@ export function TemplateCreationWizard({ open, onOpenChange }: Props) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs">Primärfärg</Label>
+                  <Label className="text-xs">{t("templates.wizard.primaryColorLabel")}</Label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -217,9 +220,9 @@ export function TemplateCreationWizard({ open, onOpenChange }: Props) {
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs">Sidfotstext (valfritt)</Label>
+                  <Label className="text-xs">{t("templates.wizard.footerLabel")}</Label>
                   <Input
-                    placeholder="© Ert Företag AB"
+                    placeholder={t("templates.wizard.footerPlaceholder")}
                     value={footerText}
                     onChange={(e) => setFooterText(e.target.value)}
                   />
@@ -233,19 +236,19 @@ export function TemplateCreationWizard({ open, onOpenChange }: Props) {
           <div>
             {step > 1 && (
               <Button variant="ghost" onClick={() => setStep((s) => s - 1)}>
-                Tillbaka
+                {t("templates.wizard.back")}
               </Button>
             )}
           </div>
           <div>
             {step < 3 ? (
-              <Button onClick={() => setStep((s) => s + 1)}>Nästa</Button>
+              <Button onClick={() => setStep((s) => s + 1)}>{t("templates.wizard.next")}</Button>
             ) : (
               <Button
                 onClick={() => createMutation.mutate()}
                 disabled={createMutation.isPending}
               >
-                Skapa mall
+                {t("templates.wizard.create")}
               </Button>
             )}
           </div>

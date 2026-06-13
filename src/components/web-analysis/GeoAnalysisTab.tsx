@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { fromTable } from "@/components/documents/supabaseHelper";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import {
   Brain,
   Loader2,
@@ -50,11 +51,11 @@ const severityIcon = (s: string) => {
   }
 };
 
-const priorityLabel = (p: string) => {
+const priorityLabel = (p: string, t: (key: string) => string) => {
   switch (p) {
-    case "quick_win": return { label: "Quick Win", icon: <Zap className="h-3 w-3" /> };
-    case "medium": return { label: "Medium", icon: <Target className="h-3 w-3" /> };
-    case "long_term": return { label: "Långsiktigt", icon: <Clock className="h-3 w-3" /> };
+    case "quick_win": return { label: t("webAnalysis.priorityQuickWin"), icon: <Zap className="h-3 w-3" /> };
+    case "medium": return { label: t("webAnalysis.priorityMedium"), icon: <Target className="h-3 w-3" /> };
+    case "long_term": return { label: t("webAnalysis.priorityLongTerm"), icon: <Clock className="h-3 w-3" /> };
     default: return { label: p, icon: null };
   }
 };
@@ -71,6 +72,8 @@ function getDomainHost(url: string): string {
 
 export function GeoAnalysisTab({ url, leadId, isRunning, onRun }: Props) {
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const domainHost = getDomainHost(url);
 
   // Query by leadId if available, otherwise by domain
@@ -118,11 +121,11 @@ export function GeoAnalysisTab({ url, leadId, isRunning, onRun }: Props) {
       <Card>
         <CardContent className="text-center py-12">
           <Brain className="h-10 w-10 mx-auto mb-3 opacity-50 text-muted-foreground" />
-          <p className="text-sm font-medium mb-1">Ingen GEO-analys körd ännu</p>
-          <p className="text-xs text-muted-foreground mb-4">Analysera webbplatsens synlighet i AI-sökmotorer som ChatGPT, Gemini och Perplexity</p>
+          <p className="text-sm font-medium mb-1">{t("webAnalysis.geoNoneRunTitle")}</p>
+          <p className="text-xs text-muted-foreground mb-4">{t("webAnalysis.geoNoneRunDesc")}</p>
           <Button size="sm" onClick={onRun} disabled={isRunning}>
             {isRunning ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Play className="mr-1 h-3 w-3" />}
-            Kör GEO-analys
+            {t("webAnalysis.runGeoAnalysis")}
           </Button>
         </CardContent>
       </Card>
@@ -134,8 +137,8 @@ export function GeoAnalysisTab({ url, leadId, isRunning, onRun }: Props) {
       <Card>
         <CardContent className="text-center py-12">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-primary" />
-          <p className="text-sm font-medium">GEO-analys pågår...</p>
-          <p className="text-xs text-muted-foreground mt-1">Skrapar och analyserar upp till 25 sidor</p>
+          <p className="text-sm font-medium">{t("webAnalysis.geoRunning")}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t("webAnalysis.geoRunningDesc")}</p>
         </CardContent>
       </Card>
     );
@@ -146,9 +149,9 @@ export function GeoAnalysisTab({ url, leadId, isRunning, onRun }: Props) {
       <Card>
         <CardContent className="text-center py-12 text-destructive">
           <AlertCircle className="h-8 w-8 mx-auto mb-2" />
-          <p className="text-sm">GEO-analysen misslyckades</p>
+          <p className="text-sm">{t("webAnalysis.geoFailed")}</p>
           <Button size="sm" variant="outline" className="mt-3" onClick={onRun} disabled={isRunning}>
-            <RefreshCw className="mr-1 h-3 w-3" /> Försök igen
+            <RefreshCw className="mr-1 h-3 w-3" /> {t("webAnalysis.tryAgain")}
           </Button>
         </CardContent>
       </Card>
@@ -161,20 +164,20 @@ export function GeoAnalysisTab({ url, leadId, isRunning, onRun }: Props) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <div>
-            <CardTitle className="text-base">GEO / AI-synlighet</CardTitle>
+            <CardTitle className="text-base">{t("webAnalysis.geoAiVisibility")}</CardTitle>
             <CardDescription className="text-xs">
-              {format(new Date(latestGeo.completed_at || latestGeo.created_at), "d MMM yyyy HH:mm", { locale: sv })}
+              {format(new Date(latestGeo.completed_at || latestGeo.created_at), "d MMM yyyy HH:mm", { locale: dateLocale })}
             </CardDescription>
           </div>
           <Button size="sm" variant="outline" onClick={onRun} disabled={isRunning}>
             {isRunning ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
-            Kör igen
+            {t("webAnalysis.runAgain")}
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Score */}
           <div className={`rounded-lg border p-4 text-center ${getScoreBg(latestGeo.geo_score)}`}>
-            <p className="text-xs text-muted-foreground mb-1">GEO-poäng</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("webAnalysis.geoScore")}</p>
             <p className={`text-4xl font-bold ${getScoreColor(latestGeo.geo_score)}`}>
               {latestGeo.geo_score ?? "-"}
               <span className="text-lg text-muted-foreground">/100</span>
@@ -193,13 +196,13 @@ export function GeoAnalysisTab({ url, leadId, isRunning, onRun }: Props) {
             <CollapsibleTrigger asChild>
               <Button variant="outline" size="sm" className="w-full">
                 {detailsOpen ? <ChevronUp className="mr-2 h-4 w-4" /> : <ChevronDown className="mr-2 h-4 w-4" />}
-                {detailsOpen ? "Dölj detaljer" : "Visa detaljerad rapport"}
+                {detailsOpen ? t("webAnalysis.hideDetails") : t("webAnalysis.showDetailedReport")}
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 space-y-4">
               {geoDetails?.findings && geoDetails.findings.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-2">Identifierade problem ({geoDetails.findings.length})</h4>
+                  <h4 className="text-sm font-semibold mb-2">{t("webAnalysis.identifiedProblems", { count: geoDetails.findings.length })}</h4>
                   <div className="space-y-2">
                     {geoDetails.findings.map((f: any) => (
                       <div key={f.id} className="p-3 rounded-lg border bg-background">
@@ -211,7 +214,7 @@ export function GeoAnalysisTab({ url, leadId, isRunning, onRun }: Props) {
                             {f.recommendation && <p className="text-xs text-primary mt-1">💡 {f.recommendation}</p>}
                           </div>
                           <Badge variant={f.severity === "high" ? "destructive" : f.severity === "medium" ? "secondary" : "outline"} className="text-[10px] shrink-0">
-                            {f.severity === "high" ? "Hög" : f.severity === "medium" ? "Medium" : "Låg"}
+                            {f.severity === "high" ? t("webAnalysis.severityHigh") : f.severity === "medium" ? t("webAnalysis.severityMedium") : t("webAnalysis.severityLow")}
                           </Badge>
                         </div>
                       </div>
@@ -222,12 +225,12 @@ export function GeoAnalysisTab({ url, leadId, isRunning, onRun }: Props) {
 
               {geoDetails?.actions && geoDetails.actions.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-2">Rekommenderade åtgärder ({geoDetails.actions.length})</h4>
+                  <h4 className="text-sm font-semibold mb-2">{t("webAnalysis.recommendedActions", { count: geoDetails.actions.length })}</h4>
                   <div className="space-y-2">
                     {(["quick_win", "medium", "long_term"] as const).map((prio) => {
                       const items = geoDetails.actions.filter((a: any) => a.priority === prio);
                       if (items.length === 0) return null;
-                      const p = priorityLabel(prio);
+                      const p = priorityLabel(prio, t);
                       return (
                         <div key={prio}>
                           <div className="flex items-center gap-2 mb-1">
@@ -239,8 +242,8 @@ export function GeoAnalysisTab({ url, leadId, isRunning, onRun }: Props) {
                               <p className="text-sm font-medium">{a.title}</p>
                               {a.steps && <p className="text-xs text-muted-foreground mt-1">{a.steps}</p>}
                               <div className="flex gap-3 mt-1">
-                                {a.estimated_impact && <span className="text-[10px] text-muted-foreground">Impact: {a.estimated_impact}</span>}
-                                {a.estimated_effort && <span className="text-[10px] text-muted-foreground">Effort: {a.estimated_effort}</span>}
+                                {a.estimated_impact && <span className="text-[10px] text-muted-foreground">{t("webAnalysis.impact", { value: a.estimated_impact })}</span>}
+                                {a.estimated_effort && <span className="text-[10px] text-muted-foreground">{t("webAnalysis.effort", { value: a.estimated_effort })}</span>}
                               </div>
                             </div>
                           ))}

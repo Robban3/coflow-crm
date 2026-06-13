@@ -15,7 +15,8 @@ import {
   AlertCircle
 } from "lucide-react";
 import { format, addDays, isBefore, parseISO, setHours, setMinutes, isAfter } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface HostProfile {
   full_name: string | null;
@@ -39,7 +40,9 @@ interface DayAvailability {
 
 export default function PublicBookingPage() {
   const { userId } = useParams<{ userId: string }>();
-  
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
+
   const [hostProfile, setHostProfile] = useState<HostProfile | null>(null);
   const [availability, setAvailability] = useState<DayAvailability[]>([]);
   const [existingMeetings, setExistingMeetings] = useState<{ start_time: string; end_time: string }[]>([]);
@@ -77,7 +80,7 @@ export default function PublicBookingPage() {
         .maybeSingle();
 
       if (profileError || !profile) {
-        setError('Kunde inte hitta användaren');
+        setError(t('publicPages.booking.userNotFound'));
         setIsLoading(false);
         return;
       }
@@ -103,7 +106,7 @@ export default function PublicBookingPage() {
 
       setExistingMeetings(meetings || []);
     } catch (err) {
-      setError('Ett fel uppstod');
+      setError(t('publicPages.booking.genericError'));
     } finally {
       setIsLoading(false);
     }
@@ -188,7 +191,7 @@ export default function PublicBookingPage() {
       setIsBooked(true);
     } catch (err) {
       console.error('Booking error:', err);
-      setError('Kunde inte boka mötet. Försök igen.');
+      setError(t('publicPages.booking.bookError'));
     } finally {
       setIsBooking(false);
     }
@@ -208,7 +211,7 @@ export default function PublicBookingPage() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Något gick fel</h2>
+            <h2 className="text-xl font-semibold mb-2">{t('publicPages.booking.somethingWrong')}</h2>
             <p className="text-muted-foreground">{error}</p>
           </CardContent>
         </Card>
@@ -222,14 +225,14 @@ export default function PublicBookingPage() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Möte bokat!</h2>
+            <h2 className="text-xl font-semibold mb-2">{t('publicPages.booking.meetingBooked')}</h2>
             <p className="text-muted-foreground mb-4">
-              Ditt möte med {hostProfile?.full_name || 'värden'} är bekräftat.
+              {t('publicPages.booking.confirmedWith', { name: hostProfile?.full_name || t('publicPages.booking.theHost') })}
             </p>
             <div className="bg-muted rounded-lg p-4 text-left space-y-2">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>{selectedSlot && format(selectedSlot.start, "EEEE d MMMM yyyy", { locale: sv })}</span>
+                <span>{selectedSlot && format(selectedSlot.start, "EEEE d MMMM yyyy", { locale: dateLocale })}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
@@ -239,7 +242,7 @@ export default function PublicBookingPage() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground mt-4">
-              En bekräftelse skickas till {guestForm.email}
+              {t('publicPages.booking.confirmationSentTo', { email: guestForm.email })}
             </p>
           </CardContent>
         </Card>
@@ -260,7 +263,7 @@ export default function PublicBookingPage() {
               {hostProfile?.avatar_url ? (
                 <img 
                   src={hostProfile.avatar_url} 
-                  alt={hostProfile.full_name || 'Värd'} 
+                  alt={hostProfile.full_name || t('publicPages.booking.hostAlt')}
                   className="h-16 w-16 rounded-full object-cover"
                 />
               ) : (
@@ -269,7 +272,7 @@ export default function PublicBookingPage() {
                 </div>
               )}
             </div>
-            <CardTitle>{hostProfile?.full_name || 'Boka möte'}</CardTitle>
+            <CardTitle>{hostProfile?.full_name || t('publicPages.booking.bookMeeting')}</CardTitle>
             {hostProfile?.company_name && (
               <CardDescription>{hostProfile.company_name}</CardDescription>
             )}
@@ -281,13 +284,13 @@ export default function PublicBookingPage() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              Välj datum
+              {t('publicPages.booking.selectDate')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {availableDates.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">
-                Inga tillgängliga tider just nu
+                {t('publicPages.booking.noTimesAvailable')}
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -302,9 +305,9 @@ export default function PublicBookingPage() {
                     }}
                     className="flex-col h-auto py-2"
                   >
-                    <span className="text-xs">{format(date, 'EEE', { locale: sv })}</span>
+                    <span className="text-xs">{format(date, 'EEE', { locale: dateLocale })}</span>
                     <span className="font-bold">{format(date, 'd')}</span>
-                    <span className="text-xs">{format(date, 'MMM', { locale: sv })}</span>
+                    <span className="text-xs">{format(date, 'MMM', { locale: dateLocale })}</span>
                   </Button>
                 ))}
               </div>
@@ -318,13 +321,13 @@ export default function PublicBookingPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                Välj tid - {format(selectedDate, 'EEEE d MMMM', { locale: sv })}
+                {t('publicPages.booking.selectTime')} - {format(selectedDate, 'EEEE d MMMM', { locale: dateLocale })}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {timeSlots.length === 0 ? (
                 <p className="text-muted-foreground text-center py-4">
-                  Inga lediga tider detta datum
+                  {t('publicPages.booking.noTimesThisDate')}
                 </p>
               ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -350,39 +353,39 @@ export default function PublicBookingPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <User className="h-4 w-4" />
-                Dina uppgifter
+                {t('publicPages.booking.yourDetails')}
               </CardTitle>
               <CardDescription>
-                Möte {format(selectedSlot.start, 'HH:mm')} - {format(selectedSlot.end, 'HH:mm')} ({MEETING_DURATION_MINUTES} min)
+                {t('publicPages.booking.meetingDuration', { start: format(selectedSlot.start, 'HH:mm'), end: format(selectedSlot.end, 'HH:mm'), minutes: MEETING_DURATION_MINUTES })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Namn *</Label>
+                <Label htmlFor="name">{t('publicPages.booking.nameLabel')}</Label>
                 <Input
                   id="name"
-                  placeholder="Ditt namn"
+                  placeholder={t('publicPages.booking.namePlaceholder')}
                   value={guestForm.name}
                   onChange={(e) => setGuestForm(prev => ({ ...prev, name: e.target.value }))}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">E-post *</Label>
+                <Label htmlFor="email">{t('publicPages.booking.emailLabel')}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="din@email.se"
+                  placeholder={t('publicPages.booking.emailPlaceholder')}
                   value={guestForm.email}
                   onChange={(e) => setGuestForm(prev => ({ ...prev, email: e.target.value }))}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message">Meddelande (valfritt)</Label>
+                <Label htmlFor="message">{t('publicPages.booking.messageLabel')}</Label>
                 <Textarea
                   id="message"
-                  placeholder="Beskriv kort vad du vill diskutera..."
+                  placeholder={t('publicPages.booking.messagePlaceholder')}
                   value={guestForm.message}
                   onChange={(e) => setGuestForm(prev => ({ ...prev, message: e.target.value }))}
                   rows={3}
@@ -403,7 +406,7 @@ export default function PublicBookingPage() {
                 ) : (
                   <Calendar className="mr-2 h-4 w-4" />
                 )}
-                Bekräfta bokning
+                {t('publicPages.booking.confirmBooking')}
               </Button>
             </CardContent>
           </Card>

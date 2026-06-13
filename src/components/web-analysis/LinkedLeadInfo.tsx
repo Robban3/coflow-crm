@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, Mail, Phone, ExternalLink, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { webAnalysisApi } from "@/lib/api/webAnalysis";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Lead {
   id: string;
@@ -19,6 +20,7 @@ interface LinkedLeadInfoProps {
 }
 
 export function LinkedLeadInfo({ leadId, url }: LinkedLeadInfoProps) {
+  const { t } = useTranslation();
   const [lead, setLead] = useState<Lead | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -73,7 +75,7 @@ export function LinkedLeadInfo({ leadId, url }: LinkedLeadInfoProps) {
       
       <div className="flex items-center gap-3 flex-wrap min-w-0 flex-1">
         <span className="font-medium text-sm truncate">
-          {lead.company_name || "Okänt företag"}
+          {lead.company_name || t("webAnalysis.unknownCompany")}
         </span>
         
         {lead.contact_name && (
@@ -105,7 +107,7 @@ export function LinkedLeadInfo({ leadId, url }: LinkedLeadInfoProps) {
           onClick={() => navigate(`/leads/${lead.id}`)}
         >
           <ExternalLink className="h-3 w-3 mr-1" />
-          Visa
+          {t("webAnalysis.view")}
         </Button>
         <Button
           variant="ghost"
@@ -114,7 +116,7 @@ export function LinkedLeadInfo({ leadId, url }: LinkedLeadInfoProps) {
           onClick={() => navigate(`/leads/${lead.id}?edit=true`)}
         >
           <Pencil className="h-3 w-3 mr-1" />
-          Redigera
+          {t("webAnalysis.edit")}
         </Button>
       </div>
     </div>
