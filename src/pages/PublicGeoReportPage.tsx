@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -6,22 +7,22 @@ import {
 } from "lucide-react";
 
 const STEPS = [
-  { step: 1, label: "Tar emot uppgifter" },
-  { step: 2, label: "Hämtar innehåll från webbplatsen" },
-  { step: 3, label: "Skapar mini-rapport" },
+  { step: 1, label: t("publicPages.geo.step1") },
+  { step: 2, label: t("publicPages.geo.step2") },
+  { step: 3, label: t("publicPages.geo.step3") },
 ];
 
 const scoreLabel = (s: number) =>
-  s >= 80 ? "Stark AI-synlighet" : s >= 50 ? "Bra potential" : "Låg AI-synlighet";
+  s >= 80 ? "Stark AI-synlighet" : s >= 50 ? "Bra potential" : t("publicPages.geo.scoreLow");
 
 const scoreColor = (s: number) =>
   s >= 80 ? "#34d399" : s >= 50 ? "#fbbf24" : "#f87171";
 
 const severityBadge = (s: string) => {
   const map: Record<string, { cls: string; label: string }> = {
-    high: { cls: "kg-badge-high", label: "Hög" },
-    medium: { cls: "kg-badge-medium", label: "Medium" },
-    low: { cls: "kg-badge-low", label: "Låg" },
+    high: { cls: "kg-badge-high", label: t("publicPages.geo.severityHigh") },
+    medium: { cls: "kg-badge-medium", label: t("publicPages.geo.severityMedium") },
+    low: { cls: "kg-badge-low", label: t("publicPages.geo.severityLow") },
   };
   return map[s] || map.low;
 };
@@ -36,6 +37,7 @@ const priorityIcon = (p: string) => {
 };
 
 export default function PublicGeoReportPage() {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const [scan, setScan] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export default function PublicGeoReportPage() {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         if (res.status === 404 || res.status === 410) {
-          setError(err.error || "Rapport ej tillgänglig");
+          setError(err.error || t("publicPages.report.unavailable"));
           setScan(null);
           return "stop";
         }
@@ -86,10 +88,10 @@ export default function PublicGeoReportPage() {
   useEffect(() => {
     if (!scan) return;
     const name = scan.company_name || scan.domain || "";
-    const title = name ? `${name} – GEO Rapport` : "GEO Rapport";
+    const title = name ? t("publicPages.geoTitle", { name }) : t("publicPages.geoTitleNoName");
     const description = name
-      ? `GEO & AI-synlighetsrapport för ${name}`
-      : "GEO & AI-synlighetsrapport";
+      ? t("publicPages.geoDesc", { name })
+      : t("publicPages.geoDescNoName");
     document.title = title;
 
     const setMeta = (attr: string, key: string, content: string) => {
@@ -164,22 +166,14 @@ export default function PublicGeoReportPage() {
           <div className="kg-icon-box kg-icon-warning mx-auto mb-6">
             <Clock className="h-7 w-7 text-amber-400" />
           </div>
-          <h1 className="text-xl font-semibold text-white mb-2 tracking-tight">
-            Analysen tar lite längre tid
-          </h1>
-          <p className="text-slate-400 text-sm mb-1.5 leading-relaxed max-w-xs mx-auto">
-            Vi arbetar fortfarande med din rapport. Du får resultatet via email när det är klart.
-          </p>
-          <p className="text-slate-600 text-xs mb-8">
-            Du kan stänga den här sidan — rapporten finns kvar på samma länk.
-          </p>
+          <h1 className="text-xl font-semibold text-white mb-2 tracking-tight">{t("publicPages.geo.timeoutTitle")}</h1>
+          <p className="text-slate-400 text-sm mb-1.5 leading-relaxed max-w-xs mx-auto">{t("publicPages.geo.timeoutBody")}</p>
+          <p className="text-slate-600 text-xs mb-8">{t("publicPages.geo.timeoutHint")}</p>
           <button
             onClick={() => { startTime.current = Date.now(); pollCount.current = 0; setError(null); fetchScan(); }}
             className="kg-btn-primary"
           >
-            <RefreshCw className="h-4 w-4" />
-            Kontrollera igen
-          </button>
+            <RefreshCw className="h-4 w-4" />{t("publicPages.geo.checkAgain")}</button>
         </div>
       </Shell>
     );
@@ -193,7 +187,7 @@ export default function PublicGeoReportPage() {
           <div className="kg-icon-box kg-icon-error mx-auto mb-6">
             <XCircle className="h-7 w-7 text-red-400" />
           </div>
-          <h1 className="text-xl font-semibold text-white mb-2 tracking-tight">Rapport ej tillgänglig</h1>
+          <h1 className="text-xl font-semibold text-white mb-2 tracking-tight">{t("publicPages.report.unavailable")}</h1>
           <p className="text-slate-400 text-sm">{error}</p>
         </div>
       </Shell>
@@ -218,29 +212,21 @@ export default function PublicGeoReportPage() {
           <div className="kg-icon-box kg-icon-warning mx-auto mb-6">
             <AlertCircle className="h-7 w-7 text-amber-400" />
           </div>
-          <h1 className="text-xl font-semibold text-white mb-2 tracking-tight">
-            Vi kunde inte skapa mini-rapporten just nu
-          </h1>
-          <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-xs mx-auto">
-            Du får fortfarande hjälp — vi har tagit emot din förfrågan och återkommer.
-          </p>
+          <h1 className="text-xl font-semibold text-white mb-2 tracking-tight">{t("publicPages.geo.failedTitle")}</h1>
+          <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-xs mx-auto">{t("publicPages.geo.failedBody")}</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => window.location.reload()}
               className="kg-btn-primary"
             >
-              <RefreshCw className="h-4 w-4" />
-              Försök igen
-            </button>
+              <RefreshCw className="h-4 w-4" />{t("publicPages.geo.tryAgain")}</button>
             <a
               href={bookingUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="kg-btn-secondary"
             >
-              <Mail className="h-4 w-4" />
-              Kontakta oss
-            </a>
+              <Mail className="h-4 w-4" />{t("publicPages.geo.contactUs")}</a>
           </div>
         </div>
       </Shell>
@@ -292,9 +278,7 @@ export default function PublicGeoReportPage() {
         {findings.length > 0 && (
           <section className="mb-10 animate-in stagger-2">
             <h2 className="kg-section-title">
-              <AlertCircle className="h-4 w-4 text-red-400" />
-              Det här hindrar AI från att rekommendera er
-            </h2>
+              <AlertCircle className="h-4 w-4 text-red-400" />{t("publicPages.geo.findingsTitle")}</h2>
             <div className="space-y-2.5">
               {findings.map((f: any, i: number) => {
                 const badge = severityBadge(f.severity);
@@ -318,9 +302,7 @@ export default function PublicGeoReportPage() {
         {actions.length > 0 && (
           <section className="mb-10 animate-in stagger-3">
             <h2 className="kg-section-title">
-              <Zap className="h-4 w-4 text-emerald-400" />
-              Snabba förbättringar
-            </h2>
+              <Zap className="h-4 w-4 text-emerald-400" />{t("publicPages.geo.actionsTitle")}</h2>
             <div className="space-y-2.5">
               {actions.map((a: any, i: number) => (
                 <div key={i} className="kg-card p-4">
@@ -340,16 +322,14 @@ export default function PublicGeoReportPage() {
         {/* Full analysis upsell */}
         <section className="mb-10 animate-in stagger-4">
           <div className="kg-card-accent p-6">
-            <h2 className="text-sm font-semibold text-white mb-4 tracking-tight">
-              En fullständig analys inkluderar
-            </h2>
+            <h2 className="text-sm font-semibold text-white mb-4 tracking-tight">{t("publicPages.geo.fullAnalysisTitle")}</h2>
             <ul className="space-y-2.5 text-sm text-slate-300">
               {[
                 "Djupanalys av upp till 25 sidor",
                 "Komplett schema.org-granskning",
                 "AI-citatanalys och entitetsoptimering",
-                "Prioriterad åtgärdsplan med tidsuppskattningar",
-                "Konkurrentjämförelse",
+                t("publicPages.geo.fullAnalysis4"),
+                t("publicPages.geo.fullAnalysis5"),
                 "Anpassad kundrapport i PDF-format",
               ].map((item, i) => (
                 <li key={i} className="flex items-center gap-2.5">
@@ -368,9 +348,7 @@ export default function PublicGeoReportPage() {
             target="_blank"
             rel="noopener noreferrer"
             className="kg-btn-cta"
-          >
-            Boka 15 min genomgång
-            <ArrowRight className="h-4 w-4" />
+          >{t("publicPages.geo.ctaBook")}<ArrowRight className="h-4 w-4" />
           </a>
           <div>
             <a
@@ -378,17 +356,14 @@ export default function PublicGeoReportPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="kg-link-secondary"
-            >
-              Läs GEO-guiden <ExternalLink className="h-3 w-3" />
+            >{t("publicPages.geo.ctaGuide")}<ExternalLink className="h-3 w-3" />
             </a>
           </div>
-          <p className="text-[10px] text-slate-600">Öppnas i ny flik</p>
+          <p className="text-[10px] text-slate-600">{t("publicPages.geo.opensNewTab")}</p>
         </section>
 
         {/* Disclaimer */}
-        <p className="text-[10px] text-slate-600 text-center mt-2 mb-2">
-          Mini-rapporten är en snabbscan (5–8 sidor). Full analys ger mer precision.
-        </p>
+        <p className="text-[10px] text-slate-600 text-center mt-2 mb-2">{t("publicPages.geo.disclaimer")}</p>
       </div>
 
       <footer className="border-t border-white/[0.06] mt-10 py-5 text-center">
@@ -424,12 +399,8 @@ function ProgressView({ currentStep, domain }: { currentStep: number; domain: st
         <div className="kg-icon-box kg-icon-accent mx-auto mb-6">
           <Loader2 className="h-6 w-6 animate-spin text-sky-400" />
         </div>
-        <h1 className="text-xl font-semibold text-white mb-2 tracking-tight">
-          Din rapport förbereds
-        </h1>
-        <p className="text-slate-500 text-xs">
-          Det tar normalt 30–90 sekunder. Du får även resultatet via email.
-        </p>
+        <h1 className="text-xl font-semibold text-white mb-2 tracking-tight">{t("publicPages.geo.progressTitle")}</h1>
+        <p className="text-slate-500 text-xs">{t("publicPages.geo.progressHint")}</p>
       </div>
 
       <div className="space-y-3">

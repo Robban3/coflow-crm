@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -23,6 +24,7 @@ export interface ServiceBusinessPluginProps {
 }
 
 export function ServiceBusinessPlugin({ url, rawData }: ServiceBusinessPluginProps) {
+  const { t } = useTranslation();
   // Analyze based on URL patterns and available data
   const features = analyzeServiceBusinessFeatures(url, rawData);
 
@@ -30,50 +32,46 @@ export function ServiceBusinessPlugin({ url, rawData }: ServiceBusinessPluginPro
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <Calendar className="h-4 w-4" />
-          Analys: Tjänsteföretag
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Viktiga funktioner för tjänstebaserade företag
-        </CardDescription>
+          <Calendar className="h-4 w-4" />{t("webAnalysis.serviceBusinessTitle")}</CardTitle>
+        <CardDescription className="text-xs">{t("webAnalysis.serviceBusinessDesc")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Feature checklist */}
         <div className="space-y-2">
           <FeatureItem 
-            label="Online-bokning"
+            label={t("webAnalysis.featOnlineBooking")}
             present={features.hasBookingSystem}
-            description={features.bookingPlatform || "Möjlighet att boka direkt på webbplatsen"}
+            description={features.bookingPlatform || t("webAnalysis.featOnlineBookingDesc")}
             importance="high"
           />
           <FeatureItem 
-            label="Tydlig prissättning"
+            label={t("webAnalysis.featPricing")}
             present={features.hasPricing}
             description="Priser eller prisintervall synliga"
             importance="high"
           />
           <FeatureItem 
-            label="Kundrecensioner"
+            label={t("webAnalysis.featReviews")}
             present={features.hasReviews}
-            description="Omdömen eller testimonials från kunder"
+            description=t("webAnalysis.featReviewsDesc")
             importance="medium"
           />
           <FeatureItem 
-            label="Kontaktformulär"
+            label={t("webAnalysis.featContactForm")}
             present={features.hasContactForm}
-            description="Enkelt sätt för kunder att ta kontakt"
+            description=t("webAnalysis.featContactFormDesc")
             importance="medium"
           />
           <FeatureItem 
-            label="Telefonnummer synligt"
+            label={t("webAnalysis.featPhoneVisible")}
             present={features.hasPhoneNumber}
-            description="Telefonnummer lätt att hitta"
+            description=t("webAnalysis.featPhoneVisibleDesc")
             importance="medium"
           />
           <FeatureItem 
-            label="Tjänstebeskrivningar"
+            label={t("webAnalysis.featServiceDescriptions")}
             present={features.servicesListed > 0}
-            description={features.servicesListed > 0 ? `${features.servicesListed} tjänster listade` : "Detaljerade beskrivningar av tjänster"}
+            description={features.servicesListed > 0 ? t("webAnalysis.featServicesListed", { count: features.servicesListed }) : t("webAnalysis.featServiceDescriptionsDesc")}
             importance="high"
           />
         </div>
@@ -81,17 +79,17 @@ export function ServiceBusinessPlugin({ url, rawData }: ServiceBusinessPluginPro
         {/* Score summary */}
         <div className="pt-3 border-t">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Branschoptimering</span>
+            <span className="text-sm font-medium">{t("webAnalysis.industryOptimization")}</span>
             <Badge variant={features.score >= 80 ? "default" : features.score >= 50 ? "secondary" : "destructive"}>
               {features.score}/100
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             {features.score >= 80 
-              ? "Webbplatsen är väl optimerad för tjänsteförsäljning"
+              ? t("webAnalysis.serviceScoreHigh")
               : features.score >= 50
-              ? "Grundläggande funktioner finns, men det finns förbättringspotential"
-              : "Flera viktiga funktioner saknas för effektiv tjänsteförsäljning"
+              ? t("webAnalysis.serviceScoreMedium")
+              : t("webAnalysis.serviceScoreLow")
             }
           </p>
         </div>
@@ -99,7 +97,7 @@ export function ServiceBusinessPlugin({ url, rawData }: ServiceBusinessPluginPro
         {/* Recommendations */}
         {features.recommendations.length > 0 && (
           <div className="pt-3 border-t">
-            <p className="text-sm font-medium mb-2">Rekommendationer</p>
+            <p className="text-sm font-medium mb-2">{t("webAnalysis.recommendations")}</p>
             <ul className="space-y-1">
               {features.recommendations.slice(0, 3).map((rec, i) => (
                 <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
@@ -132,7 +130,7 @@ function FeatureItem({ label, present, description, importance }: FeatureItemPro
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">{label}</span>
           {importance === 'high' && !present && (
-            <Badge variant="destructive" className="text-[9px] px-1.5 py-0">Viktigt</Badge>
+            <Badge variant="destructive" className="text-[9px] px-1.5 py-0">{t("webAnalysis.important")}</Badge>
           )}
         </div>
         <p className="text-xs text-muted-foreground">{description}</p>
@@ -194,18 +192,18 @@ function analyzeServiceBusinessFeatures(url: string, rawData: PageSpeedResult | 
 
   // Generate recommendations - always show helpful tips for service businesses
   if (!features.hasBookingSystem) {
-    features.recommendations.push("Lägg till online-bokning (t.ex. Calendly, BokaDirekt) för att öka konverteringar");
+    features.recommendations.push(t("webAnalysis.recServiceBooking"));
   }
   if (!features.hasPricing) {
-    features.recommendations.push("Visa priser eller prisintervall på hemsidan för ökad transparens");
+    features.recommendations.push(t("webAnalysis.recServicePricing"));
   }
   if (!features.hasReviews) {
-    features.recommendations.push("Integrera kundrecensioner (Google Reviews, Trustpilot) för att bygga förtroende");
+    features.recommendations.push(t("webAnalysis.recServiceReviews"));
   }
   if (!features.hasContactForm) {
-    features.recommendations.push("Säkerställ att kontaktformulär finns lättillgängligt");
+    features.recommendations.push(t("webAnalysis.recServiceContactForm"));
   }
-  features.recommendations.push("Se till att telefonnummer är klickbart (tel:-länk) för mobila besökare");
+  features.recommendations.push(t("webAnalysis.recServicePhone"));
 
   return features;
 }

@@ -318,6 +318,9 @@ export const webAnalysisDict: FeatureDictionary = {
     "webAnalysis.recServiceReviews": "Integrera kundrecensioner (Google Reviews, Trustpilot) för att bygga förtroende",
     "webAnalysis.recServiceContactForm": "Säkerställ att kontaktformulär finns lättillgängligt",
     "webAnalysis.recServicePhone": "Se till att telefonnummer är klickbart (tel:-länk) för mobila besökare",
+    "webAnalysis.qoCompanyName": "Företagsnamn",
+    "webAnalysis.perMonthShort": "/mån",
+    "webAnalysis.reviewsScore": "{score}/5 ({count} omdömen)",
   },
   en: {
     "webAnalysis.title": "Web analysis",
@@ -369,6 +372,9 @@ export const webAnalysisDict: FeatureDictionary = {
     "webAnalysis.geoScoreDesc": "Score: {score}/100",
     "webAnalysis.geoErrorTitle": "GEO analysis error",
     "webAnalysis.unknownError": "Unknown error",
+    "webAnalysis.qoCompanyName": "Company name",
+    "webAnalysis.perMonthShort": "/mo",
+    "webAnalysis.reviewsScore": "{score}/5 ({count} reviews)",
   },
   es: {
     "webAnalysis.title": "Análisis web",
@@ -420,5 +426,8 @@ export const webAnalysisDict: FeatureDictionary = {
     "webAnalysis.geoScoreDesc": "Puntuación: {score}/100",
     "webAnalysis.geoErrorTitle": "Error en el análisis GEO",
     "webAnalysis.unknownError": "Error desconocido",
+    "webAnalysis.qoCompanyName": "Nombre de la empresa",
+    "webAnalysis.perMonthShort": "/mes",
+    "webAnalysis.reviewsScore": "{score}/5 ({count} reseñas)",
   },
 };

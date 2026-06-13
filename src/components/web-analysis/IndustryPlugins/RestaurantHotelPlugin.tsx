@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -19,57 +20,54 @@ export interface RestaurantHotelPluginProps {
 }
 
 export function RestaurantHotelPlugin({ url, rawData }: RestaurantHotelPluginProps) {
+  const { t } = useTranslation();
   const features = analyzeRestaurantFeatures(url, rawData);
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <Store className="h-4 w-4" />
-          Analys: Restaurang & Hotell
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Viktiga funktioner för restauranger och hotell
-        </CardDescription>
+          <Store className="h-4 w-4" />{t("webAnalysis.restaurantHotelTitle")}</CardTitle>
+        <CardDescription className="text-xs">{t("webAnalysis.restaurantHotelDesc")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Feature checklist */}
         <div className="space-y-2">
           <FeatureItem 
-            label="Online-meny"
+            label={t("webAnalysis.featOnlineMenu")}
             present={features.hasMenu}
-            description={features.menuType === 'pdf' ? "PDF-meny (online vore bättre)" : features.menuType === 'online' ? "Interaktiv meny på hemsidan" : "Ingen meny synlig"}
+            description={features.menuType === 'pdf' ? t("webAnalysis.featMenuPdf") : features.menuType === 'online' ? t("webAnalysis.featMenuOnline") : "Ingen meny synlig"}
             importance="high"
             warning={features.menuType === 'pdf'}
           />
           <FeatureItem 
-            label="Bordsbokning"
+            label={t("webAnalysis.featTableBooking")}
             present={features.hasOnlineBooking}
-            description="Möjlighet att boka bord online"
+            description=t("webAnalysis.featTableBookingDesc")
             importance="high"
           />
           <FeatureItem 
-            label="Google-omdömen"
+            label={t("webAnalysis.featGoogleReviews")}
             present={features.hasGoogleReviews}
-            description={features.reviewScore ? `${features.reviewScore}/5 (${features.reviewCount} omdömen)` : "Koppling till Google Reviews"}
+            description={features.reviewScore ? t("webAnalysis.reviewsScore", { score: features.reviewScore, count: features.reviewCount }) : t("webAnalysis.featGoogleReviewsDesc")}
             importance="high"
           />
           <FeatureItem 
-            label="Öppettider"
+            label={t("webAnalysis.featOpeningHours")}
             present={features.hasOpeningHours}
-            description="Tydligt angivna öppettider"
+            description=t("webAnalysis.featOpeningHoursDesc")
             importance="medium"
           />
           <FeatureItem 
-            label="Karta/Adress"
+            label={t("webAnalysis.featMapAddress")}
             present={features.hasLocationInfo}
-            description="Adress och vägbeskrivning"
+            description=t("webAnalysis.featMapAddressDesc")
             importance="medium"
           />
           <FeatureItem 
-            label="Bildgalleri"
+            label={t("webAnalysis.featImageGallery")}
             present={features.hasImageGallery}
-            description="Foton på mat, lokalen eller rummen"
+            description=t("webAnalysis.featImageGalleryDesc")
             importance="medium"
           />
         </div>
@@ -77,17 +75,17 @@ export function RestaurantHotelPlugin({ url, rawData }: RestaurantHotelPluginPro
         {/* Score summary */}
         <div className="pt-3 border-t">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Branschoptimering</span>
+            <span className="text-sm font-medium">{t("webAnalysis.industryOptimization")}</span>
             <Badge variant={features.score >= 80 ? "default" : features.score >= 50 ? "secondary" : "destructive"}>
               {features.score}/100
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             {features.score >= 80 
-              ? "Webbplatsen är väl optimerad för restaurang/hotellbranschen"
+              ? t("webAnalysis.restaurantScoreHigh")
               : features.score >= 50
-              ? "Grundläggande information finns, men det finns förbättringspotential"
-              : "Flera viktiga funktioner saknas för att attrahera gäster"
+              ? t("webAnalysis.restaurantScoreMedium")
+              : t("webAnalysis.restaurantScoreLow")
             }
           </p>
         </div>
@@ -95,7 +93,7 @@ export function RestaurantHotelPlugin({ url, rawData }: RestaurantHotelPluginPro
         {/* Recommendations */}
         {features.recommendations.length > 0 && (
           <div className="pt-3 border-t">
-            <p className="text-sm font-medium mb-2">Rekommendationer</p>
+            <p className="text-sm font-medium mb-2">{t("webAnalysis.recommendations")}</p>
             <ul className="space-y-1">
               {features.recommendations.slice(0, 3).map((rec, i) => (
                 <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
@@ -136,10 +134,10 @@ function FeatureItem({ label, present, description, importance, warning }: Featu
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">{label}</span>
           {importance === 'high' && !present && (
-            <Badge variant="destructive" className="text-[9px] px-1.5 py-0">Viktigt</Badge>
+            <Badge variant="destructive" className="text-[9px] px-1.5 py-0">{t("webAnalysis.important")}</Badge>
           )}
           {warning && (
-            <Badge variant="secondary" className="text-[9px] px-1.5 py-0">Kan förbättras</Badge>
+            <Badge variant="secondary" className="text-[9px] px-1.5 py-0">{t("webAnalysis.canBeImproved")}</Badge>
           )}
         </div>
         <p className="text-xs text-muted-foreground">{description}</p>
@@ -199,20 +197,20 @@ function analyzeRestaurantFeatures(url: string, rawData: PageSpeedResult | null)
 
   // Generate recommendations - always show helpful tips for restaurants/hotels
   if (!features.hasMenu) {
-    features.recommendations.push("Lägg till en interaktiv meny direkt på hemsidan (undvik PDF)");
+    features.recommendations.push(t("webAnalysis.recRestaurantMenu"));
   } else if (features.menuType === 'pdf') {
-    features.recommendations.push("Byt ut PDF-menyn mot en interaktiv webbmeny för bättre SEO");
+    features.recommendations.push(t("webAnalysis.recRestaurantMenuPdf"));
   }
   if (!features.hasOnlineBooking) {
-    features.recommendations.push("Lägg till online-bordsbokning (BokaDirekt, TheFork, OpenTable)");
+    features.recommendations.push(t("webAnalysis.recRestaurantBooking"));
   }
   if (!features.hasGoogleReviews) {
-    features.recommendations.push("Integrera Google-omdömen på hemsidan för att bygga förtroende");
+    features.recommendations.push(t("webAnalysis.recRestaurantReviews"));
   }
   if (!features.hasImageGallery) {
-    features.recommendations.push("Lägg till ett professionellt bildgalleri med mat och lokal");
+    features.recommendations.push(t("webAnalysis.recRestaurantGallery"));
   }
-  features.recommendations.push("Säkerställ att schema.org-data finns för LocalBusiness/Restaurant");
+  features.recommendations.push(t("webAnalysis.recRestaurantSchema"));
 
   return features;
 }

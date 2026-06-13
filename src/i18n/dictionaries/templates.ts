@@ -101,6 +101,8 @@ export const templatesDict: FeatureDictionary = {
     "templates.sendOffer.sentTo": "Offerten skickades till {email}",
     "templates.sendOffer.title": "Skicka offert",
     "templates.sendOffer.unknownError": "Okänt fel",
+    "templates.picker.title": "Välj en mall",
+    "templates.picker.empty": "Inga mallar. Skapa en mall först under Mallar-sidan.",
   },
   en: {
     "templates.docType.offer": "Quote",
@@ -196,6 +198,8 @@ export const templatesDict: FeatureDictionary = {
     "templates.sendOffer.sentTo": "The offer was sent to {email}",
     "templates.sendOffer.title": "Send offer",
     "templates.sendOffer.unknownError": "Unknown error",
+    "templates.picker.title": "Choose a template",
+    "templates.picker.empty": "No templates. Create a template first on the Templates page.",
   },
   es: {
     "templates.docType.offer": "Presupuesto",
@@ -291,5 +295,7 @@ export const templatesDict: FeatureDictionary = {
     "templates.sendOffer.sentTo": "La oferta se envió a {email}",
     "templates.sendOffer.title": "Enviar oferta",
     "templates.sendOffer.unknownError": "Error desconocido",
+    "templates.picker.title": "Elige una plantilla",
+    "templates.picker.empty": "No hay plantillas. Crea una plantilla primero en la página de Plantillas.",
   },
 };

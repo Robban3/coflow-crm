@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -81,6 +82,7 @@ interface SeoReportProps {
 }
 
 export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoReportProps) {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [seoData, setSeoData] = useState<SeoAnalysis | null>(null);
@@ -146,8 +148,8 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
   const runSeoAnalysis = async () => {
     if (!organizationId) {
       toast({
-        title: "Fel",
-        description: "Kunde inte hitta organisation. Försök ladda om sidan.",
+        title: t("webAnalysis.error"),
+        description: t("webAnalysis.couldNotFindOrg"),
         variant: "destructive",
       });
       return;
@@ -169,7 +171,7 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
       }
 
       if (!data.success) {
-        throw new Error(data.error || 'SEO-analys misslyckades');
+        throw new Error(data.error || t("webAnalysis.seoAnalysisFailed"));
       }
 
       // Data is already saved by the edge function, so we can use it directly
@@ -194,18 +196,18 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
       setSeoData(formattedData);
 
       const trafficMsg = data.data.total_organic_traffic > 0 
-        ? `, ${data.data.total_organic_traffic} besökare/mån` 
+        ? t("webAnalysis.visitorsPerMonthSuffix", { count: data.data.total_organic_traffic }) 
         : '';
 
       toast({
-        title: "SEO-analys klar!",
+        title: t("webAnalysis.seoDoneTitle"),
         description: `Visibility score: ${data.data.visibility_score}/100${trafficMsg}`,
       });
     } catch (error) {
       console.error('SEO analysis error:', error);
       toast({
-        title: "SEO-analys misslyckades",
-        description: error instanceof Error ? error.message : 'Ett fel uppstod',
+        title: t("webAnalysis.seoAnalysisFailed"),
+        description: error instanceof Error ? error.message : t("webAnalysis.anErrorOccurred"),
         variant: "destructive",
       });
     } finally {
@@ -238,7 +240,7 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
       medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
       low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     };
-    const labels = { high: 'Hög', medium: 'Medium', low: 'Låg' };
+    const labels = { high: t("webAnalysis.severityHigh"), medium: t("webAnalysis.priorityMedium"), low: t("webAnalysis.severityLow") };
     return <Badge className={styles[priority]}>{labels[priority]}</Badge>;
   };
 
@@ -266,20 +268,14 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
         <CardContent className="flex flex-col items-center justify-center py-12">
           <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
           <h3 className="text-lg font-semibold mb-2">SEO Intelligence</h3>
-          <p className="text-muted-foreground text-center mb-4 max-w-md">
-            Analysera on-page SEO, hämta riktiga Google-rankingar med sökvolym och trafik.
-          </p>
+          <p className="text-muted-foreground text-center mb-4 max-w-md">{t("webAnalysis.seoEmptyDesc")}</p>
           <Button onClick={runSeoAnalysis} disabled={isAnalyzing || !organizationId}>
             {isAnalyzing ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyserar...
-              </>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("webAnalysis.analyzing")}</>
             ) : (
               <>
-                <Search className="mr-2 h-4 w-4" />
-                Kör SEO-analys
-              </>
+                <Search className="mr-2 h-4 w-4" />{t("webAnalysis.runSeoAnalysis")}</>
             )}
           </Button>
         </CardContent>
@@ -310,11 +306,9 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Google Visibility Score
-              </CardTitle>
+                <TrendingUp className="h-5 w-5" />{t("webAnalysis.googleVisibilityScore")}</CardTitle>
               <CardDescription>
-                {hasRealKeywordData ? 'Baserat på faktiska Google-rankingar från DataForSEO' : 'Baserat på on-page faktorer'}
+                {hasRealKeywordData ? t("webAnalysis.basedOnRealRankings") : t("webAnalysis.basedOnOnPage")}
               </CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={runSeoAnalysis} disabled={isAnalyzing}>
@@ -348,28 +342,28 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
                   <Eye className="h-5 w-5" />
                   {formatNumber(totalTraffic)}
                 </div>
-                <p className="text-xs text-muted-foreground">Besök/månad</p>
+                <p className="text-xs text-muted-foreground">{t("webAnalysis.visitsPerMonth")}</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 text-2xl font-bold text-primary">
                   <Search className="h-5 w-5" />
                   {formatNumber(totalKeywords)}
                 </div>
-                <p className="text-xs text-muted-foreground">Rankade sökord</p>
+                <p className="text-xs text-muted-foreground">{t("webAnalysis.rankedKeywords")}</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 text-2xl font-bold text-green-600 dark:text-green-400">
                   <ArrowUp className="h-5 w-5" />
                   {topPositions}
                 </div>
-                <p className="text-xs text-muted-foreground">I topp 10</p>
+                <p className="text-xs text-muted-foreground">{t("webAnalysis.inTop10")}</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 text-2xl font-bold text-primary">
                   <Star className="h-5 w-5" />
                   ${formatNumber(trafficValue)}
                 </div>
-                <p className="text-xs text-muted-foreground">Trafikvärde (USD)</p>
+                <p className="text-xs text-muted-foreground">{t("webAnalysis.trafficValueUsd")}</p>
               </div>
             </div>
           )}
@@ -381,9 +375,7 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Sammanfattning
-            </CardTitle>
+              <Target className="h-5 w-5" />{t("webAnalysis.summary")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground leading-relaxed">{seoData.ai_summary}</p>
@@ -396,23 +388,19 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Google-rankingar
-              <Badge variant="secondary" className="ml-2">DataForSEO</Badge>
+              <BarChart3 className="h-5 w-5" />{t("webAnalysis.googleRankings")}<Badge variant="secondary" className="ml-2">DataForSEO</Badge>
             </CardTitle>
-            <CardDescription>
-              Faktiska sökord som domänen rankar på i Sverige
-            </CardDescription>
+            <CardDescription>{t("webAnalysis.realRankedKeywordsDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-2 pr-4">Sökord</th>
-                    <th className="text-center py-2 px-2">Position</th>
-                    <th className="text-right py-2 px-2">Sökvolym</th>
-                    <th className="text-right py-2 pl-2">Trafik</th>
+                    <th className="text-left py-2 pr-4">{t("webAnalysis.colKeyword")}</th>
+                    <th className="text-center py-2 px-2">{t("webAnalysis.colPosition")}</th>
+                    <th className="text-right py-2 px-2">{t("webAnalysis.colSearchVolume")}</th>
+                    <th className="text-right py-2 pl-2">{t("webAnalysis.colTraffic")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -425,7 +413,7 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
                         {getPositionBadge(kw.position)}
                       </td>
                       <td className="text-right py-2 px-2 text-muted-foreground">
-                        {formatNumber(kw.search_volume)}/mån
+                        {formatNumber(kw.search_volume)}{t("webAnalysis.perMonthShort")}
                       </td>
                       <td className="text-right py-2 pl-2">
                         <span className="text-green-600 dark:text-green-400 font-medium">
@@ -439,7 +427,7 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
             </div>
             {rankedKeywords.length > 20 && (
               <p className="text-sm text-muted-foreground mt-4 text-center">
-                Visar 20 av {rankedKeywords.length} sökord (sorterade efter sökvolym)
+                {t("webAnalysis.showingKeywords", { total: rankedKeywords.length })}
               </p>
             )}
           </CardContent>
@@ -451,12 +439,8 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Search className="h-5 w-5" />
-              Uppskattade sökord
-            </CardTitle>
-            <CardDescription>
-              AI-uppskattning baserat på innehållsanalys. Aktivera DataForSEO för faktiska rankingar.
-            </CardDescription>
+              <Search className="h-5 w-5" />{t("webAnalysis.estimatedKeywords")}</CardTitle>
+            <CardDescription>{t("webAnalysis.estimatedKeywordsDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -480,18 +464,16 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Teknisk SEO
-            </CardTitle>
+              <Shield className="h-5 w-5" />{t("webAnalysis.technicalSeo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <ChecklistItem checked={seoData.is_https} label="HTTPS-anslutning" />
-            <ChecklistItem checked={seoData.has_sitemap} label="Sitemap.xml" />
-            <ChecklistItem checked={seoData.has_robots_txt} label="Robots.txt" />
-            <ChecklistItem checked={seoData.has_canonical} label="Canonical-tagg" />
-            <ChecklistItem checked={seoData.has_open_graph} label="Open Graph-taggar" />
-            <ChecklistItem checked={seoData.has_twitter_cards} label="Twitter Cards" />
-            <ChecklistItem checked={seoData.mobile_friendly} label="Mobilanpassad" />
+            <ChecklistItem checked={seoData.is_https} label={t("webAnalysis.checkHttps")} />
+            <ChecklistItem checked={seoData.has_sitemap} label={t("webAnalysis.checkSitemap")} />
+            <ChecklistItem checked={seoData.has_robots_txt} label={t("webAnalysis.checkRobots")} />
+            <ChecklistItem checked={seoData.has_canonical} label={t("webAnalysis.checkCanonical")} />
+            <ChecklistItem checked={seoData.has_open_graph} label={t("webAnalysis.checkOpenGraph")} />
+            <ChecklistItem checked={seoData.has_twitter_cards} label={t("webAnalysis.checkTwitterCards")} />
+            <ChecklistItem checked={seoData.mobile_friendly} label={t("webAnalysis.checkMobileFriendly")} />
             <ChecklistItem checked={seoData.h1_count === 1} label={`H1-tagg (${seoData.h1_count} st)`} />
           </CardContent>
         </Card>
@@ -500,18 +482,16 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Innehållsstatistik
-            </CardTitle>
+              <FileText className="h-5 w-5" />{t("webAnalysis.contentStatistics")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <MetricItem icon={FileText} label="Ordantal" value={seoData.word_count.toLocaleString()} />
-              <MetricItem icon={Link2} label="Interna länkar" value={seoData.internal_links_count} />
-              <MetricItem icon={Globe} label="Externa länkar" value={seoData.external_links_count} />
+              <MetricItem icon={FileText} label={t("webAnalysis.metricWordCount")} value={seoData.word_count.toLocaleString()} />
+              <MetricItem icon={Link2} label={t("webAnalysis.metricInternalLinks")} value={seoData.internal_links_count} />
+              <MetricItem icon={Globe} label={t("webAnalysis.metricExternalLinks")} value={seoData.external_links_count} />
               <MetricItem
                 icon={FileText}
-                label="Bilder"
+                label={t("webAnalysis.metricImages")}
                 value={`${seoData.images_count} (${seoData.images_without_alt} utan alt)`} 
                 warning={seoData.images_without_alt > 0}
               />
@@ -533,9 +513,7 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Nyckelord i innehållet
-            </CardTitle>
+              <Target className="h-5 w-5" />{t("webAnalysis.keywordsInContent")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -554,9 +532,7 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Lightbulb className="h-5 w-5" />
-              Förbättringsmöjligheter
-            </CardTitle>
+              <Lightbulb className="h-5 w-5" />{t("webAnalysis.improvementOpportunities")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {seoData.ai_opportunities.map((opp, index) => (

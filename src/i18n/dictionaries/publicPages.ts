@@ -160,6 +160,10 @@ export const publicPagesDict: FeatureDictionary = {
     "publicPages.geo.progressTitle": "Din rapport förbereds",
     "publicPages.geo.progressHint": "Det tar normalt 30–90 sekunder. Du får även resultatet via email.",
     "publicPages.geo.analyzing": "Analyserar {domain}",
+    "publicPages.geoTitle": "{name} – GEO Rapport",
+    "publicPages.geoTitleNoName": "GEO Rapport",
+    "publicPages.geoDesc": "GEO & AI-synlighetsrapport för {name}",
+    "publicPages.geoDescNoName": "GEO & AI-synlighetsrapport",
   },
   en: {
     // PublicBookingPage
@@ -320,6 +324,10 @@ export const publicPagesDict: FeatureDictionary = {
     "publicPages.geo.progressTitle": "Your report is being prepared",
     "publicPages.geo.progressHint": "It usually takes 30–90 seconds. You'll also receive the result by email.",
     "publicPages.geo.analyzing": "Analyzing {domain}",
+    "publicPages.geoTitle": "{name} – GEO Report",
+    "publicPages.geoTitleNoName": "GEO Report",
+    "publicPages.geoDesc": "GEO & AI visibility report for {name}",
+    "publicPages.geoDescNoName": "GEO & AI visibility report",
   },
   es: {
     // PublicBookingPage
@@ -480,6 +488,10 @@ export const publicPagesDict: FeatureDictionary = {
     "publicPages.geo.progressTitle": "Tu informe se está preparando",
     "publicPages.geo.progressHint": "Normalmente tarda entre 30 y 90 segundos. También recibirás el resultado por correo electrónico.",
     "publicPages.geo.analyzing": "Analizando {domain}",
+    "publicPages.geoTitle": "{name} – Informe GEO",
+    "publicPages.geoTitleNoName": "Informe GEO",
+    "publicPages.geoDesc": "Informe de visibilidad GEO e IA para {name}",
+    "publicPages.geoDescNoName": "Informe de visibilidad GEO e IA",
   },
 };
 </content>

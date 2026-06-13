@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { useQuery } from "@tanstack/react-query";
 import { fromTable } from "../supabaseHelper";
@@ -24,6 +25,7 @@ export function TemplatePickerDialog({
   onSelect,
   isLoading,
 }: TemplatePickerDialogProps) {
+  const { t } = useTranslation();
   const orgId = useOrganizationId();
 
   const { data: templates } = useQuery({
@@ -41,14 +43,14 @@ export function TemplatePickerDialog({
   const typeLabels: Record<string, string> = {
     offer: "Offert",
     contract: "Avtal",
-    other: "Övrigt",
+    other: t("templates.list.typeOther"),
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Välj en mall</DialogTitle>
+          <DialogTitle>{t("templates.picker.title")}</DialogTitle>
         </DialogHeader>
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
@@ -56,7 +58,7 @@ export function TemplatePickerDialog({
           </div>
         ) : !templates?.length ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p>Inga mallar. Skapa en mall först under Mallar-sidan.</p>
+            <p>{t("templates.picker.empty")}</p>
           </div>
         ) : (
           <div className="grid gap-2 max-h-80 overflow-y-auto">

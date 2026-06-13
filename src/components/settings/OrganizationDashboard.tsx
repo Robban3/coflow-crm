@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -83,6 +84,7 @@ interface InviteCode {
 }
 
 export function OrganizationDashboard() {
+  const { t } = useTranslation();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [userModules, setUserModules] = useState<UserModuleState>({});
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
@@ -274,13 +276,13 @@ export function OrganizationDashboard() {
 
       toast({
         title: enabled ? "Modul aktiverad" : "Modul inaktiverad",
-        description: `${MODULE_REGISTRY.find(m => m.dbModuleKey === moduleKey)?.name} för användaren`,
+        description: t("settings.moduleForUser", { module: MODULE_REGISTRY.find(m => m.dbModuleKey === moduleKey)?.name ?? "" }),
       });
     } catch (error) {
       console.error("Error toggling module:", error);
       toast({
-        title: "Fel",
-        description: "Kunde inte ändra modulstatus",
+        title: t("settings.profileSaveErrorTitle"),
+        description: t("settings.moduleStatusErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -312,14 +314,14 @@ export function OrganizationDashboard() {
       ));
 
       toast({
-        title: "Roll uppdaterad",
-        description: `Användaren är nu ${newRole === "admin" ? "administratör" : "vanlig användare"}`,
+        title: t("settings.roleUpdatedTitle"),
+        description: t("settings.roleUpdatedDesc", { role: newRole === "admin" ? t("settings.roleAdminFull") : t("settings.roleUserFull") }),
       });
     } catch (error) {
       console.error("Error toggling role:", error);
       toast({
-        title: "Fel",
-        description: "Kunde inte ändra roll",
+        title: t("settings.profileSaveErrorTitle"),
+        description: t("settings.roleChangeErrorDesc"),
         variant: "destructive",
       });
     }
@@ -340,16 +342,16 @@ export function OrganizationDashboard() {
 
     if (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte spara organisationsuppgifter",
+        title: t("settings.profileSaveErrorTitle"),
+        description: t("settings.orgInfoSaveErrorDesc"),
         variant: "destructive",
       });
     } else {
       // Refresh organization settings in the sidebar
       await refreshSettings();
       toast({
-        title: "Sparat!",
-        description: "Organisationsuppgifterna har uppdaterats",
+        title: t("settings.orgInfoSavedTitle"),
+        description: t("settings.orgInfoSavedDesc"),
       });
     }
     setIsSavingOrg(false);
@@ -382,8 +384,8 @@ export function OrganizationDashboard() {
       if (error) throw error;
 
       toast({
-        title: "Inbjudningskod skapad!",
-        description: `Koden ${code} kan nu användas vid registrering`,
+        title: t("settings.inviteCreatedTitle"),
+        description: t("settings.inviteCreatedDesc", { code }),
       });
 
       setShowInviteCodeDialog(false);
@@ -392,8 +394,8 @@ export function OrganizationDashboard() {
     } catch (error) {
       console.error("Error creating invite code:", error);
       toast({
-        title: "Fel",
-        description: "Kunde inte skapa inbjudningskod",
+        title: t("settings.profileSaveErrorTitle"),
+        description: t("settings.inviteCreateErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -404,7 +406,7 @@ export function OrganizationDashboard() {
   const handleAddUser = async () => {
     if (!newUserForm.email || !newUserForm.password) {
       toast({
-        title: "Fyll i alla fält",
+        title: t("settings.fillAllFields"),
         variant: "destructive",
       });
       return;
@@ -426,7 +428,7 @@ export function OrganizationDashboard() {
       if (data?.error) throw new Error(data.error);
 
       toast({
-        title: "Användare skapad!",
+        title: t("settings.userCreatedTitle"),
         description: `${newUserForm.email} har lagts till i teamet`,
       });
 
@@ -437,8 +439,8 @@ export function OrganizationDashboard() {
     } catch (error: any) {
       console.error("Error creating user:", error);
       toast({
-        title: "Fel",
-        description: error.message || "Kunde inte skapa användare",
+        title: t("settings.profileSaveErrorTitle"),
+        description: error.message || t("settings.userCreateErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -460,12 +462,12 @@ export function OrganizationDashboard() {
 
     if (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte ta bort inbjudningskoden",
+        title: t("settings.profileSaveErrorTitle"),
+        description: t("settings.inviteDeleteErrorDesc"),
         variant: "destructive",
       });
     } else {
-      toast({ title: "Inbjudningskod borttagen" });
+      toast({ title: t("settings.inviteDeletedTitle") });
       fetchTeamData();
     }
   };
@@ -497,57 +499,45 @@ export function OrganizationDashboard() {
       <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground border-b pb-4">
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4" />
-          <span><strong className="text-foreground">{members.length}</strong> användare</span>
+          <span><strong className="text-foreground">{members.length}</strong>{t("settings.statUsers")}</span>
         </div>
         <div className="flex items-center gap-2">
           <Shield className="h-4 w-4" />
-          <span><strong className="text-foreground">{members.filter(m => m.role === "admin").length}</strong> admins</span>
+          <span><strong className="text-foreground">{members.filter(m => m.role === "admin").length}</strong>{t("settings.statAdmins")}</span>
         </div>
         <div className="flex items-center gap-2">
           <Key className="h-4 w-4" />
-          <span><strong className="text-foreground">{activeInvites}</strong> aktiva inbjudningar</span>
+          <span><strong className="text-foreground">{activeInvites}</strong>{t("settings.statActiveInvites")}</span>
         </div>
       </div>
 
       <Tabs defaultValue="modules" className="space-y-4">
         <TabsList>
           <TabsTrigger value="modules" className="flex items-center gap-2">
-            <Puzzle className="h-4 w-4" />
-            Moduler
-          </TabsTrigger>
+            <Puzzle className="h-4 w-4" />{t("settings.tabModules")}</TabsTrigger>
           <TabsTrigger value="members" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Användare
-          </TabsTrigger>
+            <Users className="h-4 w-4" />{t("settings.roleUser")}</TabsTrigger>
           <TabsTrigger value="invites" className="flex items-center gap-2">
-            <Key className="h-4 w-4" />
-            Inbjudningar
-          </TabsTrigger>
+            <Key className="h-4 w-4" />{t("settings.tabInvites")}</TabsTrigger>
           <TabsTrigger value="organization" className="flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            Företagsinfo
-          </TabsTrigger>
+            <Building2 className="h-4 w-4" />{t("settings.tabCompanyInfo")}</TabsTrigger>
           <TabsTrigger value="automation" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Automatisering
-          </TabsTrigger>
+            <Zap className="h-4 w-4" />{t("settings.tabAutomation")}</TabsTrigger>
         </TabsList>
 
         {/* Modules Tab - Fortnox style */}
         <TabsContent value="modules">
           <Card>
             <CardHeader>
-              <CardTitle>Modulbehörigheter</CardTitle>
-              <CardDescription>
-                Aktivera eller inaktivera moduler för varje användare
-              </CardDescription>
+              <CardTitle>{t("settings.modulePermissionsTitle")}</CardTitle>
+              <CardDescription>{t("settings.modulePermissionsDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[200px]">Användare</TableHead>
+                      <TableHead className="w-[200px]">{t("settings.roleUser")}</TableHead>
                       {toggleableModules.map((module) => (
                         <TableHead key={module.id} className="text-center min-w-[100px]">
                           <div className="flex flex-col items-center gap-1">
@@ -574,9 +564,7 @@ export function OrganizationDashboard() {
                                 {member.full_name || member.email.split("@")[0]}
                               </p>
                               {member.role === "admin" && (
-                                <Badge variant="secondary" className="text-[10px] px-1 py-0">
-                                  Admin
-                                </Badge>
+                                <Badge variant="secondary" className="text-[10px] px-1 py-0">{t("settings.roleAdmin")}</Badge>
                               )}
                             </div>
                           </div>
@@ -609,23 +597,21 @@ export function OrganizationDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle>Användare</CardTitle>
-                <CardDescription>Hantera teammedlemmar och roller</CardDescription>
+                <CardTitle>{t("settings.roleUser")}</CardTitle>
+                <CardDescription>{t("settings.membersDesc")}</CardDescription>
               </div>
               <Button size="sm" onClick={() => setShowAddDialog(true)}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Lägg till
-              </Button>
+                <UserPlus className="mr-2 h-4 w-4" />{t("settings.add")}</Button>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Användare</TableHead>
-                      <TableHead>E-post</TableHead>
-                      <TableHead>Roll</TableHead>
-                      <TableHead className="text-right">Admin</TableHead>
+                      <TableHead>{t("settings.roleUser")}</TableHead>
+                      <TableHead>{t("settings.email")}</TableHead>
+                      <TableHead>{t("settings.role")}</TableHead>
+                      <TableHead className="text-right">{t("settings.roleAdmin")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -649,7 +635,7 @@ export function OrganizationDashboard() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={member.role === "admin" ? "default" : "secondary"}>
-                            {member.role === "admin" ? "Admin" : "Användare"}
+                            {member.role === "admin" ? "Admin" : t("settings.roleUser")}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -673,35 +659,27 @@ export function OrganizationDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle>Inbjudningskoder</CardTitle>
-                <CardDescription>
-                  Dela koder för att låta nya användare registrera sig
-                </CardDescription>
+                <CardTitle>{t("settings.inviteCodesTitle")}</CardTitle>
+                <CardDescription>{t("settings.inviteCodesDesc")}</CardDescription>
               </div>
               <Button size="sm" onClick={() => setShowInviteCodeDialog(true)}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Skapa kod
-              </Button>
+                <RefreshCw className="mr-2 h-4 w-4" />{t("settings.createCode")}</Button>
             </CardHeader>
             <CardContent>
               {inviteCodes.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <Key className="h-10 w-10 text-muted-foreground/30 mb-3" />
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Inga inbjudningskoder ännu
-                  </p>
-                  <Button size="sm" variant="outline" onClick={() => setShowInviteCodeDialog(true)}>
-                    Skapa kod
-                  </Button>
+                  <p className="text-sm text-muted-foreground mb-3">{t("settings.noInvitesYet")}</p>
+                  <Button size="sm" variant="outline" onClick={() => setShowInviteCodeDialog(true)}>{t("settings.createCode")}</Button>
                 </div>
               ) : (
                 <div className="rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Kod</TableHead>
-                        <TableHead>Användningar</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>{t("settings.colCode")}</TableHead>
+                        <TableHead>{t("settings.colUses")}</TableHead>
+                        <TableHead>{t("settings.colStatus")}</TableHead>
                         <TableHead className="w-[80px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -732,9 +710,9 @@ export function OrganizationDashboard() {
                           </TableCell>
                           <TableCell>
                             {invite.is_active ? (
-                              <Badge variant="secondary">Aktiv</Badge>
+                              <Badge variant="secondary">{t("settings.active")}</Badge>
                             ) : (
-                              <Badge variant="outline">Inaktiv</Badge>
+                              <Badge variant="outline">{t("settings.inactive")}</Badge>
                             )}
                           </TableCell>
                           <TableCell>
@@ -761,14 +739,12 @@ export function OrganizationDashboard() {
         <TabsContent value="organization">
           <Card>
             <CardHeader>
-              <CardTitle>Företagsinformation</CardTitle>
-              <CardDescription>
-                Uppgifter som visas i e-postsignaturer etc.
-              </CardDescription>
+              <CardTitle>{t("settings.companyInfoTitle")}</CardTitle>
+              <CardDescription>{t("settings.companyInfoDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label className="mb-3 block">Företagslogga</Label>
+                <Label className="mb-3 block">{t("settings.companyLogoAlt")}</Label>
                 <ProfileImageUpload
                   currentUrl={orgSettings.company_logo_url}
                   userId={user?.id || ""}
@@ -782,28 +758,24 @@ export function OrganizationDashboard() {
               <div className="grid gap-4 max-w-lg">
                 <div className="space-y-2">
                   <Label htmlFor="org-name" className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    Företagsnamn
-                  </Label>
+                    <Building2 className="h-4 w-4 text-muted-foreground" />{t("settings.companyName")}</Label>
                   <Input
                     id="org-name"
                     value={orgSettings.company_name}
                     onChange={(e) => setOrgSettings(prev => ({ ...prev, company_name: e.target.value }))}
-                    placeholder="Mitt Företag AB"
+                    placeholder={t("settings.orgCompanyNamePlaceholder")}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="org-website" className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    Hemsida
-                  </Label>
+                    <Globe className="h-4 w-4 text-muted-foreground" />{t("settings.companyWebsite")}</Label>
                   <Input
                     id="org-website"
                     type="url"
                     value={orgSettings.company_website}
                     onChange={(e) => setOrgSettings(prev => ({ ...prev, company_website: e.target.value }))}
-                    placeholder="https://mittforetag.se"
+                    placeholder={t("settings.orgCompanyWebsitePlaceholder")}
                   />
                 </div>
               </div>
@@ -824,19 +796,14 @@ export function OrganizationDashboard() {
         <TabsContent value="automation">
           <Card>
             <CardHeader>
-              <CardTitle>Automatisering</CardTitle>
-              <CardDescription>
-                Styr hur leads analyseras och berikas automatiskt
-              </CardDescription>
+              <CardTitle>{t("settings.tabAutomation")}</CardTitle>
+              <CardDescription>{t("settings.automationDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-base">Analysera nya leads automatiskt</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Kör webbanalys och skapa utskicksutkast för nya leads automatiskt.
-                    Stäng av för att spara API-anrop.
-                  </p>
+                  <Label className="text-base">{t("settings.autoAnalyzeLabel")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("settings.autoAnalyzeDesc")}</p>
                 </div>
                 <Switch
                   checked={autoEnrichEnabled}
@@ -853,40 +820,38 @@ export function OrganizationDashboard() {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Lägg till användare</DialogTitle>
-            <DialogDescription>
-              Skapa ett nytt konto för en teammedlem
-            </DialogDescription>
+            <DialogTitle>{t("settings.addUser")}</DialogTitle>
+            <DialogDescription>{t("settings.addUserDesc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>E-post *</Label>
+              <Label>{t("settings.emailRequired")}</Label>
               <Input
                 type="email"
                 value={newUserForm.email}
                 onChange={(e) => setNewUserForm(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="email@företag.se"
+                placeholder={t("settings.emailPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Lösenord *</Label>
+              <Label>{t("settings.passwordRequired")}</Label>
               <Input
                 type="password"
                 value={newUserForm.password}
                 onChange={(e) => setNewUserForm(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="Minst 6 tecken"
+                placeholder={t("settings.passwordPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Namn</Label>
+              <Label>{t("settings.name")}</Label>
               <Input
                 value={newUserForm.fullName}
                 onChange={(e) => setNewUserForm(prev => ({ ...prev, fullName: e.target.value }))}
-                placeholder="Förnamn Efternamn"
+                placeholder={t("settings.fullNamePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Roll</Label>
+              <Label>{t("settings.role")}</Label>
               <Select
                 value={newUserForm.role}
                 onValueChange={(v) => setNewUserForm(prev => ({ ...prev, role: v as "admin" | "user" }))}
@@ -895,19 +860,17 @@ export function OrganizationDashboard() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">Användare</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="user">{t("settings.roleUser")}</SelectItem>
+                  <SelectItem value="admin">{t("settings.roleAdmin")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-              Avbryt
-            </Button>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>{t("settings.cancel")}</Button>
             <Button onClick={handleAddUser} disabled={isCreating}>
               {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Skapa användare
+              {t("settings.createUser")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -917,14 +880,12 @@ export function OrganizationDashboard() {
       <Dialog open={showInviteCodeDialog} onOpenChange={setShowInviteCodeDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Skapa inbjudningskod</DialogTitle>
-            <DialogDescription>
-              Generera en kod som nya användare kan använda vid registrering
-            </DialogDescription>
+            <DialogTitle>{t("settings.createInviteTitle")}</DialogTitle>
+            <DialogDescription>{t("settings.createInviteDesc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Antal användningar</Label>
+              <Label>{t("settings.numberOfUses")}</Label>
               <Select
                 value={String(inviteCodeForm.maxUses)}
                 onValueChange={(v) => setInviteCodeForm({ maxUses: parseInt(v) })}
@@ -933,18 +894,16 @@ export function OrganizationDashboard() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1 användning</SelectItem>
-                  <SelectItem value="5">5 användningar</SelectItem>
-                  <SelectItem value="10">10 användningar</SelectItem>
-                  <SelectItem value="100">Obegränsat (100)</SelectItem>
+                  <SelectItem value="1">{t("settings.uses1")}</SelectItem>
+                  <SelectItem value="5">{t("settings.uses5")}</SelectItem>
+                  <SelectItem value="10">{t("settings.uses10")}</SelectItem>
+                  <SelectItem value="100">{t("settings.usesUnlimited")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowInviteCodeDialog(false)}>
-              Avbryt
-            </Button>
+            <Button variant="outline" onClick={() => setShowInviteCodeDialog(false)}>{t("settings.cancel")}</Button>
             <Button onClick={handleCreateInviteCode} disabled={isCreating}>
               {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Generera kod

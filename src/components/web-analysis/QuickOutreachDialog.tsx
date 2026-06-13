@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState } from "react";
 import {
   Dialog,
@@ -32,6 +33,7 @@ export function QuickOutreachDialog({
   url,
   seoData,
 }: QuickOutreachDialogProps) {
+  const { t } = useTranslation();
   const [recipientEmail, setRecipientEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
@@ -49,8 +51,8 @@ export function QuickOutreachDialog({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
-          title: "Ej inloggad",
-          description: "Du måste vara inloggad för att generera mail",
+          title: t("webAnalysis.notLoggedIn"),
+          description: t("webAnalysis.notLoggedInGenerateDesc"),
           variant: "destructive",
         });
         return;
@@ -96,7 +98,7 @@ export function QuickOutreachDialog({
       setIsGenerated(true);
 
       toast({
-        title: "Mail genererat!",
+        title: t("webAnalysis.mailGeneratedTitle"),
         description: seoData 
           ? "Inkluderar SEO Intelligence-data i mailet"
           : "Granska och redigera mailet innan du skickar",
@@ -104,7 +106,7 @@ export function QuickOutreachDialog({
     } catch (error) {
       console.error("Error generating email:", error);
       toast({
-        title: "Fel vid generering",
+        title: t("webAnalysis.errorGenerating"),
         description: error instanceof Error ? error.message : "Kunde inte generera mail",
         variant: "destructive",
       });
@@ -116,8 +118,8 @@ export function QuickOutreachDialog({
   const handleSend = async () => {
     if (!recipientEmail) {
       toast({
-        title: "E-post saknas",
-        description: "Ange mottagarens e-postadress",
+        title: t("webAnalysis.emailMissingTitle"),
+        description: t("webAnalysis.emailMissingDesc"),
         variant: "destructive",
       });
       return;
@@ -143,7 +145,7 @@ export function QuickOutreachDialog({
       }
 
       toast({
-        title: "Mail skickat!",
+        title: t("webAnalysis.mailSentTitle"),
         description: `Mailet har skickats till ${recipientEmail}`,
       });
 
@@ -153,7 +155,7 @@ export function QuickOutreachDialog({
     } catch (error) {
       console.error("Error sending email:", error);
       toast({
-        title: "Fel vid skickning",
+        title: t("webAnalysis.errorSending"),
         description: error instanceof Error ? error.message : "Kunde inte skicka mail",
         variant: "destructive",
       });
@@ -183,11 +185,9 @@ export function QuickOutreachDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Snabb outreach
-          </DialogTitle>
+            <Mail className="h-5 w-5" />{t("webAnalysis.quickOutreach")}</DialogTitle>
           <DialogDescription>
-            Generera och skicka ett personligt mail baserat på analysresultatet
+            {t("webAnalysis.quickOutreachDesc")}
             {seoData && " (inkluderar SEO Intelligence-data)"}
           </DialogDescription>
         </DialogHeader>
@@ -203,7 +203,7 @@ export function QuickOutreachDialog({
               <Input
                 id="recipientEmail"
                 type="email"
-                placeholder="kontakt@foretag.se"
+                placeholder={t("webAnalysis.recipientEmailPlaceholder")}
                 value={recipientEmail}
                 onChange={(e) => setRecipientEmail(e.target.value)}
               />
@@ -211,11 +211,11 @@ export function QuickOutreachDialog({
             <div className="space-y-2">
               <Label htmlFor="companyName" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
-                Företagsnamn
+                {t("webAnalysis.qoCompanyName")}
               </Label>
               <Input
                 id="companyName"
-                placeholder="Företag AB"
+                placeholder={t("webAnalysis.companyNamePlaceholder2")}
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
               />
@@ -224,12 +224,10 @@ export function QuickOutreachDialog({
 
           <div className="space-y-2">
             <Label htmlFor="contactName" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Kontaktperson
-            </Label>
+              <User className="h-4 w-4" />{t("webAnalysis.contactPerson")}</Label>
             <Input
               id="contactName"
-              placeholder="Anna Andersson"
+              placeholder={t("webAnalysis.contactNamePlaceholder")}
               value={contactName}
               onChange={(e) => setContactName(e.target.value)}
             />
@@ -243,9 +241,7 @@ export function QuickOutreachDialog({
             >
               {isGenerating ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Genererar mail...
-                </>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("webAnalysis.generatingMail")}</>
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
@@ -257,7 +253,7 @@ export function QuickOutreachDialog({
           ) : (
             <>
               <div className="space-y-2">
-                <Label htmlFor="subject">Ämnesrad</Label>
+                <Label htmlFor="subject">{t("webAnalysis.subjectLabel")}</Label>
                 <Input
                   id="subject"
                   value={subject}
@@ -266,7 +262,7 @@ export function QuickOutreachDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="body">Meddelande</Label>
+                <Label htmlFor="body">{t("webAnalysis.messageLabel")}</Label>
                 <Textarea
                   id="body"
                   value={body}
@@ -297,14 +293,10 @@ export function QuickOutreachDialog({
                 >
                   {isSending ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Skickar...
-                    </>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("webAnalysis.sending")}</>
                   ) : (
                     <>
-                      <Send className="mr-2 h-4 w-4" />
-                      Skicka mail
-                    </>
+                      <Send className="mr-2 h-4 w-4" />{t("webAnalysis.sendMail")}</>
                   )}
                 </Button>
               </div>
