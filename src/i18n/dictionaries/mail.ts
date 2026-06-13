@@ -79,6 +79,10 @@ export const mailDict: FeatureDictionary = {
     "mail.followUp.cancel": "Avbryt",
     "mail.followUp.sendAll": "Skicka alla ({count})",
     "mail.followUp.send": "Skicka",
+    "mail.followUp.company": "Företag",
+    "mail.followUp.sendFollowUp": "Skicka uppföljning",
+    "mail.followUp.notInterestedPlaceholder": "T.ex. har redan leverantör, inte aktuellt...",
+    "mail.followUp.actions": "Åtgärder",
   },
   en: {
     "mail.title": "Mail",
@@ -158,6 +162,10 @@ export const mailDict: FeatureDictionary = {
     "mail.followUp.cancel": "Cancel",
     "mail.followUp.sendAll": "Send all ({count})",
     "mail.followUp.send": "Send",
+    "mail.followUp.company": "Company",
+    "mail.followUp.sendFollowUp": "Send follow-up",
+    "mail.followUp.notInterestedPlaceholder": "E.g. already has a supplier, not relevant...",
+    "mail.followUp.actions": "Actions",
   },
   es: {
     "mail.title": "Correo",
@@ -237,5 +245,9 @@ export const mailDict: FeatureDictionary = {
     "mail.followUp.cancel": "Cancelar",
     "mail.followUp.sendAll": "Enviar todos ({count})",
     "mail.followUp.send": "Enviar",
+    "mail.followUp.company": "Empresa",
+    "mail.followUp.sendFollowUp": "Enviar seguimiento",
+    "mail.followUp.notInterestedPlaceholder": "P. ej. ya tiene proveedor, no procede...",
+    "mail.followUp.actions": "Acciones",
   },
 };

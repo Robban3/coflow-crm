@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -12,15 +13,16 @@ interface Props {
 }
 
 export function StatisticsUserDrawer({ user, open, onClose }: Props) {
+  const { t } = useTranslation();
   if (!user) return null;
 
   const metrics = [
-    { label: "Mail skickade", value: user.emails, icon: Mail },
-    { label: "Samtal", value: user.calls, icon: Phone },
-    { label: "Offerter", value: user.documents, icon: FileText },
-    { label: "Möten", value: user.meetings, icon: Calendar },
-    { label: "Uppgifter", value: user.tasks, icon: CheckSquare },
-    { label: "Totalt", value: user.total, icon: Activity },
+    { label: t("statistics.emailsSent"), value: user.emails, icon: Mail },
+    { label: t("statistics.calls"), value: user.calls, icon: Phone },
+    { label: t("statistics.quotes"), value: user.documents, icon: FileText },
+    { label: t("statistics.meetings"), value: user.meetings, icon: Calendar },
+    { label: t("statistics.tasks"), value: user.tasks, icon: CheckSquare },
+    { label: t("statistics.total"), value: user.total, icon: Activity },
   ];
 
   return (

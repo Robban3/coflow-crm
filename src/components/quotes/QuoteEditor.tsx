@@ -864,7 +864,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                   <span>{t("quotes.total")}</span>
                   <span>
                     {total.toLocaleString("sv-SE")} {currency}
-                    {hasMonthly && !hasOneTime && "/mån"}
+                    {hasMonthly && !hasOneTime && t("quotes.perMonth")}
                   </span>
                 </div>
               )}
@@ -892,11 +892,11 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                   : status === "sent"
                   ? "Skickad"
                   : status === "viewed"
-                  ? "Visad"
+                  ? t("quotes.statusViewed")
                   : status === "accepted"
-                  ? "Accepterad"
+                  ? t("quotes.statusAccepted")
                   : status === "won"
-                  ? "🎉 Vunnen affär"
+                  ? t("quotes.statusWonFull")
                   : status === "rejected"
                   ? t("quotes.statusRejected")
                   : status}

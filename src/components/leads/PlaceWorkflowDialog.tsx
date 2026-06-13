@@ -797,9 +797,7 @@ export function PlaceWorkflowDialog({
                   <div className="space-y-2">
                     {contactExtracted && (
                       <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
-                        <CheckCircle2 className="h-4 w-4" />
-                        Kontaktinfo hämtad
-                      </div>
+                        <CheckCircle2 className="h-4 w-4" />{t("leadDetail.pwx_contactFetched")}</div>
                     )}
                     {leadCreated && (
                       <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
@@ -836,7 +834,7 @@ export function PlaceWorkflowDialog({
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
                       { label: "Prestanda", score: analysisResult.performance_score },
-                      { label: "Tillgänglighet", score: analysisResult.accessibility_score },
+                      { label: t("leadDetail.pwx_accessibility"), score: analysisResult.accessibility_score },
                       { label: t("leadDetail.ac_metricSeo"), score: analysisResult.seo_score },
                       { label: "Best Practice", score: analysisResult.best_practices_score },
                     ].map(({ label, score }) => (
@@ -859,34 +857,26 @@ export function PlaceWorkflowDialog({
                       {analysisResult.performance_score < 50 && (
                         <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/5 border border-red-500/10">
                           <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
-                          <span className="text-sm">
-                            Webbplatsen har stora prestandaproblem som påverkar användarupplevelsen
-                          </span>
+                          <span className="text-sm">{t("leadDetail.pwx_perfIssues")}</span>
                         </div>
                       )}
                       {analysisResult.seo_score < 70 && (
                         <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
                           <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                          <span className="text-sm">
-                            SEO-optimering saknas - webbplatsen syns sämre i Google
-                          </span>
+                          <span className="text-sm">{t("leadDetail.pwx_seoMissing")}</span>
                         </div>
                       )}
                       {analysisResult.accessibility_score < 70 && (
                         <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
                           <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                          <span className="text-sm">
-                            Tillgänglighetsproblem kan utesluta användare
-                          </span>
+                          <span className="text-sm">{t("leadDetail.pwx_a11yIssues")}</span>
                         </div>
                       )}
                       {analysisResult.performance_score >= 90 &&
                         analysisResult.seo_score >= 90 && (
                           <div className="flex items-start gap-2 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
                             <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
-                            <span className="text-sm">
-                              Webbplatsen har bra grundläggande teknisk kvalitet
-                            </span>
+                            <span className="text-sm">{t("leadDetail.pwx_goodTech")}</span>
                           </div>
                         )}
                     </div>
@@ -895,19 +885,15 @@ export function PlaceWorkflowDialog({
                   {/* Next Step CTA */}
                   <Separator />
                   <Button onClick={() => setActiveTab("email")} className="w-full">
-                    <Mail className="mr-2 h-4 w-4" />
-                    Skapa outreach-mail baserat på analys
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <Mail className="mr-2 h-4 w-4" />{t("leadDetail.pwx_createOutreach")}<ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
                   <BarChart3 className="h-12 w-12 text-muted-foreground/50" />
                   <div>
-                    <p className="font-medium">Ingen analys ännu</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Klicka nedan för att analysera webbplatsen
-                    </p>
+                    <p className="font-medium">{t("leadDetail.pwx_noAnalysisYet")}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{t("leadDetail.pwx_clickToAnalyze")}</p>
                   </div>
                   <Button onClick={handleAnalyze} disabled={isAnalyzing}>
                     <BarChart3 className="mr-2 h-4 w-4" />
@@ -922,12 +908,8 @@ export function PlaceWorkflowDialog({
               {!analysisResult ? (
                 <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
                   <BarChart3 className="h-12 w-12 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">
-                    Analysera webbplatsen först för att generera mail
-                  </p>
-                  <Button onClick={() => setActiveTab("analysis")}>
-                    Gå till analys
-                  </Button>
+                  <p className="text-muted-foreground">{t("leadDetail.pwx_analyzeFirst")}</p>
+                  <Button onClick={() => setActiveTab("analysis")}>{t("leadDetail.pwx_goToAnalysis")}</Button>
                 </div>
               ) : emailSent ? (
                 <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
@@ -966,12 +948,10 @@ export function PlaceWorkflowDialog({
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="company" className="flex items-center gap-2">
-                        <Building2 className="h-3.5 w-3.5" />
-                        Företag
-                      </Label>
+                        <Building2 className="h-3.5 w-3.5" />{t("leadDetail.pwx_company")}</Label>
                       <Input
                         id="company"
-                        placeholder="Företag AB"
+                        placeholder={t("leadDetail.pwx_companyPlaceholder")}
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
                       />
@@ -1011,7 +991,7 @@ export function PlaceWorkflowDialog({
                     <>
                       <Separator />
                       <div className="space-y-2">
-                        <Label htmlFor="subject">Ämnesrad</Label>
+                        <Label htmlFor="subject">{t("leadDetail.pwx_subjectPlaceholder")}</Label>
                         <Input
                           id="subject"
                           value={emailSubject}
@@ -1112,7 +1092,7 @@ export function PlaceWorkflowDialog({
                         onChange={(e) =>
                           setLeadFormData((prev) => ({ ...prev, companyName: e.target.value }))
                         }
-                        placeholder="Företagets namn"
+                        placeholder={t("leadDetail.pwx_companyNameLabel")}
                       />
                     </div>
 
@@ -1125,7 +1105,7 @@ export function PlaceWorkflowDialog({
                         onChange={(e) =>
                           setLeadFormData((prev) => ({ ...prev, contactName: e.target.value }))
                         }
-                        placeholder="Namn på kontaktperson"
+                        placeholder={t("leadDetail.pwx_contactNamePlaceholder")}
                       />
                     </div>
 
@@ -1140,7 +1120,7 @@ export function PlaceWorkflowDialog({
                           onChange={(e) =>
                             setLeadFormData((prev) => ({ ...prev, email: e.target.value }))
                           }
-                          placeholder="email@företag.se"
+                          placeholder={t("leadDetail.pwx_emailPlaceholder")}
                         />
                       </div>
 

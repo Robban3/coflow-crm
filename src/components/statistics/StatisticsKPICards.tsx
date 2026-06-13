@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, FileText, Calendar, CheckSquare, Activity, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,18 +9,19 @@ interface Props {
 }
 
 const KPI_CONFIGS = [
-  { key: "emails_sent", label: "Mail skickade", icon: Mail },
-  { key: "calls_logged", label: "Samtal", icon: Phone },
-  { key: "documents_sent", label: "Offerter skickade", icon: FileText },
-  { key: "meetings_booked", label: "Möten bokade", icon: Calendar },
-  { key: "tasks_completed", label: "Uppgifter klara", icon: CheckSquare },
-  { key: "total", label: "Totalt", icon: Activity },
+  { key: "emails_sent", labelKey: "statistics.emailsSent", icon: Mail },
+  { key: "calls_logged", labelKey: "statistics.calls", icon: Phone },
+  { key: "documents_sent", labelKey: "statistics.quotesSent", icon: FileText },
+  { key: "meetings_booked", labelKey: "statistics.meetingsBooked", icon: Calendar },
+  { key: "tasks_completed", labelKey: "statistics.tasksDone", icon: CheckSquare },
+  { key: "total", labelKey: "statistics.total", icon: Activity },
 ];
 
 export function StatisticsKPICards({ totals, deltas }: Props) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-      {KPI_CONFIGS.map(({ key, label, icon: Icon }) => {
+      {KPI_CONFIGS.map(({ key, labelKey, icon: Icon }) => {
         const value = totals[key] || 0;
         const delta = deltas[key] || 0;
 
@@ -31,7 +33,7 @@ export function StatisticsKPICards({ totals, deltas }: Props) {
                 <DeltaBadge delta={delta} />
               </div>
               <p className="text-2xl font-bold tracking-tight">{value}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t(labelKey)}</p>
             </CardContent>
           </Card>
         );

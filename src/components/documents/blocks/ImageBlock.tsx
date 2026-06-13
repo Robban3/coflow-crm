@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { type DocumentBlock, type ImageBlockConfig } from "./types";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function ImageBlockRenderer({ block, readOnly, onChange }: Props) {
+  const { t } = useTranslation();
   const config = block.config as ImageBlockConfig;
 
   const alignmentClass =
@@ -41,7 +43,7 @@ export function ImageBlockRenderer({ block, readOnly, onChange }: Props) {
           onChange={(e) => onChange?.({ ...config, url: e.target.value })}
         />
         <Input
-          placeholder="Alt-text"
+          placeholder={t("templates.imgAltPlaceholder")}
           value={config.alt}
           onChange={(e) => onChange?.({ ...config, alt: e.target.value })}
         />
@@ -60,7 +62,7 @@ export function ImageBlockRenderer({ block, readOnly, onChange }: Props) {
       {!readOnly && (
         <div className="flex items-center gap-4">
           <Input
-            placeholder="Bild-URL"
+            placeholder={t("templates.imgUrlPlaceholder")}
             value={config.url}
             onChange={(e) => onChange?.({ ...config, url: e.target.value })}
             className="flex-1"
@@ -75,9 +77,9 @@ export function ImageBlockRenderer({ block, readOnly, onChange }: Props) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="left">Vänster</SelectItem>
-              <SelectItem value="center">Center</SelectItem>
-              <SelectItem value="right">Höger</SelectItem>
+              <SelectItem value="left">{t("templates.alignLeft")}</SelectItem>
+              <SelectItem value="center">{t("templates.alignCenter")}</SelectItem>
+              <SelectItem value="right">{t("templates.alignRight")}</SelectItem>
             </SelectContent>
           </Select>
           <div className="w-32">

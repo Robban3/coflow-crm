@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Target } from "lucide-react";
@@ -19,10 +20,11 @@ export function PersonalProgress({
   callsGoal = 20,
   emailsGoal = 30,
 }: Props) {
+  const { t } = useTranslation();
   const metrics = [
-    { label: "Möten denna vecka", value: meetings, goal: meetingsGoal },
-    { label: "Samtal denna vecka", value: calls, goal: callsGoal },
-    { label: "Mail denna vecka", value: emails, goal: emailsGoal },
+    { label: t("statistics.meetingsThisWeek"), value: meetings, goal: meetingsGoal },
+    { label: t("statistics.callsThisWeek"), value: calls, goal: callsGoal },
+    { label: t("statistics.emailsThisWeek"), value: emails, goal: emailsGoal },
   ];
 
   return (

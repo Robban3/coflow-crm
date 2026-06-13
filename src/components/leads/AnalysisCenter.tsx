@@ -481,7 +481,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                 <div className="space-y-4">
                   {/* Score */}
                   <div className={`rounded-lg border p-4 text-center ${getScoreBg(latestGeo.geo_score)}`}>
-                    <p className="text-xs text-muted-foreground mb-1">GEO-poäng</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t("leadDetail.ac2_geoScore")}</p>
                     <p className={`text-4xl font-bold ${getScoreColor(latestGeo.geo_score)}`}>
                       {latestGeo.geo_score ?? "-"}
                       <span className="text-lg text-muted-foreground">/100</span>
@@ -503,7 +503,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                     <CollapsibleTrigger asChild>
                       <Button variant="outline" size="sm" className="w-full">
                         {geoReportOpen ? <ChevronUp className="mr-2 h-4 w-4" /> : <ChevronDown className="mr-2 h-4 w-4" />}
-                        {geoReportOpen ? "Dölj detaljer" : "Visa detaljerad rapport"}
+                        {geoReportOpen ? t("leadDetail.ac2_hideDetails") : t("leadDetail.ac2_showReport")}
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-3 space-y-4">
@@ -601,8 +601,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                             className="flex-1"
                             onClick={() => navigate(`/reports/${latestReport.id}`)}
                           >
-                            <Eye className="mr-1 h-3 w-3" /> Öppna rapport
-                          </Button>
+                            <Eye className="mr-1 h-3 w-3" />{t("leadDetail.ac2_openReport")}</Button>
                         </div>
                       </div>
                     )}
@@ -633,7 +632,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                   {isRunningSeo ? (
                     <><Loader2 className="mr-1 h-3 w-3 animate-spin" />{t("leadDetail.ac_running")}</>
                   ) : (
-                    <><Play className="mr-1 h-3 w-3" /> Kör SEO-analys</>
+                    <><Play className="mr-1 h-3 w-3" />{t("leadDetail.ac2_runSeo")}</>
                   )}
                 </Button>
               )}
@@ -646,7 +645,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                     <div>
                       <p className="text-xs font-medium flex items-center gap-1">
                         {seoCacheValid ? <CheckCircle className="h-3 w-3 text-green-500" /> : <Clock className="h-3 w-3 text-yellow-500" />}
-                        {seoCacheValid ? "Cachad data tillgänglig" : "Cachad data utgången"}
+                        {seoCacheValid ? t("leadDetail.ac2_cacheValid") : t("leadDetail.ac2_cacheExpired")}
                       </p>
                       <p className="text-[10px] text-muted-foreground">
                         Senast körd: {format(new Date(seoCache.created_at), "d MMM yyyy", { locale: sv })}
@@ -687,8 +686,8 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
               ) : (
                 <div className="text-center py-6 text-muted-foreground">
                   <Eye className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Ingen SEO-data tillgänglig</p>
-                  <p className="text-xs mt-1">Kör SEO Intelligence med knappen ovan</p>
+                  <p className="text-sm">{t("leadDetail.ac2_noSeoData")}</p>
+                  <p className="text-xs mt-1">{t("leadDetail.ac2_runSeoHint")}</p>
                   {website && (
                     <Button size="sm" className="mt-3" onClick={handleRunSeo} disabled={isRunningSeo}>
                       {isRunningSeo ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Eye className="mr-1 h-3 w-3" />}
@@ -700,9 +699,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
 
               <div className="mt-3 p-2 rounded bg-amber-500/10 border border-amber-500/20">
                 <p className="text-[10px] text-amber-700 dark:text-amber-400 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3 shrink-0" />
-                  SEO Intelligence kostar credits per körning. Körs manuellt – aldrig automatiskt.
-                </p>
+                  <AlertTriangle className="h-3 w-3 shrink-0" />{t("leadDetail.ac2_seoCostNote")}</p>
               </div>
             </CardContent>
           </Card>
@@ -752,7 +749,7 @@ function QuickScanSection({ leadId, website }: { leadId: string; website: string
     if (!lead?.email || !website) {
       toast({
         title: "Saknar information",
-        description: "Leadet måste ha e-post och webbplats för att köra snabbscan.",
+        description: t("leadDetail.ac2_quickScanReq"),
         variant: "destructive",
       });
       return;
@@ -795,7 +792,7 @@ function QuickScanSection({ leadId, website }: { leadId: string; website: string
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Badge variant={latestQuickScan.status === "completed" ? "default" : latestQuickScan.status === "failed" ? "destructive" : "secondary"} className="text-[10px]">
-                {latestQuickScan.status === "completed" ? "Klar" : latestQuickScan.status === "running" ? t("leadDetail.ac_running") : latestQuickScan.status === "queued" ? "Köad" : "Misslyckad"}
+                {latestQuickScan.status === "completed" ? t("leadDetail.ac2_statusDone") : latestQuickScan.status === "running" ? t("leadDetail.ac_running") : latestQuickScan.status === "queued" ? t("leadDetail.ac2_statusQueued") : t("leadDetail.ac2_statusFailed")}
               </Badge>
               {latestQuickScan.geo_score != null && (
                 <span className={`text-sm font-bold ${latestQuickScan.geo_score >= 80 ? "text-green-600 dark:text-green-400" : latestQuickScan.geo_score >= 50 ? "text-yellow-600 dark:text-yellow-400" : "text-red-600 dark:text-red-400"}`}>
@@ -814,8 +811,7 @@ function QuickScanSection({ leadId, website }: { leadId: string; website: string
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
             >
-              <Link2 className="h-3 w-3" /> Öppna publik rapport
-            </a>
+              <Link2 className="h-3 w-3" />{t("leadDetail.ac2_openPublicReport")}</a>
           )}
         </div>
       )}

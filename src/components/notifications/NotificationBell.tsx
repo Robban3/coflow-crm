@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState, useEffect } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ interface Notification {
 }
 
 export function NotificationBell() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
@@ -151,7 +153,7 @@ export function NotificationBell() {
               className="text-xs h-7"
               onClick={markAllAsRead}
             >
-              Markera alla som lästa
+              {t("common.markAllRead")}
             </Button>
           )}
         </div>
@@ -160,7 +162,7 @@ export function NotificationBell() {
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Bell className="h-8 w-8 text-muted-foreground/50 mb-2" />
               <p className="text-sm text-muted-foreground">
-                Inga notifikationer ännu
+                {t("common.noNotifications")}
               </p>
             </div>
           ) : (

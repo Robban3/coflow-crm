@@ -260,6 +260,8 @@ export const translations: Record<Language, Dict> = {
     "common.saving": "Sparar...",
     "common.loading": "Laddar...",
     "common.unexpectedError": "Ett oväntat fel uppstod",
+    "common.markAllRead": "Markera alla som lästa",
+    "common.noNotifications": "Inga notifikationer ännu",
 
     // Lead generation
     "leadGen.title": "Lägg till enskild lead",
@@ -591,6 +593,8 @@ export const translations: Record<Language, Dict> = {
     "common.saving": "Saving...",
     "common.loading": "Loading...",
     "common.unexpectedError": "An unexpected error occurred",
+    "common.markAllRead": "Mark all as read",
+    "common.noNotifications": "No notifications yet",
 
     // Lead generation
     "leadGen.title": "Add a single lead",
@@ -922,6 +926,8 @@ export const translations: Record<Language, Dict> = {
     "common.saving": "Guardando...",
     "common.loading": "Cargando...",
     "common.unexpectedError": "Se produjo un error inesperado",
+    "common.markAllRead": "Marcar todo como leído",
+    "common.noNotifications": "Aún no hay notificaciones",
 
     // Lead generation
     "leadGen.title": "Añadir un lead individual",

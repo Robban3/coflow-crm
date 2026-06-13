@@ -151,6 +151,8 @@ export const quotesDict: FeatureDictionary = {
     "quotes.recipientSignatureAlt": "Mottagarens signatur",
     "quotes.agreementSent": "Avtalet har skickats!",
     "quotes.quoteSent": "Offerten har skickats!",
+    "quotes.statusWonFull": "🎉 Vunnen affär",
+    "quotes.perMonth": "/mån",
   },
   en: {
     // ProductPicker
@@ -302,6 +304,8 @@ export const quotesDict: FeatureDictionary = {
     "quotes.recipientSignatureAlt": "Recipient's signature",
     "quotes.agreementSent": "The agreement has been sent!",
     "quotes.quoteSent": "The quote has been sent!",
+    "quotes.statusWonFull": "🎉 Won deal",
+    "quotes.perMonth": "/mo",
   },
   es: {
     // ProductPicker
@@ -453,5 +457,7 @@ export const quotesDict: FeatureDictionary = {
     "quotes.recipientSignatureAlt": "Firma del destinatario",
     "quotes.agreementSent": "¡El contrato se ha enviado!",
     "quotes.quoteSent": "¡El presupuesto se ha enviado!",
+    "quotes.statusWonFull": "🎉 Trato ganado",
+    "quotes.perMonth": "/mes",
   },
 };

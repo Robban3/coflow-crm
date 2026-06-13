@@ -260,7 +260,7 @@ export function EmailStatisticsTab() {
                   labelStyle={{ fontWeight: 600 }}
                 />
                 <Bar dataKey="sent" name="Skickade" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="opened" name="Öppnade" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="opened" name={t("statistics.opened")} fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="replied" name="Svar" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
                 <Legend />
               </BarChart>
@@ -287,7 +287,7 @@ export function EmailStatisticsTab() {
                   <XAxis dataKey="label" fontSize={11} tickLine={false} />
                   <YAxis fontSize={11} tickLine={false} unit="%" domain={[0, 100]} />
                   <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
-                  <Line type="monotone" dataKey="openRate" name="Öppningsfrekvens" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="openRate" name={t("statistics.openRate")} stroke="hsl(var(--chart-2))" strokeWidth={2} dot={{ r: 3 }} />
                   <Line type="monotone" dataKey="replyRate" name="Svarsfrekvens" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={{ r: 3 }} />
                   <Legend />
                 </LineChart>

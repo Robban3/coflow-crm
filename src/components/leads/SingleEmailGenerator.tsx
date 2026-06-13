@@ -561,9 +561,7 @@ export function SingleEmailGenerator({
                       </div>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Välj vilken data AI:n ska använda för att generera outreach
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t("leadDetail.se2_selectDataDesc")}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -573,7 +571,7 @@ export function SingleEmailGenerator({
                   </Label>
                   <Textarea
                     id="customPrompt"
-                    placeholder="T.ex. 'Fokusera på att boka möte och väcka intresse baserat på deras nuvarande telefonilösning'"
+                    placeholder={t("leadDetail.se2_focusPlaceholder")}
                     value={customPrompt}
                     onChange={(e) => setCustomPrompt(e.target.value)}
                     rows={2}
@@ -602,9 +600,7 @@ export function SingleEmailGenerator({
                     <p className="font-medium text-amber-700 dark:text-amber-400">
                       ⚠️ Ingen datakälla vald
                     </p>
-                    <p className="text-muted-foreground">
-                      Välj minst en datakälla för att generera relevant outreach.
-                    </p>
+                    <p className="text-muted-foreground">{t("leadDetail.se2_selectSource")}</p>
                   </div>
                 )}
 
@@ -627,9 +623,7 @@ export function SingleEmailGenerator({
                 </Button>
 
                 {!leadEmail && (
-                  <p className="text-xs text-destructive text-center">
-                    E-postadress saknas för denna lead
-                  </p>
+                  <p className="text-xs text-destructive text-center">{t("leadDetail.se2_noEmail")}</p>
                 )}
               </>
             )}
@@ -638,7 +632,7 @@ export function SingleEmailGenerator({
             {isGenerated && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="subject">Ämnesrad</Label>
+                  <Label htmlFor="subject">{t("leadDetail.pwx_subjectPlaceholder")}</Label>
                   <Input
                     id="subject"
                     value={subject}
@@ -664,7 +658,7 @@ export function SingleEmailGenerator({
                     className="sm:flex-1"
                   >
                     <RotateCcw className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Börja om</span>
+                    <span className="hidden sm:inline">{t("leadDetail.se2_restart")}</span>
                     <span className="sm:hidden">Ny</span>
                   </Button>
                   <Button

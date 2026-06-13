@@ -403,14 +403,12 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Lägg till konkurrent</DialogTitle>
-            <DialogDescription>
-              Ange namn och webbplats för konkurrenten
-            </DialogDescription>
+            <DialogTitle>{t("leadDetail.co2_addCompetitor")}</DialogTitle>
+            <DialogDescription>{t("leadDetail.co2_addManualDesc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Företagsnamn</label>
+              <label className="text-sm font-medium">{t("leadDetail.co2_companyName")}</label>
               <Input
                 placeholder="t.ex. Konkurrent AB"
                 value={manualForm.name}
@@ -444,15 +442,13 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Hitta konkurrenter automatiskt</DialogTitle>
-            <DialogDescription>
-              Sök efter liknande företag baserat på bransch och plats
-            </DialogDescription>
+            <DialogDescription>{t("leadDetail.co2_searchDesc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Sökfras</label>
+              <label className="text-sm font-medium">{t("leadDetail.co2_searchPhrase")}</label>
               <Input
-                placeholder="t.ex. webbyrå Stockholm"
+                placeholder={t("leadDetail.co2_searchPlaceholder")}
                 value={autoSearchQuery}
                 onChange={(e) => setAutoSearchQuery(e.target.value)}
               />
@@ -481,9 +477,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
             {/* Results */}
             {autoResults.length > 0 && (
               <div className="space-y-2 max-h-64 overflow-y-auto">
-                <p className="text-sm text-muted-foreground">
-                  Välj konkurrenter att lägga till:
-                </p>
+                <p className="text-sm text-muted-foreground">{t("leadDetail.co2_selectToAdd")}</p>
                 {autoResults.map((result) => (
                   <div 
                     key={result.placeId}

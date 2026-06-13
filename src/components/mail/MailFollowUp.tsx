@@ -274,9 +274,7 @@ export function MailFollowUp() {
             size="sm"
             onClick={() => setFollowUpLeadIds(Array.from(selected))}
           >
-            <Send className="h-4 w-4 mr-1" />
-            Skicka uppföljning
-          </Button>
+            <Send className="h-4 w-4 mr-1" />{t("mail.followUp.sendFollowUp")}</Button>
           <Button
             size="sm"
             variant="outline"
@@ -299,11 +297,11 @@ export function MailFollowUp() {
                     onCheckedChange={toggleAll}
                   />
                 </TableHead>
-                <TableHead>Företag</TableHead>
+                <TableHead>{t("mail.followUp.company")}</TableHead>
                 <TableHead className="hidden md:table-cell">Kontakt</TableHead>
                 <TableHead className="hidden sm:table-cell">E-post</TableHead>
                 <TableHead className="hidden lg:table-cell">{t("mail.followUp.lastContactLabel")}</TableHead>
-                <TableHead className="text-right">Åtgärder</TableHead>
+                <TableHead className="text-right">{t("mail.followUp.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -388,7 +386,7 @@ export function MailFollowUp() {
               id="ni-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="T.ex. har redan leverantör, inte aktuellt..."
+              placeholder={t("mail.followUp.notInterestedPlaceholder")}
               rows={3}
             />
           </div>
