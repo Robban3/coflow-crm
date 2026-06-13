@@ -4,6 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useState } from "react";
 import { AuditDetail } from "@/lib/api/webAnalysis";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface AuditListProps {
   audits: AuditDetail[];
@@ -13,8 +14,10 @@ interface AuditListProps {
   defaultOpen?: boolean;
 }
 
-export function AuditList({ audits, title, emptyMessage = "Inga problem hittades", showScore = true, defaultOpen = false }: AuditListProps) {
+export function AuditList({ audits, title, emptyMessage, showScore = true, defaultOpen = false }: AuditListProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const resolvedEmptyMessage = emptyMessage ?? t("webAnalysis.auditNoProblems");
 
   const getScoreIcon = (score: number | null) => {
     if (score === null) return null;
@@ -34,7 +37,7 @@ export function AuditList({ audits, title, emptyMessage = "Inga problem hittades
     return (
       <div className="p-4 rounded-lg bg-muted/30 text-center">
         <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-        <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+        <p className="text-sm text-muted-foreground">{resolvedEmptyMessage}</p>
       </div>
     );
   }
@@ -61,7 +64,7 @@ export function AuditList({ audits, title, emptyMessage = "Inga problem hittades
                   <p className="font-medium text-sm">{audit.title}</p>
                   {audit.savings && (
                     <Badge variant="outline" className="text-xs">
-                      Spara {audit.savings}
+                      {t("webAnalysis.auditSave", { value: audit.savings })}
                     </Badge>
                   )}
                   {audit.displayValue && !audit.savings && (

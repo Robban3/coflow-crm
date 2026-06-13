@@ -4,12 +4,16 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { UserMenu } from "./UserMenu";
 import { MobileSidebar } from "./MobileSidebar";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface AppHeaderProps {
   title?: string;
 }
 
 export function AppHeader({ title }: AppHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <header className="h-14 md:h-16 border-b border-border/60 bg-card/80 backdrop-blur-sm px-4 md:px-6 flex items-center justify-between min-w-0 sticky top-0 z-40">
       <div className="flex items-center gap-4 min-w-0 flex-1">
@@ -29,13 +33,16 @@ export function AppHeader({ title }: AppHeaderProps) {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <Input
             type="search"
-            placeholder="Sök..."
+            placeholder={t("header.searchPlaceholder")}
             className="w-64 pl-10 bg-background/60 border-border/60 h-9 text-sm placeholder:text-muted-foreground/50 focus:bg-background transition-colors"
           />
         </div>
 
         {/* Notifications */}
         <NotificationBell />
+
+        {/* Language Switcher */}
+        <LanguageSwitcher />
 
         {/* Theme Toggle */}
         <ThemeToggle />

@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { format, subMonths } from "date-fns";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface SnapshotEntry {
   userId: string | null;
@@ -25,6 +26,7 @@ export function LeaderboardWidget() {
   const organizationId = useOrganizationId();
   const { isAdmin, user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -77,7 +79,7 @@ export function LeaderboardWidget() {
             userId: e.userId,
             meetings: e.meetings,
             frame: e.frame as "gold" | "silver" | "bronze",
-            name: p?.full_name || p?.email || "Okänd",
+            name: p?.full_name || p?.email || t("powerCall.leaderboard.unknown"),
             avatar: p?.avatar_url || null,
           };
         })
@@ -126,10 +128,10 @@ export function LeaderboardWidget() {
 
       if (error) throw error;
 
-      toast({ title: "Leaderboard uppdaterat", description: `Snapshot för ${monthStr} genererad` });
+      toast({ title: t("powerCall.leaderboard.toastUpdated"), description: t("powerCall.leaderboard.toastUpdatedDesc", { month: monthStr }) });
       queryClient.invalidateQueries({ queryKey: ["leaderboard-snapshot"] });
     } catch {
-      toast({ title: "Fel", description: "Kunde inte generera snapshot", variant: "destructive" });
+      toast({ title: t("powerCall.leaderboard.toastError"), description: t("powerCall.leaderboard.toastFailed"), variant: "destructive" });
     } finally {
       setIsGenerating(false);
     }
@@ -143,7 +145,7 @@ export function LeaderboardWidget() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Award className="h-4 w-4 text-amber-500" />
-            Leaderboard — förra månaden
+            {t("powerCall.leaderboard.title")}
           </CardTitle>
           {isAdmin && (
             <Button
@@ -154,7 +156,7 @@ export function LeaderboardWidget() {
               disabled={isGenerating}
             >
               {isGenerating ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-              Generera
+              {t("powerCall.leaderboard.generate")}
             </Button>
           )}
         </div>
@@ -168,7 +170,7 @@ export function LeaderboardWidget() {
           <div className="flex flex-col items-center py-6 text-center px-4">
             <Star className="h-8 w-8 text-muted-foreground/30 mb-2" />
             <p className="text-sm text-muted-foreground">
-              {isAdmin ? 'Klicka "Generera" för att skapa månadens leaderboard.' : "Inget leaderboard för förra månaden."}
+              {isAdmin ? t("powerCall.leaderboard.emptyAdmin") : t("powerCall.leaderboard.emptyUser")}
             </p>
           </div>
         ) : (
@@ -184,7 +186,7 @@ export function LeaderboardWidget() {
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{entry.name}</p>
-                  <p className="text-xs text-muted-foreground">{entry.meetings} möten</p>
+                  <p className="text-xs text-muted-foreground">{t("powerCall.leaderboard.meetings", { count: entry.meetings })}</p>
                 </div>
               </div>
             ))}

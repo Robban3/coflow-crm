@@ -8,6 +8,7 @@ import { LeadsList } from "@/components/leads/LeadsList";
 import { LeadGeneration } from "@/components/leads/LeadGeneration";
 import { CompanyRegistrySearch } from "@/components/leads/CompanyRegistrySearch";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Lead {
   id: string;
@@ -155,6 +156,7 @@ async function fetchLeadsData(): Promise<LeadWithOutreachStatus[]> {
 export default function LeadsPage() {
   const [activeTab, setActiveTab] = useState("leads");
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const organizationId = useOrganizationId();
 
@@ -193,13 +195,13 @@ export default function LeadsPage() {
   };
 
   return (
-    <AppLayout title="Leads">
+    <AppLayout title={t("leads.title")}>
       <div className="space-y-4 md:space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 max-w-lg">
             <TabsTrigger value="leads" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              <span>Leads</span>
+              <span>{t("leads.tabLeads")}</span>
               {leads.length > 0 && (
                 <span className="ml-1 px-1.5 py-0.5 text-xs bg-muted rounded-full">
                   {leads.length}
@@ -208,11 +210,11 @@ export default function LeadsPage() {
             </TabsTrigger>
             <TabsTrigger value="generate" className="flex items-center gap-2">
               <Zap className="h-4 w-4" />
-              <span>Hitta leads</span>
+              <span>{t("leads.tabFind")}</span>
             </TabsTrigger>
             <TabsTrigger value="registry" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
-              <span>Företagsregister</span>
+              <span>{t("leads.tabRegistry")}</span>
             </TabsTrigger>
           </TabsList>
 

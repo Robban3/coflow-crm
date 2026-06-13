@@ -7,18 +7,14 @@ import { TicketDetailPanel } from "./TicketDetailPanel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { fromTable } from "@/components/documents/supabaseHelper";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
-const COLUMNS: { key: string; label: string }[] = [
-  { key: "new", label: "Nytt" },
-  { key: "open", label: "Öppet" },
-  { key: "in_progress", label: "Pågår" },
-  { key: "waiting", label: "Väntar" },
-  { key: "resolved", label: "Löst" },
-  { key: "closed", label: "Stängt" },
-];
+const COLUMN_KEYS = ["new", "open", "in_progress", "waiting", "resolved", "closed"];
 
 export function TicketKanban() {
+  const { t } = useTranslation();
   const { user } = useAuth();
+  const COLUMNS = COLUMN_KEYS.map(key => ({ key, label: t(`tickets.status.${key}`) }));
   const [tickets, setTickets] = useState<TicketRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<TicketRow | null>(null);
@@ -31,7 +27,7 @@ export function TicketKanban() {
       .select("*")
       .order("created_at", { ascending: false });
     if (error) {
-      toast({ title: "Kunde inte hämta ärenden", description: error.message, variant: "destructive" });
+      toast({ title: t("tickets.toast.fetchFailed"), description: error.message, variant: "destructive" });
     } else {
       setTickets(data ?? []);
     }
@@ -52,7 +48,7 @@ export function TicketKanban() {
 
     const { error } = await fromTable("tickets").update(updatePayload).eq("id", ticketId);
     if (error) {
-      toast({ title: "Kunde inte uppdatera", description: error.message, variant: "destructive" });
+      toast({ title: t("tickets.toast.updateFailed"), description: error.message, variant: "destructive" });
       fetchTickets();
     }
   };

@@ -43,8 +43,9 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { useMarket, MARKET_FLAG, MARKET_LABEL, type Market } from "@/hooks/useMarket";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 // Suggested defaults for delay_days per market and step number (1-indexed)
 const MARKET_STEP_DELAYS: Record<Market, number[]> = {
@@ -80,6 +81,8 @@ interface SequenceStep {
 }
 
 export function SequencesList() {
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const { market: defaultMarket } = useMarket();
   const [sequences, setSequences] = useState<Sequence[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -135,8 +138,8 @@ export function SequencesList() {
   const handleCreateSequence = async () => {
     if (!newSequence.name || newSequence.steps.length === 0) {
       toast({
-        title: "Fyll i alla fält",
-        description: "Sekvensen behöver ett namn och minst ett steg",
+        title: t("outreach.seq.fillAllFields"),
+        description: t("outreach.seq.fillAllFieldsDesc"),
         variant: "destructive",
       });
       return;
@@ -177,8 +180,8 @@ export function SequencesList() {
       if (stepsError) throw stepsError;
 
       toast({
-        title: "Sekvens skapad!",
-        description: `${newSequence.name} har skapats med ${newSequence.steps.length} steg`,
+        title: t("outreach.seq.createdTitle"),
+        description: t("outreach.seq.createdDesc", { name: newSequence.name, count: newSequence.steps.length }),
       });
 
       setShowCreateDialog(false);
@@ -188,8 +191,8 @@ export function SequencesList() {
     } catch (error) {
       console.error('Error creating sequence:', error);
       toast({
-        title: "Fel",
-        description: "Kunde inte skapa sekvensen",
+        title: t("outreach.common.error"),
+        description: t("outreach.seq.createError"),
         variant: "destructive",
       });
     } finally {
@@ -218,11 +221,11 @@ export function SequencesList() {
 
   const getDefaultPrompt = (stepNumber: number) => {
     if (stepNumber === 1) {
-      return "Första kontakten - presentera dig och referera till webbanalysens resultat";
+      return t("outreach.seq.defaultPromptStep1");
     } else if (stepNumber === 2) {
-      return "Uppföljning - referera till första mailet och ge mer värde";
+      return t("outreach.seq.defaultPromptStep2");
     } else {
-      return `Uppföljning #${stepNumber - 1}`;
+      return t("outreach.seq.defaultPromptStepN", { number: stepNumber - 1 });
     }
   };
 
@@ -260,37 +263,29 @@ export function SequencesList() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
-            <CardTitle className="text-lg">Outreach-sekvenser</CardTitle>
-            <CardDescription>
-              Skapa och hantera automatiserade outreach-sekvenser
-            </CardDescription>
+            <CardTitle className="text-lg">{t("outreach.seq.listTitle")}</CardTitle>
+            <CardDescription>{t("outreach.seq.listDesc")}</CardDescription>
           </div>
           <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Ny sekvens
-          </Button>
+            <Plus className="mr-2 h-4 w-4" />{t("outreach.seq.newSequence")}</Button>
         </CardHeader>
         <CardContent>
           {sequences.length === 0 ? (
             <div className="text-center py-12">
               <Inbox className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-              <h3 className="text-lg font-semibold mb-1">Inga sekvenser ännu</h3>
-              <p className="text-muted-foreground mb-4">
-                Skapa din första outreach-sekvens för att automatisera uppföljning
-              </p>
+              <h3 className="text-lg font-semibold mb-1">{t("outreach.seq.emptyTitle")}</h3>
+              <p className="text-muted-foreground mb-4">{t("outreach.seq.emptyDesc")}</p>
               <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Skapa sekvens
-              </Button>
+                <Plus className="mr-2 h-4 w-4" />{t("outreach.seq.createSequence")}</Button>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Namn</TableHead>
-                  <TableHead>Beskrivning</TableHead>
-                  <TableHead className="w-[100px]">Steg</TableHead>
-                  <TableHead className="w-[120px]">Skapad</TableHead>
+                  <TableHead>{t("outreach.seq.colName")}</TableHead>
+                  <TableHead>{t("outreach.seq.colDescription")}</TableHead>
+                  <TableHead className="w-[100px]">{t("outreach.seq.colSteps")}</TableHead>
+                  <TableHead className="w-[120px]">{t("outreach.seq.colCreated")}</TableHead>
                   <TableHead className="w-[80px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -310,11 +305,11 @@ export function SequencesList() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">
-                        {sequence.steps?.length || 0} steg
+                        {t("outreach.seq.stepsBadge", { count: sequence.steps?.length || 0 })}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {format(new Date(sequence.created_at), "d MMM yyyy", { locale: sv })}
+                      {format(new Date(sequence.created_at), "d MMM yyyy", { locale: dateLocale })}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -337,28 +332,26 @@ export function SequencesList() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Skapa ny sekvens</DialogTitle>
-            <DialogDescription>
-              Bygg en automatiserad outreach-sekvens med mail och uppgifter
-            </DialogDescription>
+            <DialogTitle>{t("outreach.seq.createDialogTitle")}</DialogTitle>
+            <DialogDescription>{t("outreach.seq.createDialogDesc")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Namn *</Label>
+                <Label htmlFor="name">{t("outreach.seq.nameLabel")}</Label>
                 <Input
                   id="name"
-                  placeholder="T.ex. Introduktionssekvens"
+                  placeholder={t("outreach.seq.namePlaceholder")}
                   value={newSequence.name}
                   onChange={(e) => setNewSequence(prev => ({ ...prev, name: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Beskrivning</Label>
+                <Label htmlFor="description">{t("outreach.seq.colDescription")}</Label>
                 <Input
                   id="description"
-                  placeholder="Valfri beskrivning"
+                  placeholder={t("outreach.seq.descriptionPlaceholder")}
                   value={newSequence.description}
                   onChange={(e) => setNewSequence(prev => ({ ...prev, description: e.target.value }))}
                 />
@@ -366,7 +359,7 @@ export function SequencesList() {
             </div>
 
             <div className="space-y-2 max-w-xs">
-              <Label htmlFor="market">Marknad</Label>
+              <Label htmlFor="market">{t("outreach.seq.marketLabel")}</Label>
               <Select
                 value={newSequence.market}
                 onValueChange={(value: Market) =>
@@ -390,31 +383,23 @@ export function SequencesList() {
                   <SelectItem value="DE">{MARKET_FLAG.DE} {MARKET_LABEL.DE}</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                Styr språk på AI-mail och föreslagna intervall mellan steg.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("outreach.seq.marketHint")}</p>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label>Steg i sekvensen</Label>
+                <Label>{t("outreach.seq.stepsInSequence")}</Label>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => addStep('email')}>
-                    <Mail className="mr-1 h-4 w-4" />
-                    Lägg till mail
-                  </Button>
+                    <Mail className="mr-1 h-4 w-4" />{t("outreach.seq.addMail")}</Button>
                   <Button variant="outline" size="sm" onClick={() => addStep('task')}>
-                    <ListTodo className="mr-1 h-4 w-4" />
-                    Lägg till uppgift
-                  </Button>
+                    <ListTodo className="mr-1 h-4 w-4" />{t("outreach.seq.addTask")}</Button>
                 </div>
               </div>
 
               {newSequence.steps.length === 0 ? (
                 <div className="text-center py-8 border-2 border-dashed rounded-lg">
-                  <p className="text-muted-foreground">
-                    Lägg till steg i sekvensen ovan
-                  </p>
+                  <p className="text-muted-foreground">{t("outreach.seq.addStepsAbove")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -435,10 +420,10 @@ export function SequencesList() {
                         <div className="flex-1 space-y-3">
                           <div className="flex items-center gap-4">
                             <Badge variant={step.step_type === 'email' ? 'default' : 'secondary'}>
-                              {step.step_type === 'email' ? 'AI-mail' : 'Uppgift'}
+                              {step.step_type === 'email' ? t("outreach.seq.typeAiMail") : t("outreach.seq.typeTask")}
                             </Badge>
                             <div className="flex items-center gap-2">
-                              <Label htmlFor={`delay-${index}`} className="text-xs">Vänta</Label>
+                              <Label htmlFor={`delay-${index}`} className="text-xs">{t("outreach.seq.wait")}</Label>
                               <Input
                                 id={`delay-${index}`}
                                 type="number"
@@ -447,19 +432,17 @@ export function SequencesList() {
                                 value={step.delay_days}
                                 onChange={(e) => updateStep(index, 'delay_days', parseInt(e.target.value) || 0)}
                               />
-                              <span className="text-xs text-muted-foreground">dagar</span>
+                              <span className="text-xs text-muted-foreground">{t("outreach.seq.days")}</span>
                             </div>
                           </div>
 
                           {step.step_type === 'email' ? (
                             <div className="space-y-2">
                               <Label htmlFor={`prompt-${index}`} className="text-xs flex items-center gap-1">
-                                <Sparkles className="h-3 w-3" />
-                                AI-prompt
-                              </Label>
+                                <Sparkles className="h-3 w-3" />{t("outreach.seq.aiPrompt")}</Label>
                               <Textarea
                                 id={`prompt-${index}`}
-                                placeholder="Instruktioner till AI för att generera mailet..."
+                                placeholder={t("outreach.seq.aiPromptPlaceholder")}
                                 value={step.email_prompt}
                                 onChange={(e) => updateStep(index, 'email_prompt', e.target.value)}
                                 rows={2}
@@ -468,19 +451,19 @@ export function SequencesList() {
                           ) : (
                             <div className="grid grid-cols-2 gap-3">
                               <div className="space-y-2">
-                                <Label htmlFor={`task-title-${index}`} className="text-xs">Uppgiftstitel</Label>
+                                <Label htmlFor={`task-title-${index}`} className="text-xs">{t("outreach.seq.taskTitle")}</Label>
                                 <Input
                                   id={`task-title-${index}`}
-                                  placeholder="T.ex. Ring upp kontakt"
+                                  placeholder={t("outreach.seq.taskTitlePlaceholder")}
                                   value={step.task_title}
                                   onChange={(e) => updateStep(index, 'task_title', e.target.value)}
                                 />
                               </div>
                               <div className="space-y-2">
-                                <Label htmlFor={`task-desc-${index}`} className="text-xs">Beskrivning</Label>
+                                <Label htmlFor={`task-desc-${index}`} className="text-xs">{t("outreach.seq.colDescription")}</Label>
                                 <Input
                                   id={`task-desc-${index}`}
-                                  placeholder="Valfri beskrivning"
+                                  placeholder={t("outreach.seq.descriptionPlaceholder")}
                                   value={step.task_description}
                                   onChange={(e) => updateStep(index, 'task_description', e.target.value)}
                                 />
@@ -506,17 +489,13 @@ export function SequencesList() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-              Avbryt
-            </Button>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>{t("outreach.common.cancel")}</Button>
             <Button onClick={handleCreateSequence} disabled={isSaving}>
               {isSaving ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sparar...
-                </>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("outreach.common.saving")}</>
               ) : (
-                'Skapa sekvens'
+                t("outreach.seq.createSequence")
               )}
             </Button>
           </DialogFooter>
@@ -535,9 +514,9 @@ export function SequencesList() {
 
           {selectedSequence?.steps && (
             <div className="space-y-3 py-4">
-              <Label>Steg i sekvensen</Label>
+              <Label>{t("outreach.seq.stepsInSequence")}</Label>
               {selectedSequence.steps.length === 0 ? (
-                <p className="text-muted-foreground">Inga steg konfigurerade</p>
+                <p className="text-muted-foreground">{t("outreach.seq.noStepsConfigured")}</p>
               ) : (
                 <div className="space-y-2">
                   {selectedSequence.steps
@@ -558,16 +537,16 @@ export function SequencesList() {
                         <div className="flex-1">
                           <p className="text-sm font-medium">
                             {step.step_type === 'email' 
-                              ? (step.email_prompt?.substring(0, 50) + '...' || 'AI-genererat mail')
-                              : (step.task_title || 'Uppgift')
+                              ? (step.email_prompt?.substring(0, 50) + '...' || t("outreach.seq.aiGeneratedMail"))
+                              : (step.task_title || t("outreach.seq.typeTask"))
                             }
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {step.delay_days === 0 ? 'Direkt' : `Efter ${step.delay_days} dagar`}
+                            {step.delay_days === 0 ? t("outreach.seq.immediate") : t("outreach.seq.afterDays", { count: step.delay_days })}
                           </p>
                         </div>
                         <Badge variant={step.step_type === 'email' ? 'default' : 'secondary'}>
-                          {step.step_type === 'email' ? 'Mail' : 'Uppgift'}
+                          {step.step_type === 'email' ? t("outreach.seq.typeMail") : t("outreach.seq.typeTask")}
                         </Badge>
                       </div>
                     ))}

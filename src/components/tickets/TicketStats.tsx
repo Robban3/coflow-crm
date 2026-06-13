@@ -3,9 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckSquare, Clock, TrendingUp, AlertTriangle } from "lucide-react";
 import { fromTable } from "@/components/documents/supabaseHelper";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import type { TicketRow } from "./TicketCard";
 
 export function TicketStats() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [tickets, setTickets] = useState<TicketRow[]>([]);
 
@@ -30,10 +32,10 @@ export function TicketStats() {
     : 0;
 
   const stats = [
-    { label: "Öppna ärenden", value: open, icon: CheckSquare, color: "text-primary" },
-    { label: "Brådskande", value: urgent, icon: AlertTriangle, color: "text-destructive" },
-    { label: "Denna vecka", value: thisWeek, icon: TrendingUp, color: "text-success" },
-    { label: "Snitt lösningstid", value: avgResolveHrs > 0 ? `${avgResolveHrs}h` : "—", icon: Clock, color: "text-warning" },
+    { label: t("tickets.stats.open"), value: open, icon: CheckSquare, color: "text-primary" },
+    { label: t("tickets.stats.urgent"), value: urgent, icon: AlertTriangle, color: "text-destructive" },
+    { label: t("tickets.stats.thisWeek"), value: thisWeek, icon: TrendingUp, color: "text-success" },
+    { label: t("tickets.stats.avgResolveTime"), value: avgResolveHrs > 0 ? `${avgResolveHrs}h` : "—", icon: Clock, color: "text-warning" },
   ];
 
   return (

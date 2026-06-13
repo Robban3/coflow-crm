@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Upload, Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface ProfileImageUploadProps {
   currentUrl: string | null;
@@ -27,6 +28,7 @@ export function ProfileImageUpload({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const avatarSizeClasses = {
     sm: "h-12 w-12",
@@ -48,8 +50,8 @@ export function ProfileImageUpload({
     const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
     if (!validTypes.includes(file.type)) {
       toast({
-        title: "Ogiltig filtyp",
-        description: "Endast JPG, PNG, WebP, GIF och SVG stöds",
+        title: t("settings.invalidFileTypeTitle"),
+        description: t("settings.invalidFileTypeDesc"),
         variant: "destructive",
       });
       return;
@@ -58,8 +60,8 @@ export function ProfileImageUpload({
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "Filen är för stor",
-        description: "Max filstorlek är 5MB",
+        title: t("settings.fileTooLargeTitle"),
+        description: t("settings.fileTooLargeDesc"),
         variant: "destructive",
       });
       return;
@@ -92,14 +94,14 @@ export function ProfileImageUpload({
       onUpload(publicUrl);
 
       toast({
-        title: "Uppladdad!",
-        description: type === "avatar" ? "Profilbilden har uppdaterats" : "Loggan har uppdaterats",
+        title: t("settings.uploadedTitle"),
+        description: type === "avatar" ? t("settings.avatarUpdatedDesc") : t("settings.logoUpdatedDesc"),
       });
     } catch (error) {
       console.error("Upload error:", error);
       toast({
-        title: "Uppladdningsfel",
-        description: "Kunde inte ladda upp bilden",
+        title: t("settings.uploadErrorTitle"),
+        description: t("settings.uploadErrorDesc"),
         variant: "destructive",
       });
       setPreviewUrl(null);
@@ -127,11 +129,11 @@ export function ProfileImageUpload({
             {displayUrl ? (
               <img
                 src={displayUrl}
-                alt="Företagslogga"
+                alt={t("settings.companyLogoAlt")}
                 className="max-h-full max-w-full object-contain"
               />
             ) : (
-              <span className="text-muted-foreground text-xs text-center px-2">Ingen logga</span>
+              <span className="text-muted-foreground text-xs text-center px-2">{t("settings.noLogo")}</span>
             )}
             {isUploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg">
@@ -172,7 +174,7 @@ export function ProfileImageUpload({
           disabled={isUploading}
         >
           <Upload className="mr-2 h-4 w-4" />
-          {type === "avatar" ? "Ladda upp bild" : "Ladda upp logga"}
+          {type === "avatar" ? t("settings.uploadImage") : t("settings.uploadLogo")}
         </Button>
         {displayUrl && (
           <Button
@@ -183,7 +185,7 @@ export function ProfileImageUpload({
             className="text-muted-foreground"
           >
             <X className="mr-2 h-4 w-4" />
-            Ta bort
+            {t("settings.remove")}
           </Button>
         )}
       </div>

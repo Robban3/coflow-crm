@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useMarket } from "@/hooks/useMarket";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface FollowUpEmailDialogProps {
   leadIds: string[];
@@ -44,6 +45,7 @@ export function FollowUpEmailDialog({
   const { toast } = useToast();
   const { user } = useAuth();
   const { market } = useMarket();
+  const { t } = useTranslation();
 
   const generateEmails = async () => {
     setGenerating(true);
@@ -79,7 +81,7 @@ export function FollowUpEmailDialog({
           generated.push({
             leadId,
             leadName:
-              lead.contact_name || lead.company_name || "Okänt företag",
+              lead.contact_name || lead.company_name || t("mail.unknownCompany"),
             subject: data.subject,
             body: data.body,
             body_without_signature: data.body_without_signature,
@@ -90,8 +92,8 @@ export function FollowUpEmailDialog({
 
       if (generated.length === 0) {
         toast({
-          title: "Kunde inte generera mail",
-          description: "Inga leads med giltiga e-postadresser hittades.",
+          title: t("mail.followUp.couldNotGenerate"),
+          description: t("mail.followUp.noValidEmails"),
           variant: "destructive",
         });
         onClose();
@@ -101,7 +103,7 @@ export function FollowUpEmailDialog({
       setEmails(generated);
     } catch (e: any) {
       toast({
-        title: "Fel vid generering",
+        title: t("mail.followUp.generateError"),
         description: e.message,
         variant: "destructive",
       });
@@ -145,7 +147,7 @@ export function FollowUpEmailDialog({
         );
 
         if (error) {
-          const errorMessage = error.message || "Okänt fel";
+          const errorMessage = error.message || t("mail.followUp.unknownError");
           failed.push({ email: email.email, error: errorMessage });
           console.error(`Failed to send to ${email.email}:`, error);
         } else {
@@ -155,10 +157,10 @@ export function FollowUpEmailDialog({
 
       if (sentCount === 0) {
         toast({
-          title: "Inga mail skickades",
+          title: t("mail.followUp.noneSent"),
           description: failed[0]
             ? `${failed[0].email}: ${failed[0].error}`
-            : "Utskicket misslyckades.",
+            : t("mail.followUp.sendFailed"),
           variant: "destructive",
         });
         return;
@@ -166,19 +168,22 @@ export function FollowUpEmailDialog({
 
       if (failed.length > 0) {
         toast({
-          title: `${sentCount} mail skickade, ${failed.length} misslyckades`,
+          title: t("mail.followUp.partialSent", {
+            sent: sentCount,
+            failed: failed.length,
+          }),
           description: `${failed[0].email}: ${failed[0].error}`,
           variant: "destructive",
         });
       } else {
         toast({
-          title: `${sentCount} uppföljningsmail skickade`,
+          title: t("mail.followUp.allSent", { count: sentCount }),
         });
       }
 
       onSent();
     } catch (e: any) {
-      toast({ title: "Fel", description: e.message, variant: "destructive" });
+      toast({ title: t("mail.followUp.error"), description: e.message, variant: "destructive" });
     } finally {
       setSending(false);
     }
@@ -190,12 +195,12 @@ export function FollowUpEmailDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            AI-genererad uppföljning
+            {t("mail.followUp.dialogTitle")}
           </DialogTitle>
           <DialogDescription>
             {generating
-              ? `Genererar uppföljningsmail för ${leadIds.length} lead(s)...`
-              : `${emails.length} mail genererade — granska och skicka.`}
+              ? t("mail.followUp.generatingFor", { count: leadIds.length })
+              : t("mail.followUp.generatedReview", { count: emails.length })}
           </DialogDescription>
         </DialogHeader>
 
@@ -203,7 +208,7 @@ export function FollowUpEmailDialog({
           <div className="flex flex-col items-center justify-center py-12 gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">
-              Genererar uppföljningsmail...
+              {t("mail.followUp.generating")}
             </p>
           </div>
         ) : currentEmail ? (
@@ -218,7 +223,7 @@ export function FollowUpEmailDialog({
                   onClick={() => setCurrentIndex((i) => i - 1)}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                  Föregående
+                  {t("mail.followUp.previous")}
                 </Button>
                 <span className="text-sm text-muted-foreground">
                   {currentIndex + 1} / {emails.length} —{" "}
@@ -230,7 +235,7 @@ export function FollowUpEmailDialog({
                   disabled={currentIndex === emails.length - 1}
                   onClick={() => setCurrentIndex((i) => i + 1)}
                 >
-                  Nästa
+                  {t("mail.followUp.next")}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
@@ -238,11 +243,11 @@ export function FollowUpEmailDialog({
 
             <div className="space-y-3">
               <div>
-                <Label>Till</Label>
+                <Label>{t("mail.followUp.to")}</Label>
                 <Input value={currentEmail.email} disabled className="mt-1" />
               </div>
               <div>
-                <Label>Ämne</Label>
+                <Label>{t("mail.followUp.subject")}</Label>
                 <Input
                   value={currentEmail.subject}
                   onChange={(e) =>
@@ -252,7 +257,7 @@ export function FollowUpEmailDialog({
                 />
               </div>
               <div>
-                <Label>Meddelande</Label>
+                <Label>{t("mail.followUp.message")}</Label>
                 <Textarea
                   value={currentEmail.body}
                   onChange={(e) => updateCurrentEmail("body", e.target.value)}
@@ -266,7 +271,7 @@ export function FollowUpEmailDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Avbryt
+            {t("mail.followUp.cancel")}
           </Button>
           <Button
             onClick={sendAll}
@@ -277,7 +282,9 @@ export function FollowUpEmailDialog({
             ) : (
               <Send className="h-4 w-4 mr-2" />
             )}
-            Skicka {emails.length > 1 ? `alla (${emails.length})` : ""}
+            {emails.length > 1
+              ? t("mail.followUp.sendAll", { count: emails.length })
+              : t("mail.followUp.send")}
           </Button>
         </DialogFooter>
       </DialogContent>

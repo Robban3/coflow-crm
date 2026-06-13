@@ -23,6 +23,7 @@ import {
 import { Loader2, Plus, Search } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface CreateMeetingDialogProps {
   open: boolean;
@@ -44,7 +45,8 @@ export function CreateMeetingDialog({
   const organizationId = useOrganizationId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+  const { t } = useTranslation();
+
   const [isCreating, setIsCreating] = useState(false);
   const [leads, setLeads] = useState<{ id: string; company_name: string | null; contact_name: string | null; email: string | null }[]>([]);
   const [leadSearch, setLeadSearch] = useState("");
@@ -84,7 +86,7 @@ export function CreateMeetingDialog({
           ...prev,
           guestName: prev.guestName || lead.contact_name || lead.company_name || "",
           guestEmail: prev.guestEmail || lead.email || "",
-          title: prev.title || `Möte med ${lead.company_name || lead.contact_name || ""}`,
+          title: prev.title || t("meetings.meetingWith", { name: lead.company_name || lead.contact_name || "" }),
         }));
       }
     }
@@ -99,8 +101,8 @@ export function CreateMeetingDialog({
   const handleCreate = async () => {
     if (!form.title || !form.date || !form.startTime || !form.endTime) {
       toast({
-        title: "Fyll i obligatoriska fält",
-        description: "Titel, datum och tider är obligatoriska",
+        title: t("meetings.requiredFieldsTitle"),
+        description: t("meetings.requiredFieldsDesc"),
         variant: "destructive",
       });
       return;
@@ -109,7 +111,7 @@ export function CreateMeetingDialog({
     setIsCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Inte inloggad');
+      if (!user) throw new Error(t('meetings.notLoggedIn'));
 
       const startTime = new Date(`${form.date}T${form.startTime}`);
       const endTime = new Date(`${form.date}T${form.endTime}`);
@@ -131,8 +133,8 @@ export function CreateMeetingDialog({
       if (error) throw error;
 
       toast({
-        title: "Möte skapat",
-        description: `${form.title} har bokats in`,
+        title: t("meetings.meetingCreatedTitle"),
+        description: t("meetings.meetingCreatedDesc", { title: form.title }),
       });
 
       onOpenChange(false);
@@ -155,8 +157,8 @@ export function CreateMeetingDialog({
     } catch (error) {
       console.error('Error creating meeting:', error);
       toast({
-        title: "Fel",
-        description: "Kunde inte skapa mötet",
+        title: t("meetings.error"),
+        description: t("meetings.meetingCreateError"),
         variant: "destructive",
       });
     } finally {
@@ -168,9 +170,9 @@ export function CreateMeetingDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Skapa nytt möte</DialogTitle>
+          <DialogTitle>{t("meetings.createDialogTitle")}</DialogTitle>
           <DialogDescription>
-            Boka in ett möte i din kalender
+            {t("meetings.createDialogDesc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -178,17 +180,17 @@ export function CreateMeetingDialog({
           {/* Lead picker */}
           {!leadId && (
             <div className="space-y-2">
-              <Label>Koppla till lead (valfritt)</Label>
+              <Label>{t("meetings.linkToLead")}</Label>
               <Select value={selectedLeadId} onValueChange={setSelectedLeadId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Välj lead..." />
+                  <SelectValue placeholder={t("meetings.selectLead")} />
                 </SelectTrigger>
                 <SelectContent>
                   <div className="p-2">
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
-                        placeholder="Sök lead..."
+                        placeholder={t("meetings.searchLead")}
                         value={leadSearch}
                         onChange={(e) => setLeadSearch(e.target.value)}
                         className="pl-8 h-8 text-sm"
@@ -196,10 +198,10 @@ export function CreateMeetingDialog({
                       />
                     </div>
                   </div>
-                  <SelectItem value="none">Ingen lead</SelectItem>
+                  <SelectItem value="none">{t("meetings.noLead")}</SelectItem>
                   {filteredLeads.map(lead => (
                     <SelectItem key={lead.id} value={lead.id}>
-                      {lead.company_name || lead.contact_name || lead.email || "Okänd lead"}
+                      {lead.company_name || lead.contact_name || lead.email || t("meetings.unknownLead")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -208,17 +210,17 @@ export function CreateMeetingDialog({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="title">Titel *</Label>
+            <Label htmlFor="title">{t("meetings.fieldTitle")}</Label>
             <Input
               id="title"
-              placeholder="t.ex. Introduktionsmöte"
+              placeholder={t("meetings.fieldTitlePlaceholder")}
               value={form.title}
               onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="date">Datum *</Label>
+            <Label htmlFor="date">{t("meetings.fieldDate")}</Label>
             <Input
               id="date"
               type="date"
@@ -229,7 +231,7 @@ export function CreateMeetingDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startTime">Starttid *</Label>
+              <Label htmlFor="startTime">{t("meetings.fieldStartTime")}</Label>
               <Input
                 id="startTime"
                 type="time"
@@ -238,7 +240,7 @@ export function CreateMeetingDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endTime">Sluttid *</Label>
+              <Label htmlFor="endTime">{t("meetings.fieldEndTime")}</Label>
               <Input
                 id="endTime"
                 type="time"
@@ -249,41 +251,41 @@ export function CreateMeetingDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="guestName">Gästens namn</Label>
+            <Label htmlFor="guestName">{t("meetings.fieldGuestName")}</Label>
             <Input
               id="guestName"
-              placeholder="t.ex. Anna Andersson"
+              placeholder={t("meetings.fieldGuestNamePlaceholder")}
               value={form.guestName}
               onChange={(e) => setForm(prev => ({ ...prev, guestName: e.target.value }))}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="guestEmail">Gästens e-post</Label>
+            <Label htmlFor="guestEmail">{t("meetings.fieldGuestEmail")}</Label>
             <Input
               id="guestEmail"
               type="email"
-              placeholder="t.ex. anna@foretag.se"
+              placeholder={t("meetings.fieldGuestEmailPlaceholder")}
               value={form.guestEmail}
               onChange={(e) => setForm(prev => ({ ...prev, guestEmail: e.target.value }))}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="meetingLink">Möteslänk (valfritt)</Label>
+            <Label htmlFor="meetingLink">{t("meetings.fieldMeetingLink")}</Label>
             <Input
               id="meetingLink"
-              placeholder="t.ex. https://meet.google.com/..."
+              placeholder={t("meetings.fieldMeetingLinkPlaceholder")}
               value={form.meetingLink}
               onChange={(e) => setForm(prev => ({ ...prev, meetingLink: e.target.value }))}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Beskrivning</Label>
+            <Label htmlFor="description">{t("meetings.fieldDescription")}</Label>
             <Textarea
               id="description"
-              placeholder="Kort beskrivning av mötet..."
+              placeholder={t("meetings.fieldDescriptionPlaceholder")}
               value={form.description}
               onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
               rows={3}
@@ -293,7 +295,7 @@ export function CreateMeetingDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Avbryt
+            {t("meetings.cancel")}
           </Button>
           <Button onClick={handleCreate} disabled={isCreating}>
             {isCreating ? (
@@ -301,7 +303,7 @@ export function CreateMeetingDialog({
             ) : (
               <Plus className="mr-2 h-4 w-4" />
             )}
-            Skapa möte
+            {t("meetings.createMeeting")}
           </Button>
         </DialogFooter>
       </DialogContent>

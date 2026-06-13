@@ -19,6 +19,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 /* ---------- types ---------- */
 
@@ -73,6 +74,7 @@ function statusIcon(status: DraftStatus) {
 
 export default function ProspectingReviewTab() {
   const orgId = useOrganizationId();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isAdmin, user } = useAuth();
   const { market } = useMarket();
@@ -251,7 +253,7 @@ export default function ProspectingReviewTab() {
       setSelectedIds(new Set());
       queryClient.invalidateQueries({ queryKey: ["prospecting-review"] });
       queryClient.invalidateQueries({ queryKey: ["prospecting-draft-count"] });
-      toast.success("Utkast avvisade");
+      toast.success(t("prospecting.rev_draftsRejected"));
     },
   });
 
@@ -271,7 +273,7 @@ export default function ProspectingReviewTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["prospecting-review"] });
-      toast.success("Utkast regenererat");
+      toast.success(t("prospecting.rev_draftRegenerated"));
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -279,7 +281,7 @@ export default function ProspectingReviewTab() {
   /* ---- clear all drafts (admin only) ---- */
   const clearDraftsMutation = useMutation({
     mutationFn: async () => {
-      if (!orgId) throw new Error("Ingen organisation");
+      if (!orgId) throw new Error(t("prospecting.noOrg"));
       // Only reject drafts that haven't been sent
       const { error } = await (supabase as any)
         .from("prospecting_drafts")
@@ -315,7 +317,7 @@ export default function ProspectingReviewTab() {
       queryClient.invalidateQueries({ queryKey: ["prospecting-review"] });
       queryClient.invalidateQueries({ queryKey: ["prospecting-draft-count"] });
       queryClient.invalidateQueries({ queryKey: ["prospecting-queue"] });
-      toast.success("Alla utkast har rensats");
+      toast.success(t("prospecting.rev_allCleared"));
     },
     onError: (err: Error) => {
       setShowClearConfirm(false);
@@ -340,9 +342,9 @@ export default function ProspectingReviewTab() {
       queryClient.invalidateQueries({ queryKey: ["prospecting-review"] });
       queryClient.invalidateQueries({ queryKey: ["prospecting-draft-count"] });
       if (data.failed > 0) {
-        toast.error(`${data.sent} skickades, ${data.failed} misslyckades`);
+        toast.error(t("prospecting.rev_sentFailed", { sent: data.sent, failed: data.failed }));
       } else {
-        toast.success(`${data.sent} mail skickades`);
+        toast.success(t("prospecting.rev_sentOk", { sent: data.sent }));
       }
     },
     onError: (err: Error) => {
@@ -358,14 +360,14 @@ export default function ProspectingReviewTab() {
     // Simple email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmed)) {
-      toast.error("Ogiltig mailadress");
+      toast.error(t("prospecting.rev_invalidEmail"));
       return;
     }
     const { error } = await supabase.from("leads").update({ email: trimmed }).eq("id", leadId);
     if (error) {
-      toast.error("Kunde inte spara mailadressen");
+      toast.error(t("prospecting.rev_couldNotSaveEmail"));
     } else {
-      toast.success("Mailadress sparad");
+      toast.success(t("prospecting.rev_emailSaved"));
       queryClient.invalidateQueries({ queryKey: ["prospecting-review"] });
     }
   }, [queryClient]);
@@ -376,11 +378,11 @@ export default function ProspectingReviewTab() {
       .filter((d) => (d.lead_business_fit_score ?? 0) >= 6 && !!d.lead_email?.trim())
       .map((d) => d.id);
     if (strongIds.length === 0) {
-      toast.info("Inga utkast med Business Fit ≥ 6 hittades");
+      toast.info(t("prospecting.rev_noStrong"));
       return;
     }
     setSelectedIds(new Set(strongIds));
-    toast.success(`${strongIds.length} starka utkast markerade`);
+    toast.success(t("prospecting.rev_strongSelected", { count: strongIds.length }));
   }, [draftItems]);
 
   /* ---- empty state ---- */
@@ -390,9 +392,9 @@ export default function ProspectingReviewTab() {
         <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
           <Inbox className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h3 className="text-base font-semibold mb-1">Inga utkast än</h3>
+        <h3 className="text-base font-semibold mb-1">{t("prospecting.rev_emptyTitle")}</h3>
         <p className="text-muted-foreground text-sm max-w-xs">
-          Importera leads via Sök-fliken – utkast dyker upp här automatiskt
+          {t("prospecting.rev_emptyDesc")}
         </p>
       </div>
     );
@@ -409,7 +411,7 @@ export default function ProspectingReviewTab() {
       {/* Filter tabs */}
       <div className="flex items-center justify-between">
         <div className="flex gap-1">
-          {([["draft", "Redo att granska"], ["sent", "Skickade"], ["failed", "Misslyckade"], ["all", "Alla"]] as [FilterKey, string][]).map(
+          {([["draft", t("prospecting.rev_filterDraft")], ["sent", t("prospecting.rev_filterSent")], ["failed", t("prospecting.rev_filterFailed")], ["all", t("prospecting.rev_filterAll")]] as [FilterKey, string][]).map(
             ([key, label]) => (
               <Button
                 key={key}
@@ -435,7 +437,7 @@ export default function ProspectingReviewTab() {
               className="text-xs"
               onClick={selectStrong}
             >
-              ⚡ Välj starka
+              ⚡ {t("prospecting.rev_selectStrong")}
             </Button>
           {isAdmin && drafts.length > 0 && (
             <Button
@@ -445,7 +447,7 @@ export default function ProspectingReviewTab() {
               onClick={() => setShowClearConfirm(true)}
             >
               <Trash2 className="h-3.5 w-3.5 mr-1" />
-              Rensa alla
+              {t("prospecting.rev_clearAll")}
             </Button>
           )}
           {draftsQuery.isFetching && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
@@ -461,9 +463,9 @@ export default function ProspectingReviewTab() {
               onCheckedChange={toggleSelectAll}
             />
             <span className="text-sm text-muted-foreground">
-              {sendableItems.length} redo
+              {t("prospecting.rev_readyCount", { count: sendableItems.length })}
               {missingEmailCount > 0 && (
-                <span className="text-amber-600 ml-1">· {missingEmailCount} saknar email</span>
+                <span className="text-amber-600 ml-1">{t("prospecting.rev_missingEmailCount", { count: missingEmailCount })}</span>
               )}
             </span>
           </div>
@@ -476,7 +478,7 @@ export default function ProspectingReviewTab() {
                 disabled={rejectMutation.isPending}
                 onClick={() => rejectMutation.mutate(selectedSendable)}
               >
-                Avvisa
+                {t("prospecting.rev_reject")}
               </Button>
             )}
             <Button
@@ -486,9 +488,9 @@ export default function ProspectingReviewTab() {
               className="gap-1.5"
             >
               {sendMutation.isPending ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin" />Skickar…</>
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" />{t("prospecting.rev_sending")}</>
               ) : (
-                <><Send className="h-3.5 w-3.5" />Skicka {selectedCount > 0 ? selectedCount : ""}</>
+                <><Send className="h-3.5 w-3.5" />{selectedCount > 0 ? t("prospecting.rev_sendCount", { count: selectedCount }) : t("prospecting.rev_send")}</>
               )}
             </Button>
           </div>
@@ -518,16 +520,16 @@ export default function ProspectingReviewTab() {
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Skicka {selectedCount} mail?</AlertDialogTitle>
+            <AlertDialogTitle>{t("prospecting.rev_confirmSendTitle", { count: selectedCount })}</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div>
-                <p className="mb-2">Följande företag kontaktas:</p>
+                <p className="mb-2">{t("prospecting.rev_confirmSendBody")}</p>
                 <ul className="list-disc pl-5 space-y-0.5 text-sm">
                   {selectedSendable.slice(0, 5).map((id) => {
                     const d = drafts.find((x) => x.id === id);
-                    return <li key={id}>{d?.lead_company_name || "Okänt"}</li>;
+                    return <li key={id}>{d?.lead_company_name || t("prospecting.rev_unknownCompany")}</li>;
                   })}
-                  {selectedCount > 5 && <li>…och {selectedCount - 5} till</li>}
+                  {selectedCount > 5 && <li>{t("prospecting.rev_andMore", { count: selectedCount - 5 })}</li>}
                 </ul>
               </div>
             </AlertDialogDescription>
@@ -545,10 +547,9 @@ export default function ProspectingReviewTab() {
       <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Rensa alla utkast?</AlertDialogTitle>
+            <AlertDialogTitle>{t("prospecting.rev_clearConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Detta markerar alla ej skickade utkast som avvisade och döljer dem från vyn.
-              Redan skickade mail och deras leads bevaras helt.
+              {t("prospecting.rev_clearConfirmBody")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -558,8 +559,8 @@ export default function ProspectingReviewTab() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {clearDraftsMutation.isPending ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />Rensar…</>
-              ) : "Ja, rensa alla"}
+                <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />{t("prospecting.rev_clearing")}</>
+              ) : t("prospecting.rev_yesClearAll")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -586,6 +587,7 @@ interface DraftRowProps {
 function DraftRow({
   draft, selected, expanded, onToggleSelect, onToggleExpand, onSave, onSaveEmail, onReject, onRegenerate, isRegenerating,
 }: DraftRowProps) {
+  const { t } = useTranslation();
   const [localSubject, setLocalSubject] = useState(draft.subject);
   const [localBody, setLocalBody] = useState(draft.body);
   const [localEmail, setLocalEmail] = useState("");
@@ -612,11 +614,11 @@ function DraftRow({
       {!hasEmail && !isFinal && (
         <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-1.5 flex items-center gap-2 text-amber-700 text-xs rounded-t-lg">
           <Mail className="h-3.5 w-3.5 shrink-0" />
-          Saknar mailadress
+          {t("prospecting.rev_missingEmail")}
           <div className="flex-1" />
           <Input
             type="email"
-            placeholder="namn@foretag.se"
+            placeholder={t("prospecting.rev_emailPlaceholder")}
             value={localEmail}
             onChange={(e) => setLocalEmail(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && localEmail.trim()) onSaveEmail(draft.lead_id, localEmail); }}
@@ -629,7 +631,7 @@ function DraftRow({
             disabled={!localEmail.trim()}
             onClick={() => onSaveEmail(draft.lead_id, localEmail)}
           >
-            Spara
+            {t("prospecting.rev_save")}
           </Button>
         </div>
       )}
@@ -649,7 +651,7 @@ function DraftRow({
         {statusIcon(draft.status)}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-sm truncate">{draft.lead_company_name || "Okänt"}</span>
+            <span className="font-medium text-sm truncate">{draft.lead_company_name || t("prospecting.rev_unknownCompany")}</span>
             {fitBadge(draft.lead_business_fit_score)}
             {draft.lead_website && (
               <a
@@ -688,7 +690,7 @@ function DraftRow({
               }}
               disabled={isFinal}
               className="text-sm font-medium h-9"
-              placeholder="Ämnesrad"
+              placeholder={t("prospecting.rev_subjectPlaceholder")}
             />
             <Textarea
               value={localBody}
@@ -700,7 +702,7 @@ function DraftRow({
               className="text-sm min-h-[140px] resize-y leading-relaxed"
             />
             {!isFinal && (
-              <p className="text-[10px] text-muted-foreground">Sparas automatiskt vid redigering</p>
+              <p className="text-[10px] text-muted-foreground">{t("prospecting.rev_autoSaveHint")}</p>
             )}
             {draft.status === "failed" && draft.send_error && (
               <p className="text-xs text-destructive">{draft.send_error}</p>
@@ -718,9 +720,9 @@ function DraftRow({
                 onClick={onRegenerate}
               >
                 {isRegenerating ? (
-                  <><Loader2 className="h-3.5 w-3.5 animate-spin" />Genererar…</>
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin" />{t("prospecting.rev_generating")}</>
                 ) : (
-                  <><RefreshCw className="h-3.5 w-3.5" />Regenerera</>
+                  <><RefreshCw className="h-3.5 w-3.5" />{t("prospecting.rev_regenerate")}</>
                 )}
               </Button>
               <Button
@@ -729,7 +731,7 @@ function DraftRow({
                 className="text-xs text-destructive hover:text-destructive"
                 onClick={onReject}
               >
-                Avvisa
+                {t("prospecting.rev_reject")}
               </Button>
             </div>
           )}

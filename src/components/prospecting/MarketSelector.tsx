@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { MARKET_FLAG, MARKET_LABEL, useMarket, type Market } from "@/hooks/useMarket";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 const MARKETS: Market[] = ["SE", "US", "DE"];
 
@@ -13,11 +14,12 @@ interface MarketSelectorProps {
  */
 export default function MarketSelector({ className }: MarketSelectorProps) {
   const { market, setMarket } = useMarket();
+  const { t } = useTranslation();
 
   return (
     <div
       role="radiogroup"
-      aria-label="Välj marknad"
+      aria-label={t("prospecting.selectMarket")}
       className={cn(
         "inline-flex items-center gap-1 rounded-lg bg-muted p-1",
         className,

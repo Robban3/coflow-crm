@@ -8,9 +8,11 @@ import { validateReportSchema } from "@/components/reports/reportSchema";
 import { supabase } from "@/integrations/supabase/client";
 import { useReportTracking } from "@/hooks/useReportTracking";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function PublicReportPage() {
   const { token } = useParams<{ token: string }>();
+  const { t } = useTranslation();
   const { trackCta, trackPdf, trackShare } = useReportTracking(token);
 
   const { data, isLoading, error } = useQuery({
@@ -20,7 +22,7 @@ export default function PublicReportPage() {
         share_token: token!,
       });
       const report = Array.isArray(reports) ? reports[0] : null;
-      if (error || !report) throw new Error("Rapport ej tillgänglig");
+      if (error || !report) throw new Error(t("publicPages.report.unavailable"));
 
       (supabase as any).rpc("increment_public_report_view", { share_token: token! }).then(() => {});
 
@@ -39,11 +41,11 @@ export default function PublicReportPage() {
     const rd = reportData as any;
     const name = isGrowth ? rd?.company?.name : rd?.meta?.companyName;
     const domain = isGrowth ? rd?.company?.domain : rd?.meta?.domain;
-    const type = isGrowth ? "Tillväxtrapport" : "Webb & SEO Rapport";
-    const title = name ? `${name} – ${type}` : type;
+    const type = isGrowth ? t("publicPages.report.growthType") : t("publicPages.report.webSeoType");
+    const title = name ? t("publicPages.report.titleFor", { name, type }) : type;
     const description = name
-      ? `${type} för ${name}${domain ? ` (${domain})` : ""}`
-      : `${type} – Analys av webbprestanda, SEO och AI-synlighet`;
+      ? t("publicPages.report.descWithName", { type, name, domain: domain ? ` (${domain})` : "" })
+      : t("publicPages.report.descNoName", { type });
 
     document.title = title;
 
@@ -81,9 +83,9 @@ export default function PublicReportPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center max-w-sm px-6">
-          <h1 className="text-xl font-semibold mb-2 text-foreground">Rapport ej tillgänglig</h1>
+          <h1 className="text-xl font-semibold mb-2 text-foreground">{t("publicPages.report.unavailable")}</h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            {error instanceof Error ? error.message : "Länken är ogiltig eller har upphört."}
+            {error instanceof Error ? error.message : t("publicPages.report.invalidOrExpired")}
           </p>
         </div>
       </div>

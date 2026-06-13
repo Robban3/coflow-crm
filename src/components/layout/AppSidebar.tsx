@@ -5,11 +5,13 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { Settings, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export function AppSidebar() {
   const location = useLocation();
   const { enabledModules } = useModules();
   const { settings } = useOrganization();
+  const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const hasAnimated = useRef(false);
   const shouldAnimate = !hasAnimated.current;
@@ -88,7 +90,8 @@ export function AppSidebar() {
         <ul className="space-y-1">
           {navigationModules.map((module, index) => {
             const Icon = module.icon;
-            const isActive = location.pathname === module.path || 
+            const moduleName = t(`nav.${module.id}`);
+            const isActive = location.pathname === module.path ||
               (module.path !== '/dashboard' && location.pathname.startsWith(module.path));
 
             return (
@@ -106,13 +109,13 @@ export function AppSidebar() {
                       ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
                       : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
                   )}
-                  title={isCollapsed ? module.name : undefined}
+                  title={isCollapsed ? moduleName : undefined}
                 >
                   <Icon className={cn(
                     "h-5 w-5 shrink-0 transition-colors duration-200",
                     isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"
                   )} />
-                  {!isCollapsed && <span>{module.name}</span>}
+                  {!isCollapsed && <span>{moduleName}</span>}
                 </Link>
               </li>
             );
@@ -131,15 +134,15 @@ export function AppSidebar() {
               ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
               : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
           )}
-          title={isCollapsed ? "Inställningar" : undefined}
+          title={isCollapsed ? t("sidebar.settings") : undefined}
         >
           <Settings className={cn(
             "h-5 w-5 shrink-0 transition-colors duration-200",
-            location.pathname.startsWith('/settings') 
-              ? "text-sidebar-primary" 
+            location.pathname.startsWith('/settings')
+              ? "text-sidebar-primary"
               : "text-sidebar-foreground/60"
           )} />
-          {!isCollapsed && <span>Inställningar</span>}
+          {!isCollapsed && <span>{t("sidebar.settings")}</span>}
         </Link>
 
         <Button
@@ -156,7 +159,7 @@ export function AppSidebar() {
           ) : (
             <>
               <ChevronLeft className="h-4 w-4" />
-              <span className="ml-1">Minimera</span>
+              <span className="ml-1">{t("sidebar.collapse")}</span>
             </>
           )}
         </Button>

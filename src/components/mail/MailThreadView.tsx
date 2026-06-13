@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Send, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface ThreadMessage {
   id: string;
@@ -23,6 +24,8 @@ interface MailThreadViewProps {
 }
 
 export function MailThreadView({ originalEmailId, highlightReplyId }: MailThreadViewProps) {
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const [messages, setMessages] = useState<ThreadMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,7 +48,7 @@ export function MailThreadView({ originalEmailId, highlightReplyId }: MailThread
       thread.push({
         id: sent.id,
         direction: "sent",
-        from: "Du",
+        from: t("mail.you"),
         to: sent.recipient_name || sent.recipient_email,
         subject: sent.subject,
         body: sent.body,
@@ -66,7 +69,7 @@ export function MailThreadView({ originalEmailId, highlightReplyId }: MailThread
           id: r.id,
           direction: "reply",
           from: r.from_name || r.from_email,
-          to: "Du",
+          to: t("mail.you"),
           subject: r.subject || "",
           body: r.body_text || "",
           timestamp: r.received_at,
@@ -87,7 +90,7 @@ export function MailThreadView({ originalEmailId, highlightReplyId }: MailThread
   }
 
   if (messages.length === 0) {
-    return <p className="text-sm text-muted-foreground">Tråden kunde inte hittas.</p>;
+    return <p className="text-sm text-muted-foreground">{t("mail.threadNotFound")}</p>;
   }
 
   return (
@@ -112,11 +115,11 @@ export function MailThreadView({ originalEmailId, highlightReplyId }: MailThread
               <span className="text-xs text-muted-foreground">→</span>
               <span className="text-sm text-muted-foreground">{msg.to}</span>
               <Badge variant={msg.direction === "sent" ? "default" : "secondary"} className="ml-auto text-xs">
-                {msg.direction === "sent" ? "Skickat" : "Svar"}
+                {msg.direction === "sent" ? t("mail.directionSent") : t("mail.directionReply")}
               </Badge>
             </div>
             <span className="text-xs text-muted-foreground">
-              {format(new Date(msg.timestamp), "d MMM yyyy HH:mm", { locale: sv })}
+              {format(new Date(msg.timestamp), "d MMM yyyy HH:mm", { locale: dateLocale })}
             </span>
           </CardHeader>
           <CardContent className="px-4 pb-4">

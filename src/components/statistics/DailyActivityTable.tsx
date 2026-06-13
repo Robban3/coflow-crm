@@ -2,12 +2,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays } from "lucide-react";
 import type { TimeSeriesEntry } from "@/pages/StatisticsPage";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Props {
   timeSeries: TimeSeriesEntry[];
 }
 
 export function DailyActivityTable({ timeSeries }: Props) {
+  const { t, language } = useTranslation();
   // Show most recent first
   const sorted = [...timeSeries].reverse();
 
@@ -20,21 +22,21 @@ export function DailyActivityTable({ timeSeries }: Props) {
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <CalendarDays className="h-4 w-4 text-primary" />
-          Daglig aktivitet
+          {t("statistics.dailyActivity")}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="pl-6">Datum</TableHead>
-              <TableHead className="text-center">Mail</TableHead>
-              <TableHead className="text-center">Samtal</TableHead>
-              <TableHead className="text-center">Möten</TableHead>
-              <TableHead className="text-center">Dok</TableHead>
-              <TableHead className="text-center">Uppg</TableHead>
-              <TableHead className="text-center">Totalt</TableHead>
-              <TableHead className="pr-6 w-[120px]">Volym</TableHead>
+              <TableHead className="pl-6">{t("statistics.date")}</TableHead>
+              <TableHead className="text-center">{t("statistics.email")}</TableHead>
+              <TableHead className="text-center">{t("statistics.calls")}</TableHead>
+              <TableHead className="text-center">{t("statistics.meetings")}</TableHead>
+              <TableHead className="text-center">{t("statistics.documentsShort")}</TableHead>
+              <TableHead className="text-center">{t("statistics.tasksShort")}</TableHead>
+              <TableHead className="text-center">{t("statistics.total")}</TableHead>
+              <TableHead className="pr-6 w-[120px]">{t("statistics.volume")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -43,7 +45,7 @@ export function DailyActivityTable({ timeSeries }: Props) {
               return (
                 <TableRow key={row.date}>
                   <TableCell className="pl-6 font-medium text-sm whitespace-nowrap">
-                    {formatDate(row.date)}
+                    {formatDate(row.date, t, language)}
                   </TableCell>
                   <TableCell className="text-center text-sm tabular-nums">{row.emails || "–"}</TableCell>
                   <TableCell className="text-center text-sm tabular-nums">{row.calls || "–"}</TableCell>
@@ -69,15 +71,20 @@ export function DailyActivityTable({ timeSeries }: Props) {
   );
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(
+  dateStr: string,
+  t: (key: string) => string,
+  language: string
+): string {
   const d = new Date(dateStr + "T00:00:00");
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diff = today.getTime() - d.getTime();
   const days = Math.round(diff / (1000 * 60 * 60 * 24));
 
-  if (days === 0) return "Idag";
-  if (days === 1) return "Igår";
+  if (days === 0) return t("statistics.today");
+  if (days === 1) return t("statistics.yesterday");
 
-  return d.toLocaleDateString("sv-SE", { weekday: "short", day: "numeric", month: "short" });
+  const locale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
+  return d.toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" });
 }

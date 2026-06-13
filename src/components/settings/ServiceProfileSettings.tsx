@@ -8,74 +8,49 @@ import { Loader2, Save, Briefcase, Lightbulb } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface ServiceProfileSettings {
   service_industry: string;
   service_description: string;
 }
 
-const industryTemplates = [
-  {
-    value: "web_agency",
-    label: "Webbyrå / IT",
-    description: "Hemsidor, SEO, Google Ads, webbutveckling",
-    template: `Vi hjälper företag att synas online genom professionella hemsidor, sökmotoroptimering (SEO) och digital marknadsföring. Våra tjänster inkluderar:
-
-• Hemsideutveckling och design
-• SEO och synlighet på Google
-• Google Ads-kampanjer
-• Webbanalys och optimering
-
-Vi fokuserar på att leverera mätbara resultat som ökar synlighet och konverteringar.`,
-  },
-  {
-    value: "telephony",
-    label: "Telefoni / Telekom",
-    description: "Mobilabonnemang, växellösningar, företagstelefoni",
-    template: `Vi erbjuder kostnadseffektiva telefonilösningar för företag. Våra tjänster inkluderar:
-
-• Mobilabonnemang för företag
-• Molnbaserade växellösningar
-• Fast telefoni och SIP-trunking
-• Samlade fakturor och förenklad administration
-
-Vi analyserar företagets nuvarande telefonikostnader och föreslår optimerade lösningar.`,
-  },
-  {
-    value: "fleet_leasing",
-    label: "Fordonsleasing",
-    description: "Billeasing, fordonsflotta, företagsbilar",
-    template: `Vi hjälper företag med kostnadseffektiva och flexibla leasinglösningar för fordonsflottan. Våra tjänster inkluderar:
-
-• Operationell och finansiell leasing
-• Tjänstebilar och förmånsbilar
-• Elbilar och miljövänliga alternativ
-• Flottatjänster och administration
-
-Vi analyserar företagets nuvarande fordonspark och föreslår optimerade avtal.`,
-  },
-  {
-    value: "it_services",
-    label: "IT-tjänster / Konsulting",
-    description: "Systemutveckling, IT-support, molntjänster",
-    template: `Vi levererar IT-tjänster som effektiviserar och säkrar verksamheten. Våra tjänster inkluderar:
-
-• IT-support och helpdesk
-• Molnlösningar och Microsoft 365
-• Systemutveckling och integration
-• IT-säkerhet och backup
-
-Vi hjälper företag att fokusera på sin kärnverksamhet medan vi tar hand om IT:n.`,
-  },
-  {
-    value: "custom",
-    label: "Egen bransch",
-    description: "Skriv en egen beskrivning av dina tjänster",
-    template: "",
-  },
-];
-
 export function ServiceProfileSettings() {
+  const { t } = useTranslation();
+
+  const industryTemplates = [
+    {
+      value: "web_agency",
+      label: t("settings.industryWebLabel"),
+      description: t("settings.industryWebDesc"),
+      template: t("settings.industryWebTemplate"),
+    },
+    {
+      value: "telephony",
+      label: t("settings.industryTelephonyLabel"),
+      description: t("settings.industryTelephonyDesc"),
+      template: t("settings.industryTelephonyTemplate"),
+    },
+    {
+      value: "fleet_leasing",
+      label: t("settings.industryFleetLabel"),
+      description: t("settings.industryFleetDesc"),
+      template: t("settings.industryFleetTemplate"),
+    },
+    {
+      value: "it_services",
+      label: t("settings.industryItLabel"),
+      description: t("settings.industryItDesc"),
+      template: t("settings.industryItTemplate"),
+    },
+    {
+      value: "custom",
+      label: t("settings.industryCustomLabel"),
+      description: t("settings.industryCustomDesc"),
+      template: "",
+    },
+  ];
+
   const [settings, setSettings] = useState<ServiceProfileSettings>({
     service_industry: "",
     service_description: "",
@@ -146,14 +121,14 @@ export function ServiceProfileSettings() {
       if (error) throw error;
 
       toast({
-        title: "Tjänsteprofil sparad",
-        description: "Din tjänsteprofil kommer nu användas för outreach-generering",
+        title: t("settings.serviceProfileSavedTitle"),
+        description: t("settings.serviceProfileSavedDesc"),
       });
     } catch (error) {
       console.error('Error saving service profile:', error);
       toast({
-        title: "Fel",
-        description: "Kunde inte spara tjänsteprofilen",
+        title: t("settings.error"),
+        description: t("settings.serviceProfileSaveErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -178,16 +153,16 @@ export function ServiceProfileSettings() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Briefcase className="h-5 w-5" />
-          Tjänsteprofil för Outreach
+          {t("settings.serviceProfileTitle")}
         </CardTitle>
         <CardDescription>
-          Beskriv vad din organisation säljer så AI:n kan generera relevant outreach oavsett bransch
+          {t("settings.serviceProfileDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Industry Selection */}
         <div className="space-y-3">
-          <Label>Välj branschmall (snabbstart)</Label>
+          <Label>{t("settings.chooseIndustryTemplate")}</Label>
           <RadioGroup
             value={settings.service_industry}
             onValueChange={handleIndustryChange}
@@ -216,32 +191,31 @@ export function ServiceProfileSettings() {
         <div className="space-y-2">
           <Label htmlFor="service_description" className="flex items-center gap-2">
             <Lightbulb className="h-4 w-4 text-muted-foreground" />
-            Tjänstebeskrivning
+            {t("settings.serviceDescription")}
           </Label>
           <Textarea
             id="service_description"
-            placeholder="Beskriv vad din organisation säljer, era huvudtjänster, målgrupp och unika säljargument. Detta används av AI:n för att generera relevant outreach..."
+            placeholder={t("settings.serviceDescriptionPlaceholder")}
             value={settings.service_description}
             onChange={(e) => setSettings(prev => ({ ...prev, service_description: e.target.value }))}
             rows={8}
             className="text-sm"
           />
           <p className="text-xs text-muted-foreground">
-            Ju mer detaljerad beskrivning, desto bättre anpassad outreach. Nämn gärna specifika tjänster, 
-            prissättning, och vad som skiljer er från konkurrenterna.
+            {t("settings.serviceDescriptionHelp")}
           </p>
         </div>
 
         {/* Preview of what AI will use */}
         {settings.service_description && (
           <div className="space-y-2">
-            <Label>Förhandsvisning för AI</Label>
+            <Label>{t("settings.aiPreviewLabel")}</Label>
             <div className="p-4 rounded-lg border bg-muted/30 text-sm">
               <p className="text-xs text-muted-foreground mb-2 font-medium">
-                AI:n kommer använda denna information vid outreach-generering:
+                {t("settings.aiPreviewIntro")}
               </p>
               <p className="font-medium mb-1">
-                Bransch: {selectedIndustry?.label || "Ej vald"}
+                {t("settings.industryLabel", { industry: selectedIndustry?.label || t("settings.industryNotSelected") })}
               </p>
               <div className="whitespace-pre-wrap text-muted-foreground">
                 {settings.service_description.length > 300 
@@ -254,12 +228,12 @@ export function ServiceProfileSettings() {
 
         {/* Help text about how this works with modules */}
         <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 text-sm">
-          <p className="font-medium mb-2">💡 Hur används tjänsteprofilen?</p>
+          <p className="font-medium mb-2">{t("settings.serviceProfileHelpTitle")}</p>
           <ul className="space-y-1 text-muted-foreground text-xs">
-            <li>• <strong>Telefoniförsäljning:</strong> AI:n refererar till leadens befintliga operatör och abonnemang från Fordonsdata & Telefoni-modulen</li>
-            <li>• <strong>Fordonsleasing:</strong> AI:n analyserar leadens fordonsflotta och föreslår optimerade lösningar</li>
-            <li>• <strong>Webbyrå:</strong> AI:n använder webbanalysdata som tidigare för att pitcha SEO/Ads</li>
-            <li>• <strong>Egen bransch:</strong> AI:n utgår helt från din beskrivning och anpassar efter tillgänglig leaddata</li>
+            <li>• <strong>{t("settings.serviceProfileHelpTelephony")}</strong> {t("settings.serviceProfileHelpTelephonyDesc")}</li>
+            <li>• <strong>{t("settings.serviceProfileHelpFleet")}</strong> {t("settings.serviceProfileHelpFleetDesc")}</li>
+            <li>• <strong>{t("settings.serviceProfileHelpWeb")}</strong> {t("settings.serviceProfileHelpWebDesc")}</li>
+            <li>• <strong>{t("settings.serviceProfileHelpCustom")}</strong> {t("settings.serviceProfileHelpCustomDesc")}</li>
           </ul>
         </div>
 
@@ -267,12 +241,12 @@ export function ServiceProfileSettings() {
           {isSaving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sparar...
+              {t("settings.saving")}
             </>
           ) : (
             <>
               <Save className="mr-2 h-4 w-4" />
-              Spara tjänsteprofil
+              {t("settings.saveServiceProfile")}
             </>
           )}
         </Button>

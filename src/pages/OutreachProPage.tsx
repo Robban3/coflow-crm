@@ -4,8 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PhoneCall, List, ArrowRight, Zap, Target, Clock } from "lucide-react";
 import { LeaderboardWidget } from "@/components/power-call/LeaderboardWidget";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function OutreachProPage() {
+  const { t } = useTranslation();
   return (
     <AppLayout>
       <div className="p-4 md:p-8 max-w-4xl mx-auto">
@@ -16,8 +18,8 @@ export default function OutreachProPage() {
               <PhoneCall className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Power Call</h1>
-              <p className="text-sm text-muted-foreground">Outreach Pro — fokuserat ringflöde</p>
+              <h1 className="text-2xl font-bold tracking-tight">{t("outreach.pro.title")}</h1>
+              <p className="text-sm text-muted-foreground">{t("outreach.pro.subtitle")}</p>
             </div>
           </div>
         </div>
@@ -32,12 +34,12 @@ export default function OutreachProPage() {
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
-              <h3 className="font-semibold text-base mb-1">Starta Power Call</h3>
+              <h3 className="font-semibold text-base mb-1">{t("outreach.pro.startCardTitle")}</h3>
               <p className="text-sm text-muted-foreground">
-                Ring leads i ett snabbt, löpande flöde. Lead → Manus → Utfall → Nästa.
+                {t("outreach.pro.startCardDesc")}
               </p>
               <Button className="mt-4 w-full" asChild>
-                <Link to="/outreach-pro/power-call">Starta session</Link>
+                <Link to="/outreach-pro/power-call">{t("outreach.pro.startSession")}</Link>
               </Button>
             </CardContent>
           </Card>
@@ -50,12 +52,12 @@ export default function OutreachProPage() {
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
               </div>
-              <h3 className="font-semibold text-base mb-1">Hantera listor</h3>
+              <h3 className="font-semibold text-base mb-1">{t("outreach.pro.listsCardTitle")}</h3>
               <p className="text-sm text-muted-foreground">
-                Skapa och konfigurera köer av leads att ringa igenom.
+                {t("outreach.pro.listsCardDesc")}
               </p>
               <Button variant="outline" className="mt-4 w-full" asChild>
-                <Link to="/outreach-pro/lists">Visa listor</Link>
+                <Link to="/outreach-pro/lists">{t("outreach.pro.showLists")}</Link>
               </Button>
             </CardContent>
           </Card>
@@ -67,18 +69,18 @@ export default function OutreachProPage() {
             {[
               {
                 icon: Target,
-                title: "Smart kö",
-                desc: "Leads sorteras efter potential baserat på befintlig webbanalys- och GEO-data",
+                title: t("outreach.pro.featSmartQueueTitle"),
+                desc: t("outreach.pro.featSmartQueueDesc"),
               },
               {
                 icon: PhoneCall,
-                title: "Click-to-call",
-                desc: "Ring direkt via tel:-länk, logga utfall med ett klick",
+                title: t("outreach.pro.featClickToCallTitle"),
+                desc: t("outreach.pro.featClickToCallDesc"),
               },
               {
                 icon: Clock,
-                title: "Ledsystem",
-                desc: "Optimistic locking säkerställer att två säljare inte ringer samma lead",
+                title: t("outreach.pro.featLockingTitle"),
+                desc: t("outreach.pro.featLockingDesc"),
               },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="flex gap-3 p-4 rounded-xl border bg-card/50 h-fit">

@@ -2,7 +2,8 @@ import { Badge } from "@/components/ui/badge";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Clock, AlertTriangle } from "lucide-react";
 import { formatDistanceToNow, isPast, differenceInHours } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export interface TicketRow {
   id: string;
@@ -25,13 +26,6 @@ export interface TicketRow {
   organization_id: string | null;
 }
 
-const typeLabels: Record<string, string> = {
-  sales: "Sälj",
-  support: "Support",
-  onboarding: "Onboarding",
-  other: "Övrigt",
-};
-
 const typeColors: Record<string, string> = {
   sales: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
   support: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
@@ -39,11 +33,11 @@ const typeColors: Record<string, string> = {
   other: "bg-muted text-muted-foreground",
 };
 
-const priorityIcons: Record<string, { color: string; label: string }> = {
-  low: { color: "text-muted-foreground", label: "Låg" },
-  medium: { color: "text-warning", label: "Medium" },
-  high: { color: "text-orange-500", label: "Hög" },
-  urgent: { color: "text-destructive", label: "Brådskande" },
+const priorityIcons: Record<string, { color: string }> = {
+  low: { color: "text-muted-foreground" },
+  medium: { color: "text-warning" },
+  high: { color: "text-orange-500" },
+  urgent: { color: "text-destructive" },
 };
 
 interface TicketCardProps {
@@ -52,7 +46,9 @@ interface TicketCardProps {
 }
 
 export function TicketCard({ ticket, onClick }: TicketCardProps) {
-  const age = formatDistanceToNow(new Date(ticket.created_at), { locale: sv, addSuffix: true });
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
+  const age = formatDistanceToNow(new Date(ticket.created_at), { locale: dateLocale, addSuffix: true });
   const priority = priorityIcons[ticket.priority] ?? priorityIcons.medium;
   const dueSoon = ticket.due_date && differenceInHours(new Date(ticket.due_date), new Date()) < 24 && !isPast(new Date(ticket.due_date));
   const overdue = ticket.due_date && isPast(new Date(ticket.due_date)) && ticket.status !== "resolved" && ticket.status !== "closed";
@@ -69,13 +65,13 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
 
       <div className="flex flex-wrap gap-1">
         <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 ${typeColors[ticket.type] ?? ""}`}>
-          {typeLabels[ticket.type] ?? ticket.type}
+          {t(`tickets.type.${ticket.type}`)}
         </Badge>
         {overdue && (
-          <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Försenat</Badge>
+          <Badge variant="destructive" className="text-[10px] px-1.5 py-0">{t("tickets.card.overdue")}</Badge>
         )}
         {dueSoon && !overdue && (
-          <Badge className="text-[10px] px-1.5 py-0 bg-warning/20 text-warning border-warning/30">Snart deadline</Badge>
+          <Badge className="text-[10px] px-1.5 py-0 bg-warning/20 text-warning border-warning/30">{t("tickets.card.dueSoon")}</Badge>
         )}
       </div>
 

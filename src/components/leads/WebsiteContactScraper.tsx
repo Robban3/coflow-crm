@@ -34,6 +34,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { firecrawlApi, ExtractedCompanyData } from "@/lib/api/firecrawl";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface WebsiteContactScraperProps {
   leadId: string;
@@ -53,12 +54,13 @@ export function WebsiteContactScraper({
   const [extractedData, setExtractedData] = useState<ExtractedCompanyData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleExtract = async () => {
     if (!website) {
       toast({
-        title: "Ingen webbplats",
-        description: "Lägg till en webbplats för att hämta kontaktinfo",
+        title: t("leadDetail.ws_noWebsiteTitle"),
+        description: t("leadDetail.ws_noWebsiteDescription"),
         variant: "destructive",
       });
       return;
@@ -72,8 +74,8 @@ export function WebsiteContactScraper({
 
       if (!result.success) {
         toast({
-          title: "Kunde inte hämta data",
-          description: result.error || "Prova igen om en stund",
+          title: t("leadDetail.ws_fetchFailedTitle"),
+          description: result.error || t("leadDetail.ws_fetchFailedDescription"),
           variant: "destructive",
         });
         return;
@@ -88,21 +90,21 @@ export function WebsiteContactScraper({
         
         if (hasContact) {
           toast({
-            title: "Kontaktinfo hittad!",
-            description: "Granska och välj vilken data du vill spara",
+            title: t("leadDetail.ws_contactFoundTitle"),
+            description: t("leadDetail.ws_contactFoundDescription"),
           });
         } else {
           toast({
-            title: "Begränsad data hittades",
-            description: "Inga direkta kontaktuppgifter på webbplatsen",
+            title: t("leadDetail.ws_limitedDataTitle"),
+            description: t("leadDetail.ws_limitedDataDescription"),
           });
         }
       }
     } catch (error) {
       console.error("Firecrawl extract error:", error);
       toast({
-        title: "Fel",
-        description: "Kunde inte hämta data från webbplatsen",
+        title: t("leadDetail.ws_errorTitle"),
+        description: t("leadDetail.ws_extractErrorDescription"),
         variant: "destructive",
       });
     } finally {
@@ -129,8 +131,8 @@ export function WebsiteContactScraper({
 
       if (Object.keys(updates).length === 0) {
         toast({
-          title: "Ingen data att spara",
-          description: "Ingen användbar kontaktinformation hittades",
+          title: t("leadDetail.ws_noDataToSaveTitle"),
+          description: t("leadDetail.ws_noDataToSaveDescription"),
         });
         setShowDialog(false);
         return;
@@ -147,13 +149,13 @@ export function WebsiteContactScraper({
       setShowDialog(false);
 
       toast({
-        title: "Data sparad!",
-        description: "Kontaktinformationen har uppdaterats",
+        title: t("leadDetail.ws_dataSavedTitle"),
+        description: t("leadDetail.ws_dataSavedDescription"),
       });
     } catch (error) {
       toast({
-        title: "Kunde inte spara",
-        description: "Ett fel uppstod när data skulle sparas",
+        title: t("leadDetail.ws_saveFailedTitle"),
+        description: t("leadDetail.ws_saveAllErrorDescription"),
         variant: "destructive",
       });
     } finally {
@@ -175,13 +177,20 @@ export function WebsiteContactScraper({
       onDataExtracted();
 
       toast({
-        title: "Sparad!",
-        description: `${field === 'email' ? 'E-post' : field === 'phone' ? 'Telefon' : 'Kontaktperson'} har uppdaterats`,
+        title: t("leadDetail.ws_savedTitle"),
+        description: t("leadDetail.ws_fieldUpdated", {
+          field:
+            field === 'email'
+              ? t("leadDetail.ws_fieldEmail")
+              : field === 'phone'
+              ? t("leadDetail.ws_fieldPhone")
+              : t("leadDetail.ws_fieldContactPerson"),
+        }),
       });
     } catch (error) {
       toast({
-        title: "Kunde inte spara",
-        description: "Ett fel uppstod",
+        title: t("leadDetail.ws_saveFailedTitle"),
+        description: t("leadDetail.ws_genericErrorDescription"),
         variant: "destructive",
       });
     } finally {
@@ -212,7 +221,7 @@ export function WebsiteContactScraper({
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Hämta kontaktinfo från webbplatsen</TooltipContent>
+          <TooltipContent>{t("leadDetail.ws_tooltipExtract")}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
@@ -221,10 +230,10 @@ export function WebsiteContactScraper({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Globe className="h-5 w-5" />
-              Data från webbplatsen
+              {t("leadDetail.ws_dialogTitle")}
             </DialogTitle>
             <DialogDescription>
-              Hämtad från{" "}
+              {t("leadDetail.ws_dialogFetchedFrom")}{" "}
               <a 
                 href={website} 
                 target="_blank" 

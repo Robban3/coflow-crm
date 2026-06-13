@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { fromTable } from "@/components/documents/supabaseHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Props {
   open: boolean;
@@ -24,6 +25,7 @@ export function CreateTicketDialog({ open, onOpenChange, onCreated }: Props) {
   const { user } = useAuth();
   const organizationId = useOrganizationId();
   const { members } = useTeamMembers();
+  const { t } = useTranslation();
   const [saving, setSaving] = useState(false);
 
   const [title, setTitle] = useState("");
@@ -66,27 +68,27 @@ export function CreateTicketDialog({ open, onOpenChange, onCreated }: Props) {
     if (!linkedEntity) return "";
     if (linkedEntity.startsWith("lead:")) {
       const l = leads.find(x => x.id === linkedEntity.slice(5));
-      return l ? `Lead: ${l.company_name || "(Namnlös)"}` : "";
+      return l ? t("tickets.create.leadPrefix", { name: l.company_name || t("tickets.create.unnamed") }) : "";
     }
     if (linkedEntity.startsWith("customer:")) {
       const c = customers.find(x => x.id === linkedEntity.slice(9));
-      return c ? `Kund: ${c.company_name}` : "";
+      return c ? t("tickets.create.customerPrefix", { name: c.company_name }) : "";
     }
     return "";
-  }, [linkedEntity, leads, customers]);
+  }, [linkedEntity, leads, customers, t]);
 
   const filteredLinkItems = useMemo(() => {
     const q = linkSearch.toLowerCase();
     const items: { value: string; label: string; group: string }[] = [];
     leads.forEach(l => {
-      const name = l.company_name || "(Namnlös)";
-      if (!q || name.toLowerCase().includes(q)) items.push({ value: `lead:${l.id}`, label: name, group: "Lead" });
+      const name = l.company_name || t("tickets.create.unnamed");
+      if (!q || name.toLowerCase().includes(q)) items.push({ value: `lead:${l.id}`, label: name, group: t("tickets.create.groupLead") });
     });
     customers.forEach(c => {
-      if (!q || c.company_name.toLowerCase().includes(q)) items.push({ value: `customer:${c.id}`, label: c.company_name, group: "Kund" });
+      if (!q || c.company_name.toLowerCase().includes(q)) items.push({ value: `customer:${c.id}`, label: c.company_name, group: t("tickets.create.groupCustomer") });
     });
     return items;
-  }, [linkSearch, leads, customers]);
+  }, [linkSearch, leads, customers, t]);
 
   const handleCreate = async () => {
     if (!title.trim() || !user || !organizationId) return;
@@ -109,9 +111,9 @@ export function CreateTicketDialog({ open, onOpenChange, onCreated }: Props) {
     });
 
     if (error) {
-      toast({ title: "Kunde inte skapa ärende", description: error.message, variant: "destructive" });
+      toast({ title: t("tickets.toast.createFailed"), description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Ärende skapat" });
+      toast({ title: t("tickets.toast.created") });
       reset();
       onOpenChange(false);
       onCreated();
@@ -123,45 +125,45 @@ export function CreateTicketDialog({ open, onOpenChange, onCreated }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Skapa nytt ärende</DialogTitle>
+          <DialogTitle>{t("tickets.create.dialogTitle")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1">
-            <Label>Titel *</Label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Beskriv ärendet kort..." />
+            <Label>{t("tickets.create.titleLabel")}</Label>
+            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={t("tickets.create.titlePlaceholder")} />
           </div>
           <div className="space-y-1">
-            <Label>Beskrivning</Label>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Detaljer..." />
+            <Label>{t("tickets.create.descriptionLabel")}</Label>
+            <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder={t("tickets.create.descriptionPlaceholder")} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label>Typ</Label>
+              <Label>{t("tickets.create.typeLabel")}</Label>
               <Select value={type} onValueChange={setType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sales">Sälj</SelectItem>
-                  <SelectItem value="support">Support</SelectItem>
-                  <SelectItem value="onboarding">Onboarding</SelectItem>
-                  <SelectItem value="other">Övrigt</SelectItem>
+                  <SelectItem value="sales">{t("tickets.type.sales")}</SelectItem>
+                  <SelectItem value="support">{t("tickets.type.support")}</SelectItem>
+                  <SelectItem value="onboarding">{t("tickets.type.onboarding")}</SelectItem>
+                  <SelectItem value="other">{t("tickets.type.other")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>Prioritet</Label>
+              <Label>{t("tickets.create.priorityLabel")}</Label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Låg</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">Hög</SelectItem>
-                  <SelectItem value="urgent">Brådskande</SelectItem>
+                  <SelectItem value="low">{t("tickets.priority.low")}</SelectItem>
+                  <SelectItem value="medium">{t("tickets.priority.medium")}</SelectItem>
+                  <SelectItem value="high">{t("tickets.priority.high")}</SelectItem>
+                  <SelectItem value="urgent">{t("tickets.priority.urgent")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="space-y-1 relative" ref={linkRef}>
-            <Label>Koppla till lead/kund</Label>
+            <Label>{t("tickets.create.linkLabel")}</Label>
             {linkedEntity ? (
               <div className="flex items-center gap-2">
                 <span className="text-sm bg-muted px-2 py-1.5 rounded-md flex-1">{linkedLabel}</span>
@@ -172,13 +174,13 @@ export function CreateTicketDialog({ open, onOpenChange, onCreated }: Props) {
                 value={linkSearch}
                 onChange={e => { setLinkSearch(e.target.value); setLinkOpen(true); }}
                 onFocus={() => setLinkOpen(true)}
-                placeholder="Sök lead eller kund..."
+                placeholder={t("tickets.create.linkPlaceholder")}
               />
             )}
             {linkOpen && !linkedEntity && (
               <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-md border bg-popover shadow-md">
                 {filteredLinkItems.length === 0 && (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">Inga resultat</div>
+                  <div className="px-3 py-2 text-sm text-muted-foreground">{t("tickets.create.linkNoResults")}</div>
                 )}
                 {filteredLinkItems.map(item => (
                   <button
@@ -195,9 +197,9 @@ export function CreateTicketDialog({ open, onOpenChange, onCreated }: Props) {
             )}
           </div>
           <div className="space-y-1">
-            <Label>Tilldela till</Label>
+            <Label>{t("tickets.create.assignLabel")}</Label>
             <Select value={assignedTo} onValueChange={setAssignedTo}>
-              <SelectTrigger><SelectValue placeholder="Välj teammedlem" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("tickets.create.assignPlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {members.map(m => (
                   <SelectItem key={m.id} value={m.id}>
@@ -211,14 +213,14 @@ export function CreateTicketDialog({ open, onOpenChange, onCreated }: Props) {
             </Select>
           </div>
           <div className="space-y-1">
-            <Label>Deadline</Label>
+            <Label>{t("tickets.create.dueDateLabel")}</Label>
             <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Avbryt</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("tickets.create.cancel")}</Button>
           <Button onClick={handleCreate} disabled={saving || !title.trim()}>
-            {saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />} Skapa ärende
+            {saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />} {t("tickets.create.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,23 +1,24 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, Calendar, FileText, CheckSquare, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { TimeSeriesEntry } from "@/pages/StatisticsPage";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Props {
   timeSeries: TimeSeriesEntry[];
 }
 
 interface Metric {
-  label: string;
+  labelKey: string;
   key: keyof Omit<TimeSeriesEntry, "date">;
   icon: React.ElementType;
 }
 
 const METRICS: Metric[] = [
-  { label: "Mail", key: "emails", icon: Mail },
-  { label: "Samtal", key: "calls", icon: Phone },
-  { label: "Möten", key: "meetings", icon: Calendar },
-  { label: "Dokument", key: "documents", icon: FileText },
-  { label: "Uppgifter", key: "tasks", icon: CheckSquare },
+  { labelKey: "statistics.email", key: "emails", icon: Mail },
+  { labelKey: "statistics.calls", key: "calls", icon: Phone },
+  { labelKey: "statistics.meetings", key: "meetings", icon: Calendar },
+  { labelKey: "statistics.documents", key: "documents", icon: FileText },
+  { labelKey: "statistics.tasks", key: "tasks", icon: CheckSquare },
 ];
 
 function localDateStr(d: Date): string {
@@ -25,6 +26,7 @@ function localDateStr(d: Date): string {
 }
 
 export function TodaySnapshot({ timeSeries }: Props) {
+  const { t, language } = useTranslation();
   const now = new Date();
   const todayStr = localDateStr(now);
   const today = timeSeries.find(d => d.date === todayStr);
@@ -39,7 +41,7 @@ export function TodaySnapshot({ timeSeries }: Props) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-      {METRICS.map(({ label, key, icon: Icon }) => {
+      {METRICS.map(({ labelKey, key, icon: Icon }) => {
         const current = today[key] as number;
         const prev = lastWeek ? (lastWeek[key] as number) : null;
         const diff = prev !== null ? current - prev : null;
@@ -49,7 +51,7 @@ export function TodaySnapshot({ timeSeries }: Props) {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Icon className="h-4 w-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground font-medium">{label}</span>
+                <span className="text-xs text-muted-foreground font-medium">{t(labelKey)}</span>
               </div>
               <div className="flex items-end justify-between">
                 <span className="text-2xl font-bold tabular-nums">{current}</span>
@@ -64,7 +66,7 @@ export function TodaySnapshot({ timeSeries }: Props) {
               </div>
               {prev !== null && (
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  vs förra {getDayName()} ({prev})
+                  {t("statistics.vsLast", { day: getDayName(language), count: prev })}
                 </p>
               )}
             </CardContent>
@@ -75,6 +77,7 @@ export function TodaySnapshot({ timeSeries }: Props) {
   );
 }
 
-function getDayName(): string {
-  return new Date().toLocaleDateString("sv-SE", { weekday: "long" }).replace(/^\w/, c => c.toLowerCase());
+function getDayName(language: string): string {
+  const locale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
+  return new Date().toLocaleDateString(locale, { weekday: "long" }).replace(/^\w/, c => c.toLowerCase());
 }

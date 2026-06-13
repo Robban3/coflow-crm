@@ -9,6 +9,7 @@ import { Loader2, Save, Mail, Globe, Building2, MessageSquare } from "lucide-rea
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { ProfileImageUpload } from "./ProfileImageUpload";
 import { ServiceProfileSettings } from "./ServiceProfileSettings";
 
@@ -22,50 +23,36 @@ interface SignatureSettings {
   sender_display_name: string;
 }
 
-const toneOptions = [
-  {
-    value: "standard",
-    label: "Standard",
-    description: "Balanserat och professionellt",
-    example: `Hej,
-
-Jag har analyserat er webbplats och noterade att SEO-poängen ligger på 45/100. Det finns goda möjligheter att förbättra er synlighet i sökmotorer.
-
-Har ni tid för ett kort samtal om hur ni kan nå fler potentiella kunder?`,
-  },
-  {
-    value: "familiar",
-    label: "Familjär",
-    description: "Varmt och personligt",
-    example: `Hej!
-
-Jag tittade precis på er sajt och blev nyfiken – ni har en riktigt snygg design! Såg dock att SEO-poängen hamnade på 45/100, vilket ofta beror på tekniska smågrejer som är enkla att fixa.
-
-Skulle vara kul att höra mer om er verksamhet – har du några minuter över?`,
-  },
-  {
-    value: "informative",
-    label: "Informativ",
-    description: "Faktabaserat och pedagogiskt",
-    example: `Hej,
-
-Efter en analys av er webbplats kan jag konstatera att SEO-poängen ligger på 45/100. Detta påverkar er synlighet i sökresultaten – studier visar att 75% av användare aldrig scrollar förbi första sidan på Google.
-
-De främsta förbättringsområdena jag identifierade rör meta-beskrivningar och rubrikstruktur. Vill du att jag går igenom dem mer i detalj?`,
-  },
-  {
-    value: "direct",
-    label: "Direkt",
-    description: "Rakt på sak, kortfattat",
-    example: `Hej,
-
-Analyserade er sajt – SEO: 45/100. Ni tappar sannolikt trafik.
-
-Kan vi ta 15 min nästa vecka för att gå igenom de snabbaste förbättringarna?`,
-  },
-];
-
 export function EmailSignatureSettings() {
+  const { t } = useTranslation();
+
+  const toneOptions = [
+    {
+      value: "standard",
+      label: t("settings.toneStandardLabel"),
+      description: t("settings.toneStandardDesc"),
+      example: t("settings.toneStandardExample"),
+    },
+    {
+      value: "familiar",
+      label: t("settings.toneFamiliarLabel"),
+      description: t("settings.toneFamiliarDesc"),
+      example: t("settings.toneFamiliarExample"),
+    },
+    {
+      value: "informative",
+      label: t("settings.toneInformativeLabel"),
+      description: t("settings.toneInformativeDesc"),
+      example: t("settings.toneInformativeExample"),
+    },
+    {
+      value: "direct",
+      label: t("settings.toneDirectLabel"),
+      description: t("settings.toneDirectDesc"),
+      example: t("settings.toneDirectExample"),
+    },
+  ];
+
   const [settings, setSettings] = useState<SignatureSettings>({
     email_signature: "",
     company_name: "",
@@ -138,14 +125,14 @@ export function EmailSignatureSettings() {
       if (error) throw error;
 
       toast({
-        title: "Inställningar sparade",
-        description: "Dina outreach-inställningar har uppdaterats",
+        title: t("settings.signatureSavedTitle"),
+        description: t("settings.signatureSavedDesc"),
       });
     } catch (error) {
       console.error('Error saving settings:', error);
       toast({
-        title: "Fel",
-        description: "Kunde inte spara inställningarna",
+        title: t("settings.error"),
+        description: t("settings.signatureSaveErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -175,30 +162,29 @@ export function EmailSignatureSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Avsändare & signatur
+            {t("settings.senderCardTitle")}
           </CardTitle>
           <CardDescription>
-            Anpassa hur dina outreach-mail visas för mottagaren
+            {t("settings.senderCardDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Sender Display Name */}
           <div className="space-y-2">
-            <Label htmlFor="sender_display_name">Avsändarnamn</Label>
+            <Label htmlFor="sender_display_name">{t("settings.senderName")}</Label>
             <Input
               id="sender_display_name"
-              placeholder={settings.company_name || user?.user_metadata?.full_name || "Ditt namn eller företag"}
+              placeholder={settings.company_name || user?.user_metadata?.full_name || t("settings.senderNamePlaceholder")}
               value={settings.sender_display_name}
               onChange={(e) => setSettings(prev => ({ ...prev, sender_display_name: e.target.value }))}
             />
             <p className="text-xs text-muted-foreground">
-              Detta namn visas som avsändare i mottagarens inkorg. 
-              Lämna tomt för att använda ditt fullständiga namn eller företagsnamn.
+              {t("settings.senderNameHelp")}
             </p>
             <div className="p-3 rounded-lg bg-muted/50 border">
-              <p className="text-xs text-muted-foreground mb-1">Förhandsgranskning:</p>
+              <p className="text-xs text-muted-foreground mb-1">{t("settings.preview")}</p>
               <p className="text-sm font-medium">
-                {settings.sender_display_name || settings.company_name || user?.user_metadata?.full_name || "Kod & Co."} &lt;hej@kodco.se&gt;
+                {settings.sender_display_name || settings.company_name || user?.user_metadata?.full_name || t("settings.senderFallbackName")} &lt;hej@kodco.se&gt;
               </p>
             </div>
           </div>
@@ -208,11 +194,11 @@ export function EmailSignatureSettings() {
             <div className="space-y-2">
               <Label htmlFor="company_name" className="flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
-                Företagsnamn
+                {t("settings.companyName")}
               </Label>
               <Input
                 id="company_name"
-                placeholder="Ditt Företag AB"
+                placeholder={t("settings.companyNamePlaceholder")}
                 value={settings.company_name}
                 onChange={(e) => setSettings(prev => ({ ...prev, company_name: e.target.value }))}
               />
@@ -220,12 +206,12 @@ export function EmailSignatureSettings() {
             <div className="space-y-2">
               <Label htmlFor="company_website" className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-muted-foreground" />
-                Hemsida
+                {t("settings.companyWebsite")}
               </Label>
               <Input
                 id="company_website"
                 type="url"
-                placeholder="https://dittforetag.se"
+                placeholder={t("settings.companyWebsitePlaceholder")}
                 value={settings.company_website}
                 onChange={(e) => setSettings(prev => ({ ...prev, company_website: e.target.value }))}
               />
@@ -235,7 +221,7 @@ export function EmailSignatureSettings() {
           {/* Company Logo Upload */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
-              Företagslogga
+              {t("settings.companyLogo")}
             </Label>
             <ProfileImageUpload
               currentUrl={settings.company_logo_url}
@@ -249,47 +235,46 @@ export function EmailSignatureSettings() {
 
           {/* Email Signature */}
           <div className="space-y-2">
-            <Label htmlFor="email_signature">E-postsignatur</Label>
+            <Label htmlFor="email_signature">{t("settings.emailSignature")}</Label>
             <Textarea
               id="email_signature"
-              placeholder={`Med vänliga hälsningar,
-
-${user?.user_metadata?.full_name || 'Ditt Namn'}
-${settings.company_name || 'Företaget'}
-Tel: 070-XXX XX XX`}
+              placeholder={t("settings.emailSignaturePlaceholder", {
+                name: user?.user_metadata?.full_name || t("settings.emailSignatureFallbackName"),
+                company: settings.company_name || t("settings.emailSignatureFallbackCompany"),
+              })}
               value={settings.email_signature}
               onChange={(e) => setSettings(prev => ({ ...prev, email_signature: e.target.value }))}
               rows={5}
               className="font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              Läggs till i slutet av varje AI-genererat mail
+              {t("settings.emailSignatureHelp")}
             </p>
           </div>
 
           {/* Email Footer */}
           <div className="space-y-2">
-            <Label htmlFor="email_footer">E-postfot (frivillig)</Label>
+            <Label htmlFor="email_footer">{t("settings.emailFooter")}</Label>
             <Textarea
               id="email_footer"
-              placeholder="T.ex. avregistreringslänk, företagsadress, disclaimer..."
+              placeholder={t("settings.emailFooterPlaceholder")}
               value={settings.email_footer}
               onChange={(e) => setSettings(prev => ({ ...prev, email_footer: e.target.value }))}
               rows={3}
               className="font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              Extra text som läggs till allra sist i mailet
+              {t("settings.emailFooterHelp")}
             </p>
           </div>
 
           {/* Preview */}
           {(settings.email_signature || settings.email_footer) && (
             <div className="space-y-2">
-              <Label>Förhandsvisning av signatur</Label>
+              <Label>{t("settings.signaturePreviewLabel")}</Label>
               <div className="p-4 rounded-lg border bg-card">
                 <p className="text-sm text-muted-foreground mb-4 italic">
-                  [AI-genererad mailtext kommer här...]
+                  {t("settings.signaturePreviewPlaceholder")}
                 </p>
                 {settings.email_signature && (
                   <div className="whitespace-pre-wrap text-sm border-t pt-4 mt-4">
@@ -307,7 +292,7 @@ Tel: 070-XXX XX XX`}
                       >
                         <img 
                           src={settings.company_logo_url} 
-                          alt="Logotyp" 
+                          alt={t("settings.logoAlt")}
                           className="h-10 max-w-40 object-contain"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
@@ -317,7 +302,7 @@ Tel: 070-XXX XX XX`}
                     ) : (
                       <img 
                         src={settings.company_logo_url} 
-                        alt="Logotyp" 
+                        alt={t("settings.logoAlt")} 
                         className="h-10 max-w-40 object-contain"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
@@ -339,12 +324,12 @@ Tel: 070-XXX XX XX`}
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sparar...
+                {t("settings.saving")}
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                Spara inställningar
+                {t("settings.saveSettings")}
               </>
             )}
           </Button>
@@ -356,10 +341,10 @@ Tel: 070-XXX XX XX`}
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Tonalitet för AI-mail
+            {t("settings.toneCardTitle")}
           </CardTitle>
           <CardDescription>
-            Välj hur dina AI-genererade outreach-mail ska låta
+            {t("settings.toneCardDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

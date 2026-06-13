@@ -27,6 +27,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useMarket } from "@/hooks/useMarket";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface GeoAnalysisData {
   geo_score: number | null;
@@ -94,6 +95,7 @@ export function SingleEmailGenerator({
   const [selectedSources, setSelectedSources] = useState<DataSource[]>(["service_profile"]);
   const { toast } = useToast();
   const { market } = useMarket();
+  const { t } = useTranslation();
 
   // Fetch latest GEO analysis
   const { data: geoData } = useQuery({
@@ -160,8 +162,8 @@ export function SingleEmailGenerator({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
-          title: "Ej inloggad",
-          description: "Du måste vara inloggad för att generera mail",
+          title: t("leadDetail.se_notLoggedInTitle"),
+          description: t("leadDetail.se_notLoggedInGenerateDesc"),
           variant: "destructive",
         });
         return;
@@ -249,8 +251,8 @@ export function SingleEmailGenerator({
       setIsGenerated(true);
 
       toast({
-        title: "Mail genererat!",
-        description: "Granska och redigera mailet innan du skickar",
+        title: t("leadDetail.se_emailGeneratedTitle"),
+        description: t("leadDetail.se_emailGeneratedDesc"),
       });
 
       setSubject(response.data.subject);
@@ -258,14 +260,14 @@ export function SingleEmailGenerator({
       setIsGenerated(true);
 
       toast({
-        title: "Mail genererat!",
-        description: "Granska och redigera mailet innan du skickar",
+        title: t("leadDetail.se_emailGeneratedTitle"),
+        description: t("leadDetail.se_emailGeneratedDesc"),
       });
     } catch (error) {
       console.error("Error generating email:", error);
       toast({
-        title: "Fel vid generering",
-        description: error instanceof Error ? error.message : "Kunde inte generera mail",
+        title: t("leadDetail.se_generateErrorTitle"),
+        description: error instanceof Error ? error.message : t("leadDetail.se_generateErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -276,8 +278,8 @@ export function SingleEmailGenerator({
   const handleSend = async () => {
     if (!leadEmail) {
       toast({
-        title: "E-post saknas",
-        description: "Leadens e-postadress saknas",
+        title: t("leadDetail.se_emailMissingTitle"),
+        description: t("leadDetail.se_emailMissingDesc"),
         variant: "destructive",
       });
       return;
@@ -287,7 +289,7 @@ export function SingleEmailGenerator({
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error("Ej inloggad");
+        throw new Error(t("leadDetail.se_notLoggedInTitle"));
       }
 
       const response = await supabase.functions.invoke("send-quick-outreach-email", {
@@ -304,8 +306,8 @@ export function SingleEmailGenerator({
       }
 
       toast({
-        title: "Mail skickat!",
-        description: `Mailet har skickats till ${leadEmail}`,
+        title: t("leadDetail.se_emailSentTitle"),
+        description: t("leadDetail.se_emailSentDesc", { email: leadEmail }),
       });
 
       // Log email activity
@@ -313,7 +315,7 @@ export function SingleEmailGenerator({
         lead_id: leadId,
         user_id: user.id,
         type: "email",
-        title: `Enskilt mail skickat: ${subject}`,
+        title: t("leadDetail.se_activitySingleEmailSent", { subject }),
         description: body.substring(0, 200) + (body.length > 200 ? "..." : ""),
         completed_at: new Date().toISOString(),
       });
@@ -324,8 +326,8 @@ export function SingleEmailGenerator({
     } catch (error) {
       console.error("Error sending email:", error);
       toast({
-        title: "Fel vid skickning",
-        description: error instanceof Error ? error.message : "Kunde inte skicka mail",
+        title: t("leadDetail.se_sendErrorTitle"),
+        description: error instanceof Error ? error.message : t("leadDetail.se_sendErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -341,16 +343,16 @@ export function SingleEmailGenerator({
 
   const promptExamples = hasNoWebsite
     ? [
-        "Fokusera på att de kan nå fler kunder med en enkel hemsida",
-        "Nämn att en hemsida kompletterar deras sociala medier",
-        "Betona att det inte behöver vara dyrt eller komplicerat",
-        "Fokusera på lokal synlighet och Google-sökningar",
+        t("leadDetail.se_promptNoWebsite1"),
+        t("leadDetail.se_promptNoWebsite2"),
+        t("leadDetail.se_promptNoWebsite3"),
+        t("leadDetail.se_promptNoWebsite4"),
       ]
     : [
-        "En första kontakt, fokusera på att boka möte och väcka intresse baserat på analys",
-        "Uppföljning efter tidigare kontakt, påminn om förbättringsmöjligheter",
-        "Fokusera på SEO-förbättringar och hur det kan öka synligheten",
-        "Lyft fram prestandaproblem och hur det påverkar kundupplevelsen",
+        t("leadDetail.se_promptWebsite1"),
+        t("leadDetail.se_promptWebsite2"),
+        t("leadDetail.se_promptWebsite3"),
+        t("leadDetail.se_promptWebsite4"),
       ];
 
   return (
@@ -362,9 +364,9 @@ export function SingleEmailGenerator({
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <Wand2 className="h-5 w-5 text-primary shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <CardTitle className="text-sm sm:text-base truncate">Generera enskilt mail</CardTitle>
+                  <CardTitle className="text-sm sm:text-base truncate">{t("leadDetail.se_cardTitle")}</CardTitle>
                   <CardDescription className="text-[11px] sm:text-sm truncate">
-                    Skapa ett AI-genererat mail utan sekvens
+                    {t("leadDetail.se_cardDescription")}
                   </CardDescription>
                 </div>
               </div>
@@ -379,7 +381,7 @@ export function SingleEmailGenerator({
             {/* Mobile CTA when collapsed */}
             {!isOpen && (
               <div className="mt-2 md:hidden">
-                <div className="text-xs text-primary font-medium">Tryck för att skapa nytt mail →</div>
+                <div className="text-xs text-primary font-medium">{t("leadDetail.se_mobileCta")}</div>
               </div>
             )}
           </CardHeader>
@@ -393,7 +395,7 @@ export function SingleEmailGenerator({
                 {/* Data Source Selector - NEW! */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                    Datakällor för outreach
+                    {t("leadDetail.se_dataSourcesLabel")}
                   </Label>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {/* Service Profile */}
@@ -413,9 +415,9 @@ export function SingleEmailGenerator({
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <Briefcase className="h-4 w-4 text-primary shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">Tjänsteprofil</p>
+                          <p className="text-sm font-medium truncate">{t("leadDetail.se_serviceProfileTitle")}</p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {serviceProfile ? "Din tjänstebeskrivning" : "Ej konfigurerad"}
+                            {serviceProfile ? t("leadDetail.se_serviceProfileConfigured") : t("leadDetail.se_serviceProfileNotConfigured")}
                           </p>
                         </div>
                       </div>
@@ -438,11 +440,11 @@ export function SingleEmailGenerator({
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <Globe className="h-4 w-4 text-blue-500 shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">Webbanalys</p>
+                          <p className="text-sm font-medium truncate">{t("leadDetail.se_webAnalysisTitle")}</p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {hasWebAnalysis 
-                              ? `SEO: ${latestAnalysis?.seo_score ?? "-"}/100` 
-                              : hasNoWebsite ? "Ingen hemsida" : "Ej analyserad"}
+                            {hasWebAnalysis
+                              ? `SEO: ${latestAnalysis?.seo_score ?? "-"}/100`
+                              : hasNoWebsite ? t("leadDetail.se_noWebsite") : t("leadDetail.se_notAnalyzed")}
                           </p>
                         </div>
                       </div>

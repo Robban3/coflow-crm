@@ -42,9 +42,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { FollowUpEmailDialog } from "./FollowUpEmailDialog";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface FollowUpLead {
   id: string;
@@ -104,6 +105,8 @@ export function MailFollowUp() {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
 
   const { data: rawData, isLoading: loading } = useQuery({
     queryKey: ["follow-up-leads"],
@@ -188,13 +191,15 @@ export function MailFollowUp() {
         if (error) throw error;
       }
       toast({
-        title: `${notInterestedLeadIds.length} lead(s) markerade som ej intresserade`,
+        title: t("mail.followUp.markedNotInterested", {
+          count: notInterestedLeadIds.length,
+        }),
       });
       setShowNotInterestedDialog(false);
       setSelected(new Set());
       invalidate();
     } catch (e: any) {
-      toast({ title: "Fel", description: e.message, variant: "destructive" });
+      toast({ title: t("mail.followUp.error"), description: e.message, variant: "destructive" });
     } finally {
       setMarkingLoading(false);
     }
@@ -214,10 +219,10 @@ export function MailFollowUp() {
         <CardContent className="py-12 text-center">
           <Inbox className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
           <p className="text-muted-foreground">
-            Inga leads redo för uppföljning just nu.
+            {t("mail.followUp.emptyTitle")}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Leads visas här när de kontaktats via mail men inte svarat på 7+ dagar.
+            {t("mail.followUp.emptyDesc")}
           </p>
         </CardContent>
       </Card>
@@ -229,34 +234,34 @@ export function MailFollowUp() {
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">Senaste kontakt:</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">{t("mail.followUp.lastContactLabel")}</span>
           <Select value={String(minDays)} onValueChange={(v) => setMinDays(Number(v))}>
             <SelectTrigger className="w-[160px] h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7">Över 7 dagar</SelectItem>
-              <SelectItem value="14">Över 2 veckor</SelectItem>
-              <SelectItem value="30">Över 30 dagar</SelectItem>
-              <SelectItem value="60">Över 60 dagar</SelectItem>
-              <SelectItem value="90">Över 90 dagar</SelectItem>
+              <SelectItem value="7">{t("mail.followUp.over7days")}</SelectItem>
+              <SelectItem value="14">{t("mail.followUp.over2weeks")}</SelectItem>
+              <SelectItem value="30">{t("mail.followUp.over30days")}</SelectItem>
+              <SelectItem value="60">{t("mail.followUp.over60days")}</SelectItem>
+              <SelectItem value="90">{t("mail.followUp.over90days")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">Sortera:</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">{t("mail.followUp.sortLabel")}</span>
           <Select value={sortDir} onValueChange={(v) => setSortDir(v as "asc" | "desc")}>
             <SelectTrigger className="w-[180px] h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="asc">Äldst kontakt först</SelectItem>
-              <SelectItem value="desc">Nyast kontakt först</SelectItem>
+              <SelectItem value="asc">{t("mail.followUp.oldestFirst")}</SelectItem>
+              <SelectItem value="desc">{t("mail.followUp.newestFirst")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <Badge variant="secondary" className="ml-auto">
-          {leads.length} leads
+          {t("mail.followUp.leadsCount", { count: leads.length })}
         </Badge>
       </div>
       {/* Batch action bar */}

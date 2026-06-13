@@ -15,9 +15,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAvatarFrame, getFrameClasses } from "@/hooks/useAvatarFrame";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export function UserMenu() {
   const { user, signOut, isAdmin } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const frame = useAvatarFrame(user?.id);
   const [profile, setProfile] = useState<{ avatar_url: string | null; full_name: string | null }>({
@@ -71,8 +73,9 @@ export function UserMenu() {
     navigate('/login');
   };
 
-  const displayName = profile.full_name || user?.user_metadata?.full_name || 'Användare';
-  const initials = displayName !== 'Användare'
+  const defaultName = t("userMenu.defaultName");
+  const displayName = profile.full_name || user?.user_metadata?.full_name || defaultName;
+  const initials = displayName !== defaultName
     ? displayName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase()
     : user?.email?.substring(0, 2).toUpperCase() || 'U';
 
@@ -98,23 +101,23 @@ export function UserMenu() {
               {user?.email}
             </p>
             {isAdmin && (
-              <span className="text-xs text-primary font-medium">Admin</span>
+              <span className="text-xs text-primary font-medium">{t("userMenu.admin")}</span>
             )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate('/settings/profile')}>
           <User className="mr-2 h-4 w-4" />
-          <span>Profil</span>
+          <span>{t("userMenu.profile")}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate('/settings')}>
           <Settings className="mr-2 h-4 w-4" />
-          <span>Inställningar</span>
+          <span>{t("userMenu.settings")}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Logga ut</span>
+          <span>{t("userMenu.signOut")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -9,8 +9,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
@@ -29,6 +30,8 @@ export function CreateTaskDialog({ open, onOpenChange, onCreated }: CreateTaskDi
   const organizationId = useOrganizationId();
   const { members } = useTeamMembers();
   const { toast } = useToast();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -53,12 +56,12 @@ export function CreateTaskDialog({ open, onOpenChange, onCreated }: CreateTaskDi
     });
 
     if (error) {
-      toast({ title: "Fel", description: "Kunde inte skapa uppgift", variant: "destructive" });
+      toast({ title: t("tasks.toastError"), description: t("tasks.toastCreateFail"), variant: "destructive" });
     } else {
       if (assignedTo && assignedTo !== user.id) {
         await notifyTaskAssigned(assignedTo, title.trim(), "", null);
       }
-      toast({ title: "Uppgift skapad" });
+      toast({ title: t("tasks.toastCreated") });
       resetForm();
       onOpenChange(false);
       onCreated();
@@ -78,45 +81,45 @@ export function CreateTaskDialog({ open, onOpenChange, onCreated }: CreateTaskDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Ny uppgift</DialogTitle>
+          <DialogTitle>{t("tasks.dialogTitle")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="task-title">Titel *</Label>
+            <Label htmlFor="task-title">{t("tasks.fieldTitle")}</Label>
             <Input
               id="task-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="T.ex. Följa upp med kund"
+              placeholder={t("tasks.titlePlaceholder")}
             />
           </div>
           <div>
-            <Label htmlFor="task-desc">Beskrivning</Label>
+            <Label htmlFor="task-desc">{t("tasks.fieldDescription")}</Label>
             <Textarea
               id="task-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Valfri beskrivning..."
+              placeholder={t("tasks.descriptionPlaceholder")}
               rows={3}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Prioritet</Label>
+              <Label>{t("tasks.fieldPriority")}</Label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Låg</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">Hög</SelectItem>
-                  <SelectItem value="urgent">Brådskande</SelectItem>
+                  <SelectItem value="low">{t("tasks.priorityLow")}</SelectItem>
+                  <SelectItem value="medium">{t("tasks.priorityMedium")}</SelectItem>
+                  <SelectItem value="high">{t("tasks.priorityHigh")}</SelectItem>
+                  <SelectItem value="urgent">{t("tasks.priorityUrgent")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Tilldela</Label>
+              <Label>{t("tasks.fieldAssign")}</Label>
               <Select value={assignedTo} onValueChange={setAssignedTo}>
-                <SelectTrigger><SelectValue placeholder="Mig själv" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("tasks.assignMyself")} /></SelectTrigger>
                 <SelectContent>
                   {members.map((m) => (
                     <SelectItem key={m.id} value={m.id}>
@@ -128,12 +131,12 @@ export function CreateTaskDialog({ open, onOpenChange, onCreated }: CreateTaskDi
             </div>
           </div>
           <div>
-            <Label>Förfallodatum</Label>
+            <Label>{t("tasks.fieldDueDate")}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !dueDate && "text-muted-foreground")}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dueDate ? format(dueDate, "d MMMM yyyy", { locale: sv }) : "Välj datum"}
+                  {dueDate ? format(dueDate, "d MMMM yyyy", { locale: dateLocale }) : t("tasks.selectDate")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -143,10 +146,10 @@ export function CreateTaskDialog({ open, onOpenChange, onCreated }: CreateTaskDi
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Avbryt</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("tasks.cancel")}</Button>
           <Button onClick={handleSubmit} disabled={!title.trim() || saving}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Skapa
+            {t("tasks.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

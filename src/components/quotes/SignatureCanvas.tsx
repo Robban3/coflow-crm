@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, Check } from "lucide-react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface SignatureCanvasProps {
   onSave: (dataUrl: string) => void;
@@ -9,7 +10,9 @@ interface SignatureCanvasProps {
   disabled?: boolean;
 }
 
-export function SignatureCanvas({ onSave, existingSignature, label = "Signatur", disabled = false }: SignatureCanvasProps) {
+export function SignatureCanvas({ onSave, existingSignature, label, disabled = false }: SignatureCanvasProps) {
+  const { t } = useTranslation();
+  const resolvedLabel = label ?? t("quotes.signature");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
@@ -107,7 +110,7 @@ export function SignatureCanvas({ onSave, existingSignature, label = "Signatur",
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium">{label}</p>
+      <p className="text-sm font-medium">{resolvedLabel}</p>
       <div className="border rounded-lg overflow-hidden bg-white">
         <canvas
           ref={canvasRef}
@@ -125,11 +128,11 @@ export function SignatureCanvas({ onSave, existingSignature, label = "Signatur",
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={clear} disabled={!hasDrawn}>
             <Trash2 className="h-3.5 w-3.5 mr-1" />
-            Rensa
+            {t("quotes.clear")}
           </Button>
           <Button size="sm" onClick={save} disabled={!hasDrawn}>
             <Check className="h-3.5 w-3.5 mr-1" />
-            Bekräfta signatur
+            {t("quotes.confirmSignature")}
           </Button>
         </div>
       )}

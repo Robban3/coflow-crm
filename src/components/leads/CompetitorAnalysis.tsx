@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Competitor {
   id: string;
@@ -64,6 +65,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
   const organizationId = useOrganizationId();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   const [competitors, setCompetitors] = useState<CompetitorWithAnalysis[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -131,8 +133,8 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
       if (error) throw error;
 
       toast({
-        title: "Konkurrent tillagd",
-        description: `${manualForm.name} har lagts till`,
+        title: t("leadDetail.co_competitorAddedTitle"),
+        description: t("leadDetail.co_competitorAddedDesc", { name: manualForm.name }),
       });
 
       setShowAddDialog(false);
@@ -140,8 +142,8 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
       fetchCompetitors();
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte lägga till konkurrent",
+        title: t("leadDetail.co_errorTitle"),
+        description: t("leadDetail.co_addCompetitorError"),
         variant: "destructive",
       });
     } finally {
@@ -171,15 +173,15 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
       
       if (data.competitors?.length === 0) {
         toast({
-          title: "Inga resultat",
-          description: "Inga konkurrenter hittades. Prova en annan sökning.",
+          title: t("leadDetail.co_noResultsTitle"),
+          description: t("leadDetail.co_noResultsDesc"),
         });
       }
     } catch (error) {
       console.error('Error searching competitors:', error);
       toast({
-        title: "Sökfel",
-        description: "Kunde inte söka efter konkurrenter",
+        title: t("leadDetail.co_searchErrorTitle"),
+        description: t("leadDetail.co_searchErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -207,8 +209,8 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
 
       if (toAdd.length === 0) {
         toast({
-          title: "Ingen webbplats",
-          description: "Valda konkurrenter saknar webbplats",
+          title: t("leadDetail.co_noWebsiteTitle"),
+          description: t("leadDetail.co_noWebsiteDesc"),
           variant: "destructive",
         });
         return;
@@ -219,8 +221,8 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
       if (error) throw error;
 
       toast({
-        title: "Konkurrenter tillagda",
-        description: `${toAdd.length} konkurrent(er) har lagts till`,
+        title: t("leadDetail.co_competitorsAddedTitle"),
+        description: t("leadDetail.co_competitorsAddedDesc", { count: toAdd.length }),
       });
 
       setShowAutoDialog(false);
@@ -229,8 +231,8 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
       fetchCompetitors();
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte lägga till konkurrenter",
+        title: t("leadDetail.co_errorTitle"),
+        description: t("leadDetail.co_addCompetitorsError"),
         variant: "destructive",
       });
     } finally {
@@ -244,15 +246,15 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
       if (error) throw error;
 
       toast({
-        title: "Borttagen",
-        description: "Konkurrenten har tagits bort",
+        title: t("leadDetail.co_deletedTitle"),
+        description: t("leadDetail.co_deletedDesc"),
       });
       
       fetchCompetitors();
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte ta bort konkurrent",
+        title: t("leadDetail.co_errorTitle"),
+        description: t("leadDetail.co_deleteCompetitorError"),
         variant: "destructive",
       });
     }
@@ -304,14 +306,14 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
       <div className="flex flex-wrap gap-2">
         <Button size="sm" variant="outline" onClick={() => setShowAddDialog(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Lägg till manuellt
+          {t("leadDetail.co_addManually")}
         </Button>
         <Button size="sm" onClick={() => {
-          setAutoSearchQuery(leadCompanyName ? `${leadCompanyName} konkurrenter` : '');
+          setAutoSearchQuery(leadCompanyName ? t("leadDetail.co_defaultSearchQuery", { name: leadCompanyName }) : '');
           setShowAutoDialog(true);
         }}>
           <Zap className="mr-2 h-4 w-4" />
-          Hitta automatiskt
+          {t("leadDetail.co_findAutomatically")}
         </Button>
       </div>
 
@@ -320,10 +322,10 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-1">
-            Inga konkurrenter ännu
+            {t("leadDetail.co_emptyTitle")}
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Lägg till konkurrenter för att jämföra webbplatsprestanda
+            {t("leadDetail.co_emptyDesc")}
           </p>
         </div>
       ) : (
@@ -339,7 +341,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium truncate">{competitor.competitor_name}</h4>
                         <Badge variant={competitor.source === 'auto' ? 'secondary' : 'outline'} className="text-[10px] shrink-0">
-                          {competitor.source === 'auto' ? 'Auto' : 'Manuell'}
+                          {competitor.source === 'auto' ? t("leadDetail.co_sourceAuto") : t("leadDetail.co_sourceManual")}
                         </Badge>
                       </div>
                       <a 

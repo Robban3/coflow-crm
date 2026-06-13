@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMarket } from "@/hooks/useMarket";
 import { format, addDays } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 interface Sequence {
@@ -78,6 +79,8 @@ interface OutreachSequenceManagerProps {
 }
 
 export function OutreachSequenceManager({ leadId, leadEmail, leadName }: OutreachSequenceManagerProps) {
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const [sequences, setSequences] = useState<Sequence[]>([]);
   const [leadSequences, setLeadSequences] = useState<LeadSequence[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -161,8 +164,8 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
       if (error) {
         if (error.code === '23505') {
           toast({
-            title: "Redan registrerad",
-            description: "Denna lead är redan registrerad i denna sekvens",
+            title: t("outreach.mgr.alreadyEnrolledTitle"),
+            description: t("outreach.mgr.alreadyEnrolledDesc"),
             variant: "destructive",
           });
         } else {
@@ -170,8 +173,8 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
         }
       } else {
         toast({
-          title: "Sekvens startad!",
-          description: "Leaden har registrerats i sekvensen",
+          title: t("outreach.mgr.sequenceStartedTitle"),
+          description: t("outreach.mgr.sequenceStartedDesc"),
         });
         setShowEnrollDialog(false);
         setSelectedSequence("");
@@ -180,8 +183,8 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
     } catch (error) {
       console.error('Error enrolling in sequence:', error);
       toast({
-        title: "Fel",
-        description: "Kunde inte starta sekvensen",
+        title: t("outreach.common.error"),
+        description: t("outreach.mgr.enrollError"),
         variant: "destructive",
       });
     } finally {
@@ -192,8 +195,8 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
   const handleCreateSequence = async () => {
     if (!newSequence.name || newSequence.steps.length === 0) {
       toast({
-        title: "Fyll i alla fält",
-        description: "Sekvensen behöver ett namn och minst ett steg",
+        title: t("outreach.seq.fillAllFields"),
+        description: t("outreach.seq.fillAllFieldsDesc"),
         variant: "destructive",
       });
       return;
@@ -233,7 +236,7 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
       if (stepsError) throw stepsError;
 
       toast({
-        title: "Sekvens skapad!",
+        title: t("outreach.seq.createdTitle"),
         description: `${newSequence.name} har skapats med ${newSequence.steps.length} steg`,
       });
 
@@ -244,8 +247,8 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
     } catch (error) {
       console.error('Error creating sequence:', error);
       toast({
-        title: "Fel",
-        description: "Kunde inte skapa sekvensen",
+        title: t("outreach.common.error"),
+        description: t("outreach.seq.createError"),
         variant: "destructive",
       });
     } finally {
@@ -264,13 +267,13 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
 
     if (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte uppdatera status",
+        title: t("outreach.common.error"),
+        description: t("outreach.mgr.statusUpdateError"),
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Status uppdaterad",
+        title: t("outreach.mgr.statusUpdated"),
       });
       fetchData();
     }
@@ -294,11 +297,11 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
 
   const getDefaultPrompt = (stepNumber: number) => {
     if (stepNumber === 1) {
-      return "Första kontakten - presentera dig och referera till webbanalysens resultat";
+      return t("outreach.seq.defaultPromptStep1");
     } else if (stepNumber === 2) {
-      return "Uppföljning - referera till första mailet och ge mer värde";
+      return t("outreach.seq.defaultPromptStep2");
     } else {
-      return `Uppföljning #${stepNumber - 1}`;
+      return t("outreach.seq.defaultPromptStepN", { number: stepNumber - 1 });
     }
   };
 
@@ -349,8 +352,8 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
     } catch (error) {
       console.error('Error generating preview:', error);
       toast({
-        title: "Kunde inte generera förhandsvisning",
-        description: error instanceof Error ? error.message : "Okänt fel",
+        title: t("outreach.mgr.previewError"),
+        description: error instanceof Error ? error.message : t("outreach.mgr.unknownError"),
         variant: "destructive",
       });
       setShowPreviewDialog(false);
@@ -362,13 +365,13 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-500/15 text-green-600 border-green-500/30">Aktiv</Badge>;
+        return <Badge className="bg-green-500/15 text-green-600 border-green-500/30">{t("outreach.mgr.statusActive")}</Badge>;
       case 'paused':
-        return <Badge variant="secondary">Pausad</Badge>;
+        return <Badge variant="secondary">{t("outreach.mgr.statusPaused")}</Badge>;
       case 'completed':
-        return <Badge variant="outline">Klar</Badge>;
+        return <Badge variant="outline">{t("outreach.mgr.statusCompleted")}</Badge>;
       case 'cancelled':
-        return <Badge variant="destructive">Avbruten</Badge>;
+        return <Badge variant="destructive">{t("outreach.mgr.statusCancelled")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -388,28 +391,24 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
-            <CardTitle className="text-lg">Aktiva sekvenser</CardTitle>
-            <CardDescription>
-              Outreach-sekvenser som denna lead är registrerad i
-            </CardDescription>
+            <CardTitle className="text-lg">{t("outreach.mgr.activeSequencesTitle")}</CardTitle>
+            <CardDescription>{t("outreach.mgr.activeSequencesDesc")}</CardDescription>
           </div>
           <Button onClick={() => setShowEnrollDialog(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Starta sekvens
-          </Button>
+            <Plus className="mr-2 h-4 w-4" />{t("outreach.mgr.startSequence")}</Button>
         </CardHeader>
         <CardContent>
           {!leadEmail ? (
             <div className="text-center py-8 text-muted-foreground">
               <Mail className="h-10 w-10 mx-auto mb-3 opacity-50" />
-              <p>Leaden saknar e-postadress</p>
-              <p className="text-sm">Lägg till en e-post för att kunna starta outreach</p>
+              <p>{t("outreach.mgr.noEmailTitle")}</p>
+              <p className="text-sm">{t("outreach.mgr.noEmailDesc")}</p>
             </div>
           ) : leadSequences.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Send className="h-10 w-10 mx-auto mb-3 opacity-50" />
-              <p>Ingen aktiv outreach</p>
-              <p className="text-sm">Starta en sekvens för att påbörja outreach</p>
+              <p>{t("outreach.mgr.noActiveTitle")}</p>
+              <p className="text-sm">{t("outreach.mgr.noActiveDesc")}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -419,9 +418,9 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                     <div className="flex items-center gap-3">
                       <Send className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="font-medium">{ls.sequence?.name || 'Okänd sekvens'}</p>
+                        <p className="font-medium">{ls.sequence?.name || t("outreach.approval.unknownSequence")}</p>
                         <p className="text-sm text-muted-foreground">
-                          Steg {ls.current_step + 1} • Startad {format(new Date(ls.started_at), "d MMM", { locale: sv })}
+                          {t("outreach.mgr.stepStarted", { step: ls.current_step + 1, date: format(new Date(ls.started_at), "d MMM", { locale: dateLocale }) })}
                         </p>
                       </div>
                     </div>
@@ -431,7 +430,7 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                   {ls.next_step_at && ls.status === 'active' && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                       <Clock className="h-4 w-4" />
-                      Nästa steg: {format(new Date(ls.next_step_at), "d MMMM HH:mm", { locale: sv })}
+                      {t("outreach.mgr.nextStep", { date: format(new Date(ls.next_step_at), "d MMMM HH:mm", { locale: dateLocale }) })}
                     </div>
                   )}
 
@@ -442,9 +441,7 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                         size="sm"
                         onClick={() => handleUpdateStatus(ls.id, 'paused')}
                       >
-                        <Pause className="h-4 w-4 mr-1" />
-                        Pausa
-                      </Button>
+                        <Pause className="h-4 w-4 mr-1" />{t("outreach.mgr.pause")}</Button>
                     )}
                     {ls.status === 'paused' && (
                       <Button 
@@ -452,9 +449,7 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                         size="sm"
                         onClick={() => handleUpdateStatus(ls.id, 'active')}
                       >
-                        <Play className="h-4 w-4 mr-1" />
-                        Återuppta
-                      </Button>
+                        <Play className="h-4 w-4 mr-1" />{t("outreach.mgr.resume")}</Button>
                     )}
                     {(ls.status === 'active' || ls.status === 'paused') && (
                       <Button 
@@ -462,9 +457,7 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                         size="sm"
                         onClick={() => handleUpdateStatus(ls.id, 'cancelled')}
                       >
-                        <X className="h-4 w-4 mr-1" />
-                        Avbryt
-                      </Button>
+                        <X className="h-4 w-4 mr-1" />{t("outreach.common.cancel")}</Button>
                     )}
                   </div>
                 </div>
@@ -478,31 +471,29 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
       <Dialog open={showEnrollDialog} onOpenChange={setShowEnrollDialog}>
         <DialogContent className="sm:max-w-[450px]">
           <DialogHeader>
-            <DialogTitle>Starta outreach-sekvens</DialogTitle>
+            <DialogTitle>{t("outreach.mgr.enrollDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Välj en sekvens att starta för {leadName || 'denna lead'}
+              {t("outreach.mgr.enrollDialogDesc", { name: leadName || t("outreach.mgr.thisLead") })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             {sequences.length === 0 ? (
               <div className="text-center py-4">
-                <p className="text-muted-foreground mb-4">Inga sekvenser skapade ännu</p>
+                <p className="text-muted-foreground mb-4">{t("outreach.mgr.noSequencesYet")}</p>
                 <Button onClick={() => {
                   setShowEnrollDialog(false);
                   setShowCreateDialog(true);
                 }}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Skapa sekvens
-                </Button>
+                  <Plus className="mr-2 h-4 w-4" />{t("outreach.seq.createSequence")}</Button>
               </div>
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label>Välj sekvens</Label>
+                  <Label>{t("outreach.mgr.selectSequence")}</Label>
                   <Select value={selectedSequence} onValueChange={setSelectedSequence}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Välj en sekvens..." />
+                      <SelectValue placeholder={t("outreach.mgr.selectSequencePlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {sequences.map((seq) => (
@@ -519,9 +510,7 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                     setShowEnrollDialog(false);
                     setShowCreateDialog(true);
                   }}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Skapa ny sekvens
-                  </Button>
+                    <Plus className="mr-2 h-4 w-4" />{t("outreach.seq.createDialogTitle")}</Button>
                 </div>
               </>
             )}
@@ -529,20 +518,14 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
 
           {sequences.length > 0 && (
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowEnrollDialog(false)}>
-                Avbryt
-              </Button>
+              <Button variant="outline" onClick={() => setShowEnrollDialog(false)}>{t("outreach.common.cancel")}</Button>
               <Button onClick={handleEnrollInSequence} disabled={isSaving || !selectedSequence}>
                 {isSaving ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Startar...
-                  </>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("outreach.mgr.starting")}</>
                 ) : (
                   <>
-                    <Play className="mr-2 h-4 w-4" />
-                    Starta sekvens
-                  </>
+                    <Play className="mr-2 h-4 w-4" />{t("outreach.mgr.startSequence")}</>
                 )}
               </Button>
             </DialogFooter>
@@ -555,31 +538,27 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              Skapa AI-driven sekvens
-            </DialogTitle>
-            <DialogDescription>
-              Mailen genereras automatiskt av AI baserat på leadens data och webbanalys
-            </DialogDescription>
+              <Sparkles className="h-5 w-5 text-primary" />{t("outreach.mgr.createDialogTitle")}</DialogTitle>
+            <DialogDescription>{t("outreach.mgr.createDialogDesc")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
             {/* Sequence Info */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="seq-name">Sekvensnamn *</Label>
+                <Label htmlFor="seq-name">{t("outreach.mgr.seqNameLabel")}</Label>
                 <Input
                   id="seq-name"
-                  placeholder="t.ex. Första kontakt - Webbanalys"
+                  placeholder={t("outreach.mgr.seqNamePlaceholder")}
                   value={newSequence.name}
                   onChange={(e) => setNewSequence(prev => ({ ...prev, name: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="seq-desc">Beskrivning</Label>
+                <Label htmlFor="seq-desc">{t("outreach.seq.colDescription")}</Label>
                 <Input
                   id="seq-desc"
-                  placeholder="Kort beskrivning..."
+                  placeholder={t("outreach.mgr.seqDescPlaceholder")}
                   value={newSequence.description}
                   onChange={(e) => setNewSequence(prev => ({ ...prev, description: e.target.value }))}
                 />
@@ -589,7 +568,7 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
             {/* Steps Builder */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base font-medium">Sekvenssteg</Label>
+                <Label className="text-base font-medium">{t("outreach.mgr.sequenceSteps")}</Label>
                 <div className="flex gap-2">
                   <Button 
                     type="button" 
@@ -597,26 +576,22 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                     size="sm"
                     onClick={() => addStep('email')}
                   >
-                    <Mail className="h-4 w-4 mr-1" />
-                    E-post
-                  </Button>
+                    <Mail className="h-4 w-4 mr-1" />{t("outreach.mgr.email")}</Button>
                   <Button 
                     type="button" 
                     variant="outline" 
                     size="sm"
                     onClick={() => addStep('task')}
                   >
-                    <ListTodo className="h-4 w-4 mr-1" />
-                    Uppgift
-                  </Button>
+                    <ListTodo className="h-4 w-4 mr-1" />{t("outreach.seq.typeTask")}</Button>
                 </div>
               </div>
 
               {newSequence.steps.length === 0 ? (
                 <div className="border-2 border-dashed rounded-lg p-8 text-center text-muted-foreground">
                   <Mail className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="font-medium">Inga steg ännu</p>
-                  <p className="text-sm">Lägg till e-post eller uppgifter ovan</p>
+                  <p className="font-medium">{t("outreach.mgr.noStepsTitle")}</p>
+                  <p className="text-sm">{t("outreach.mgr.noStepsDesc")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -643,9 +618,9 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                           </div>
                           <Badge variant={step.step_type === 'email' ? 'default' : 'secondary'}>
                             {step.step_type === 'email' ? (
-                              <><Sparkles className="h-3 w-3 mr-1" /> AI E-post</>
+                              <><Sparkles className="h-3 w-3 mr-1" />{t("outreach.mgr.aiEmail")}</>
                             ) : (
-                              <><ListTodo className="h-3 w-3 mr-1" /> Uppgift</>
+                              <><ListTodo className="h-3 w-3 mr-1" />{t("outreach.seq.typeTask")}</>
                             )}
                           </Badge>
                         </div>
@@ -658,9 +633,7 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                               onClick={() => handlePreviewEmail(index)}
                               className="h-8 px-2"
                             >
-                              <Eye className="h-4 w-4 mr-1" />
-                              Förhandsgranska
-                            </Button>
+                              <Eye className="h-4 w-4 mr-1" />{t("outreach.mgr.preview")}</Button>
                           )}
                           <Button
                             type="button"
@@ -680,7 +653,7 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                         <div className="flex items-center gap-3">
                           <Clock className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">
-                            {index === 0 ? "Skickas" : "Vänta"}
+                            {index === 0 ? "Skickas" : t("outreach.seq.wait")}
                           </span>
                           <Select
                             value={step.delay_days.toString()}
@@ -690,7 +663,7 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="0">Direkt</SelectItem>
+                              <SelectItem value="0">{t("outreach.seq.immediate")}</SelectItem>
                               <SelectItem value="1">1 dag</SelectItem>
                               <SelectItem value="2">2 dagar</SelectItem>
                               <SelectItem value="3">3 dagar</SelectItem>
@@ -700,17 +673,15 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                             </SelectContent>
                           </Select>
                           <span className="text-sm text-muted-foreground">
-                            {index === 0 ? "efter start" : "sedan förra steget"}
+                            {index === 0 ? "efter start" : t("outreach.mgr.sinceLastStep")}
                           </span>
                         </div>
 
                         {step.step_type === 'email' ? (
                           <div className="space-y-2">
-                            <Label className="text-xs text-muted-foreground">
-                              Instruktion till AI (valfritt)
-                            </Label>
+                            <Label className="text-xs text-muted-foreground">{t("outreach.mgr.aiInstruction")}</Label>
                             <Textarea
-                              placeholder="T.ex. 'Fokusera på deras låga SEO-score' eller 'Nämn att vi erbjuder gratis konsultation'"
+                              placeholder={t("outreach.mgr.aiInstructionPlaceholder")}
                               value={step.email_prompt}
                               onChange={(e) => updateStep(index, 'email_prompt', e.target.value)}
                               rows={2}
@@ -720,18 +691,18 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
                         ) : (
                           <div className="grid gap-3 sm:grid-cols-2">
                             <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">Uppgiftstitel</Label>
+                              <Label className="text-xs text-muted-foreground">{t("outreach.seq.taskTitle")}</Label>
                               <Input
-                                placeholder="t.ex. Ring upp"
+                                placeholder={t("outreach.mgr.taskTitlePlaceholder")}
                                 value={step.task_title}
                                 onChange={(e) => updateStep(index, 'task_title', e.target.value)}
                                 className="h-9"
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">Beskrivning</Label>
+                              <Label className="text-xs text-muted-foreground">{t("outreach.seq.colDescription")}</Label>
                               <Input
-                                placeholder="Detaljer..."
+                                placeholder={t("outreach.mgr.taskDescPlaceholder")}
                                 value={step.task_description}
                                 onChange={(e) => updateStep(index, 'task_description', e.target.value)}
                                 className="h-9"
@@ -758,23 +729,17 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
             <Button variant="outline" onClick={() => {
               setShowCreateDialog(false);
               setNewSequence({ name: "", description: "", steps: [] });
-            }}>
-              Avbryt
-            </Button>
+            }}>{t("outreach.common.cancel")}</Button>
             <Button 
               onClick={handleCreateSequence} 
               disabled={isSaving || !newSequence.name || newSequence.steps.length === 0}
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sparar...
-                </>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("outreach.common.saving")}</>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Skapa sekvens
-                </>
+                  <Sparkles className="mr-2 h-4 w-4" />{t("outreach.seq.createSequence")}</>
               )}
             </Button>
           </DialogFooter>
@@ -787,29 +752,27 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Eye className="h-5 w-5" />
-              Förhandsgranska e-post (Steg {previewStepIndex + 1})
+              {t("outreach.mgr.previewDialogTitle", { step: previewStepIndex + 1 })}
             </DialogTitle>
-            <DialogDescription>
-              AI-genererat mail baserat på leadens data
-            </DialogDescription>
+            <DialogDescription>{t("outreach.mgr.previewDialogDesc")}</DialogDescription>
           </DialogHeader>
 
           <div className="py-4">
             {isGeneratingPreview ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                <p className="text-muted-foreground">Genererar e-post med AI...</p>
+                <p className="text-muted-foreground">{t("outreach.mgr.generatingEmail")}</p>
               </div>
             ) : previewEmail ? (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Ämne</Label>
+                  <Label className="text-muted-foreground">{t("outreach.common.subject")}</Label>
                   <div className="p-3 rounded-lg bg-muted font-medium">
                     {previewEmail.subject}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Meddelande</Label>
+                  <Label className="text-muted-foreground">{t("outreach.common.message")}</Label>
                   <div className="p-4 rounded-lg bg-muted whitespace-pre-wrap text-sm leading-relaxed">
                     {previewEmail.body}
                   </div>
@@ -819,14 +782,10 @@ export function OutreachSequenceManager({ leadId, leadEmail, leadName }: Outreac
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPreviewDialog(false)}>
-              Stäng
-            </Button>
+            <Button variant="outline" onClick={() => setShowPreviewDialog(false)}>{t("outreach.mgr.close")}</Button>
             {previewEmail && (
               <Button onClick={() => handlePreviewEmail(previewStepIndex)}>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Generera nytt
-              </Button>
+                <Sparkles className="mr-2 h-4 w-4" />{t("outreach.approval.generateNew")}</Button>
             )}
           </DialogFooter>
         </DialogContent>

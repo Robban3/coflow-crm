@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,6 +18,7 @@ interface Props {
 type SortKey = "score" | "emails" | "calls" | "meetings" | "active_days" | "total";
 
 export function StatisticsUserTable({ entries, onUserClick }: Props) {
+  const { t } = useTranslation();
   const [sortKey, setSortKey] = useState<SortKey>("score");
   const [sortDesc, setSortDesc] = useState(true);
 
@@ -45,11 +47,11 @@ export function StatisticsUserTable({ entries, onUserClick }: Props) {
   const typeLabel = (type: string | null) => {
     if (!type) return "–";
     const labels: Record<string, string> = {
-      "email.sent": "Mail",
-      "call.logged": "Samtal",
-      "document.sent": "Offert",
-      "meeting.booked": "Möte",
-      "task.completed": "Uppgift",
+      "email.sent": t("statistics.typeEmail"),
+      "call.logged": t("statistics.typeCall"),
+      "document.sent": t("statistics.typeQuote"),
+      "meeting.booked": t("statistics.typeMeeting"),
+      "task.completed": t("statistics.typeTask"),
     };
     return labels[type] || type;
   };
@@ -57,20 +59,20 @@ export function StatisticsUserTable({ entries, onUserClick }: Props) {
   return (
     <Card className="border-border/50">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Användaröversikt</CardTitle>
+        <CardTitle className="text-base">{t("statistics.userOverview")}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-4">Användare</TableHead>
-                <TableHead><SortButton k="emails" label="Mail" /></TableHead>
-                <TableHead><SortButton k="calls" label="Samtal" /></TableHead>
-                <TableHead><SortButton k="meetings" label="Möten" /></TableHead>
-                <TableHead><SortButton k="score" label="Poäng" /></TableHead>
-                <TableHead><SortButton k="active_days" label="Aktiva dagar" /></TableHead>
-                <TableHead>Senaste</TableHead>
+                <TableHead className="pl-4">{t("statistics.user")}</TableHead>
+                <TableHead><SortButton k="emails" label={t("statistics.typeEmail")} /></TableHead>
+                <TableHead><SortButton k="calls" label={t("statistics.typeCall")} /></TableHead>
+                <TableHead><SortButton k="meetings" label={t("statistics.meetings")} /></TableHead>
+                <TableHead><SortButton k="score" label={t("statistics.score")} /></TableHead>
+                <TableHead><SortButton k="active_days" label={t("statistics.activeDays")} /></TableHead>
+                <TableHead>{t("statistics.latest")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

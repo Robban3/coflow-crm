@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface BrandSettingsPanelProps {
   settings: Record<string, any>;
@@ -22,6 +23,7 @@ const fontOptions = [
 ];
 
 export function BrandSettingsPanel({ settings, onChange }: BrandSettingsPanelProps) {
+  const { t } = useTranslation();
   const update = (key: string, value: string) => {
     onChange({ ...settings, [key]: value });
   };
@@ -29,7 +31,7 @@ export function BrandSettingsPanel({ settings, onChange }: BrandSettingsPanelPro
   return (
     <div className="space-y-5 mt-6">
       <div className="space-y-2">
-        <Label>Logotyp-URL</Label>
+        <Label>{t("templates.brand.logoLabel")}</Label>
         <Input
           placeholder="https://..."
           value={settings.logo_url || ""}
@@ -38,14 +40,14 @@ export function BrandSettingsPanel({ settings, onChange }: BrandSettingsPanelPro
         {settings.logo_url && (
           <img
             src={settings.logo_url}
-            alt="Logotyp"
+            alt={t("templates.brand.logoAlt")}
             className="h-12 object-contain mt-1"
           />
         )}
       </div>
 
       <div className="space-y-2">
-        <Label>Primärfärg</Label>
+        <Label>{t("templates.brand.primaryColorLabel")}</Label>
         <div className="flex gap-2 items-center">
           <input
             type="color"
@@ -62,7 +64,7 @@ export function BrandSettingsPanel({ settings, onChange }: BrandSettingsPanelPro
       </div>
 
       <div className="space-y-2">
-        <Label>Typsnitt</Label>
+        <Label>{t("templates.brand.fontLabel")}</Label>
         <Select
           value={settings.font_family || "system-ui"}
           onValueChange={(v) => update("font_family", v)}

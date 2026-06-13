@@ -28,8 +28,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
 
 interface Message {
@@ -48,35 +49,35 @@ interface Conversation {
 
 interface SuggestedPrompt {
   icon: React.ReactNode;
-  title: string;
-  prompt: string;
+  titleKey: string;
+  promptKey: string;
 }
 
 const suggestedPrompts: SuggestedPrompt[] = [
   {
     icon: <Search className="h-3 w-3" />,
-    title: "Hitta snickare",
-    prompt: "Hitta 10 snickare i Stockholm",
+    titleKey: "ai.prompt.findCarpentersTitle",
+    promptKey: "ai.prompt.findCarpenters",
   },
   {
     icon: <Search className="h-3 w-3" />,
-    title: "Sök frisörer",
-    prompt: "Sök efter frisörer i Göteborg som saknar hemsida",
+    titleKey: "ai.prompt.searchHairdressersTitle",
+    promptKey: "ai.prompt.searchHairdressers",
   },
   {
     icon: <Mail className="h-3 w-3" />,
-    title: "Mail-statistik",
-    prompt: "Visa statistik över mail jag skickat",
+    titleKey: "ai.prompt.mailStatsTitle",
+    promptKey: "ai.prompt.mailStats",
   },
   {
     icon: <Users className="h-3 w-3" />,
-    title: "Öppnade mail",
-    prompt: "Vilka leads har öppnat mail?",
+    titleKey: "ai.prompt.openedMailTitle",
+    promptKey: "ai.prompt.openedMail",
   },
   {
     icon: <ListTodo className="h-3 w-3" />,
-    title: "Leads utan hemsida",
-    prompt: "Hämta leads som saknar hemsida",
+    titleKey: "ai.prompt.leadsWithoutSiteTitle",
+    promptKey: "ai.prompt.leadsWithoutSite",
   },
 ];
 
@@ -132,6 +133,8 @@ function MessageContent({ content, onLeadClick }: { content: string; onLeadClick
 export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -197,7 +200,7 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
       setShowHistory(false);
     } catch (error) {
       console.error("Error loading conversation:", error);
-      toast.error("Kunde inte ladda konversation");
+      toast.error(t("ai.error.loadConversation"));
     }
   };
 
@@ -264,10 +267,10 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
         setMessages([]);
       }
 
-      toast.success("Konversation raderad");
+      toast.success(t("ai.toast.conversationDeleted"));
     } catch (error) {
       console.error("Error deleting conversation:", error);
-      toast.error("Kunde inte radera konversation");
+      toast.error(t("ai.error.deleteConversation"));
     }
   };
 
@@ -308,7 +311,7 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      const assistantContent = data.message?.content || "Jag kunde inte generera ett svar.";
+      const assistantContent = data.message?.content || t("ai.fallback.noResponse");
       const assistantMessage: Message = {
         role: "assistant",
         content: assistantContent,
@@ -325,11 +328,11 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
 
     } catch (error: any) {
       console.error("AI Agent error:", error);
-      toast.error(error.message || "Något gick fel");
-      
+      toast.error(error.message || t("ai.error.generic"));
+
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: "Tyvärr uppstod ett fel. Försök igen.",
+        content: t("ai.fallback.error"),
       }]);
     } finally {
       setIsLoading(false);
@@ -378,16 +381,16 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
           </div>
           <div>
             <h3 className="font-semibold text-sm">
-              {showHistory ? "Historik" : "AI Agent"}
+              {showHistory ? t("ai.header.history") : t("ai.header.title")}
             </h3>
             <p className="text-[10px] text-muted-foreground">
-              {showHistory ? "Tidigare konversationer" : "Leads, analyser & outreach"}
+              {showHistory ? t("ai.header.historySubtitle") : t("ai.header.subtitle")}
             </p>
           </div>
           {!showHistory && (
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-1">
               <Sparkles className="h-2.5 w-2.5 mr-0.5" />
-              Beta
+              {t("ai.header.beta")}
             </Badge>
           )}
         </div>
@@ -399,7 +402,7 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
                 size="icon" 
                 className="h-7 w-7"
                 onClick={() => setShowHistory(true)}
-                title="Visa historik"
+                title={t("ai.header.showHistory")}
               >
                 <History className="h-3.5 w-3.5" />
               </Button>
@@ -408,7 +411,7 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
                 size="icon" 
                 className="h-7 w-7"
                 onClick={startNewChat}
-                title="Ny chatt"
+                title={t("ai.header.newChat")}
               >
                 <Plus className="h-3.5 w-3.5" />
               </Button>
@@ -443,7 +446,7 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
           ) : conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-32 text-center">
               <History className="h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">Ingen historik ännu</p>
+              <p className="text-sm text-muted-foreground">{t("ai.history.empty")}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -458,10 +461,10 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {conv.title || "Ny konversation"}
+                      {conv.title || t("ai.history.untitled")}
                     </p>
                     <p className="text-[10px] text-muted-foreground">
-                      {format(new Date(conv.updated_at), "d MMM, HH:mm", { locale: sv })}
+                      {format(new Date(conv.updated_at), "d MMM, HH:mm", { locale: dateLocale })}
                     </p>
                   </div>
                   <Button
@@ -489,9 +492,9 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
                 <div className="p-3 bg-primary/10 rounded-full mb-3">
                   <Bot className="h-8 w-8 text-primary" />
                 </div>
-                <h4 className="font-semibold mb-1 text-sm">Vad kan jag hjälpa dig med?</h4>
+                <h4 className="font-semibold mb-1 text-sm">{t("ai.empty.heading")}</h4>
                 <p className="text-xs text-muted-foreground mb-4 max-w-[280px]">
-                  Jag kan söka leads, analysera hemsidor och ge insikter.
+                  {t("ai.empty.desc")}
                 </p>
                 
                 {/* Suggested Prompts */}
@@ -499,13 +502,13 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
                   {suggestedPrompts.map((prompt, i) => (
                     <button
                       key={i}
-                      onClick={() => sendMessage(prompt.prompt)}
+                      onClick={() => sendMessage(t(prompt.promptKey))}
                       className="flex items-center gap-2 p-2 text-left rounded-lg border hover:bg-accent transition-colors"
                     >
                       <div className="p-1.5 bg-primary/10 rounded-md shrink-0">
                         {prompt.icon}
                       </div>
-                      <span className="text-xs font-medium truncate">{prompt.title}</span>
+                      <span className="text-xs font-medium truncate">{t(prompt.titleKey)}</span>
                     </button>
                   ))}
                 </div>
@@ -553,7 +556,7 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
                         <div className="mt-2 pt-2 border-t border-border/50">
                           <div className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">
                             <Zap className="h-2.5 w-2.5" />
-                            Åtgärder:
+                            {t("ai.message.actions")}
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {message.toolCalls.map((tc: any, j: number) => (
@@ -577,7 +580,7 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
                     <div className="bg-muted rounded-lg px-3 py-2">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Loader2 className="h-3 w-3 animate-spin" />
-                        Tänker...
+                        {t("ai.message.thinking")}
                       </div>
                     </div>
                   </div>
@@ -593,7 +596,7 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Skriv ditt uppdrag..."
+                placeholder={t("ai.input.placeholder")}
                 className="min-h-[44px] max-h-[120px] resize-none text-sm"
                 disabled={isLoading}
               />
@@ -612,7 +615,7 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
             </div>
             {activeConversationId && (
               <p className="text-[10px] text-muted-foreground mt-1.5">
-                Konversation sparas automatiskt
+                {t("ai.input.autosave")}
               </p>
             )}
           </div>

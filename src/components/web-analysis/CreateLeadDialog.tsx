@@ -9,6 +9,7 @@ import { Loader2, Zap, Building2, User, Mail, Phone, Globe, FileText } from "luc
 import { useToast } from "@/components/ui/use-toast";
 import { firecrawlApi, ExtractedCompanyData } from "@/lib/api/firecrawl";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface CreateLeadDialogProps {
   open: boolean;
@@ -30,6 +31,7 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
     notes: "",
   });
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleExtract = async () => {
     setIsExtracting(true);
@@ -46,20 +48,20 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
           notes: response.data.description || "",
         });
         toast({
-          title: "Data extraherad!",
-          description: "Granska och komplettera informationen nedan",
+          title: t("webAnalysis.dataExtractedTitle"),
+          description: t("webAnalysis.dataExtractedDesc"),
         });
       } else {
         toast({
-          title: "Kunde inte extrahera data",
-          description: response.error || "Försök fylla i manuellt",
+          title: t("webAnalysis.couldNotExtractTitle"),
+          description: response.error || t("webAnalysis.couldNotExtractDesc"),
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Ett oväntat fel uppstod",
+        title: t("webAnalysis.error"),
+        description: t("webAnalysis.unexpectedError"),
         variant: "destructive",
       });
     } finally {
@@ -70,8 +72,8 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
   const handleSave = async () => {
     if (!formData.companyName) {
       toast({
-        title: "Företagsnamn krävs",
-        description: "Ange minst ett företagsnamn för att skapa lead",
+        title: t("webAnalysis.companyNameRequiredTitle"),
+        description: t("webAnalysis.companyNameRequiredDesc"),
         variant: "destructive",
       });
       return;
@@ -82,7 +84,7 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        toast({ title: "Ej inloggad", variant: "destructive" });
+        toast({ title: t("webAnalysis.notLoggedIn"), variant: "destructive" });
         return;
       }
 
@@ -113,8 +115,8 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
       }
 
       toast({
-        title: "Lead skapad!",
-        description: `${formData.companyName} har lagts till som lead`,
+        title: t("webAnalysis.leadCreatedSimpleTitle"),
+        description: t("webAnalysis.leadCreatedSimpleDesc", { company: formData.companyName }),
       });
 
       onLeadCreated(lead.id);
@@ -127,8 +129,8 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
     } catch (error) {
       console.error('Error creating lead:', error);
       toast({
-        title: "Fel",
-        description: "Kunde inte skapa lead",
+        title: t("webAnalysis.error"),
+        description: t("webAnalysis.couldNotCreateLead"),
         variant: "destructive",
       });
     } finally {
@@ -142,10 +144,10 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
-            Skapa lead från analys
+            {t("webAnalysis.createLeadFromAnalysis")}
           </DialogTitle>
           <DialogDescription>
-            Extrahera företagsdata automatiskt eller fyll i manuellt
+            {t("webAnalysis.createLeadDialogDesc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -163,12 +165,12 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
               {isExtracting ? (
                 <>
                   <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                  Hämtar...
+                  {t("webAnalysis.fetching")}
                 </>
               ) : (
                 <>
                   <Zap className="mr-2 h-3 w-3" />
-                  Hämta data
+                  {t("webAnalysis.fetchData")}
                 </>
               )}
             </Button>
@@ -180,7 +182,7 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
                 <Badge variant="secondary">{extractedData.industry}</Badge>
               )}
               {extractedData.orgNumber && (
-                <Badge variant="outline">Org.nr: {extractedData.orgNumber}</Badge>
+                <Badge variant="outline">{t("webAnalysis.orgNumber", { value: extractedData.orgNumber })}</Badge>
               )}
             </div>
           )}
@@ -190,26 +192,26 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
             <div className="space-y-2">
               <Label htmlFor="companyName" className="flex items-center gap-2">
                 <Building2 className="h-3 w-3" />
-                Företagsnamn *
+                {t("webAnalysis.companyNameLabel")}
               </Label>
               <Input
                 id="companyName"
                 value={formData.companyName}
                 onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
-                placeholder="Företagets namn"
+                placeholder={t("webAnalysis.companyNamePlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="contactName" className="flex items-center gap-2">
                 <User className="h-3 w-3" />
-                Kontaktperson
+                {t("webAnalysis.contactPerson")}
               </Label>
               <Input
                 id="contactName"
                 value={formData.contactName}
                 onChange={(e) => setFormData(prev => ({ ...prev, contactName: e.target.value }))}
-                placeholder="Namn på kontaktperson"
+                placeholder={t("webAnalysis.contactPersonPlaceholder")}
               />
             </div>
 
@@ -217,27 +219,27 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
                   <Mail className="h-3 w-3" />
-                  E-post
+                  {t("webAnalysis.emailLabel")}
                 </Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="email@företag.se"
+                  placeholder={t("webAnalysis.emailPlaceholder")}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="phone" className="flex items-center gap-2">
                   <Phone className="h-3 w-3" />
-                  Telefon
+                  {t("webAnalysis.phoneLabel")}
                 </Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="08-xxx xx xx"
+                  placeholder={t("webAnalysis.phonePlaceholder")}
                 />
               </div>
             </div>
@@ -245,13 +247,13 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
             <div className="space-y-2">
               <Label htmlFor="notes" className="flex items-center gap-2">
                 <FileText className="h-3 w-3" />
-                Anteckningar
+                {t("webAnalysis.notesLabel")}
               </Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Ev. noteringar om företaget..."
+                placeholder={t("webAnalysis.notesPlaceholder")}
                 rows={3}
               />
             </div>

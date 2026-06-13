@@ -29,7 +29,8 @@ import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import {
   ArrowLeft,
   Phone,
@@ -123,35 +124,37 @@ function ScorePill({ label, value }: { label: string; value: number | null }) {
 
 // ── Pitch builder ─────────────────────────────────────────────────────────────
 
-function buildPitch(lead: Lead): string[] {
-  const name = lead.company_name || "företaget";
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
+
+function buildPitch(lead: Lead, t: TranslateFn): string[] {
+  const name = lead.company_name || t("powerCall.session.pitchCompanyFallback");
   const web = lead.webAnalysis;
   const geo = lead.geoAnalysis;
 
   if (!web && !geo) {
     return [
-      `Öppning: "Hej, jag heter [namn] och ringer från [företag]. Jag har tittat lite på ${name}."`,
-      `Observation: "Vi ser ofta att företag i er bransch kan attrahera 2–4 nya kunder per månad när hemsidan är snabb och tydlig."`,
-      `Fråga: "Hur ser det ut för er idag – är ni nöjda med antalet nya kunder som hemsidan genererar?"`,
-      `CTA: "Vill du att jag skickar ett kostnadsfritt analysunderlag, eller passar det med 15 minuter nu/snart?"`,
+      t("powerCall.session.pitchNoAnalysisOpening", { name }),
+      t("powerCall.session.pitchNoAnalysisObservation"),
+      t("powerCall.session.pitchNoAnalysisQuestion"),
+      t("powerCall.session.pitchNoAnalysisCta"),
     ];
   }
 
   const perfNote = web?.performance_score !== null && web?.performance_score !== undefined && web.performance_score < 70
-    ? `Hemsidans laddningstid är under genomsnittet (${web.performance_score}/100)`
+    ? t("powerCall.session.pitchPerfNote", { score: web.performance_score })
     : null;
 
   const geoNote = geo?.geo_score !== null && geo?.geo_score !== undefined && geo.geo_score < 80
-    ? `AI-synligheten är låg (${geo.geo_score}/100) – de syns dåligt i AI-sökmotorer`
+    ? t("powerCall.session.pitchGeoNote", { score: geo.geo_score })
     : null;
 
-  const obs = perfNote || geoNote || "Vi har analyserat er digitala närvaro";
+  const obs = perfNote || geoNote || t("powerCall.session.pitchAnalysisFallbackObs");
 
   return [
-    `Öppning: "Hej, jag heter [namn] och ringer från [företag]. Vi analyserar hemsidor för företag i er bransch."`,
-    `Observation: "${obs}."`,
-    `Fråga: "Hur viktigt är det för er att synas online och generera leads via hemsidan just nu?"`,
-    `CTA: "Vill du att jag skickar er en gratis rapport, eller passar det med 15 minuter nu för en snabb genomgång?"`,
+    t("powerCall.session.pitchAnalysisOpening"),
+    t("powerCall.session.pitchAnalysisObservation", { obs }),
+    t("powerCall.session.pitchAnalysisQuestion"),
+    t("powerCall.session.pitchAnalysisCta"),
   ];
 }
 
@@ -183,6 +186,8 @@ export default function PowerCallSessionPage() {
   const organizationId = useOrganizationId();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
 
   // Session state
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -343,11 +348,11 @@ export default function PowerCallSessionPage() {
       // Start preloading next in background
       setTimeout(() => triggerPrepareNext(result.sessionId), 500);
     } catch (err) {
-      toast({ title: "Fel", description: "Kunde inte starta session", variant: "destructive" });
+      toast({ title: t("powerCall.session.toastError"), description: t("powerCall.session.toastStartFailed"), variant: "destructive" });
     } finally {
       setIsLoadingLead(false);
     }
-  }, [user, selectedListId, getToken, triggerPrepareNext, toast]);
+  }, [user, selectedListId, getToken, triggerPrepareNext, toast, t]);
 
   // ── Save outcome & advance ───────────────────────────────────────────────────
 
@@ -374,7 +379,7 @@ export default function PowerCallSessionPage() {
         }, token);
 
         toast({
-          title: "Sparat",
+          title: t("powerCall.session.toastSaved"),
           description: `${selectedOutcome.label}`,
         });
 
@@ -403,7 +408,7 @@ export default function PowerCallSessionPage() {
             .from("tasks")
             .insert({
               lead_id: currentLead.id,
-              title: `Återkoppla: ${currentLead.company_name || "Lead"}`,
+              title: t("powerCall.session.callbackTaskTitle", { company: currentLead.company_name || t("powerCall.session.taskLeadFallback") }),
               description: note || null,
               priority: "medium",
               due_date: dueDate.toISOString(),
@@ -438,7 +443,7 @@ export default function PowerCallSessionPage() {
         }
         await supabase.from("leads").update(leadUpdate).eq("id", currentLead.id);
 
-        toast({ title: "Sparat", description: selectedOutcome.label });
+        toast({ title: t("powerCall.session.toastSaved"), description: selectedOutcome.label });
         setOutcomeOpen(false);
         setSelectedOutcome(null);
         setNote("");
@@ -447,11 +452,11 @@ export default function PowerCallSessionPage() {
         setCallsThisSession((n) => n + 1);
       }
     } catch {
-      toast({ title: "Fel", description: "Kunde inte spara utfall", variant: "destructive" });
+      toast({ title: t("powerCall.session.toastError"), description: t("powerCall.session.toastSaveFailed"), variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
-  }, [selectedOutcome, sessionId, currentLead, note, callbackDate, callbackTime, getToken, triggerPrepareNext, organizationId, user, toast]);
+  }, [selectedOutcome, sessionId, currentLead, note, callbackDate, callbackTime, getToken, triggerPrepareNext, organizationId, user, toast, t]);
 
   // ── Skip lead ────────────────────────────────────────────────────────────────
 
@@ -472,11 +477,11 @@ export default function PowerCallSessionPage() {
         setTimeout(() => triggerPrepareNext(sessionId), 300);
       }
     } catch {
-      toast({ title: "Fel", description: "Kunde inte hoppa över", variant: "destructive" });
+      toast({ title: t("powerCall.session.toastError"), description: t("powerCall.session.toastSkipFailed"), variant: "destructive" });
     } finally {
       setIsLoadingLead(false);
     }
-  }, [sessionId, getToken, triggerPrepareNext, toast]);
+  }, [sessionId, getToken, triggerPrepareNext, toast, t]);
 
   // ── Generate analysis for current lead ──────────────────────────────────────
 
@@ -497,9 +502,9 @@ export default function PowerCallSessionPage() {
       }
 
       const statusMsg = result?.hasWebsite === false
-        ? "Lead saknar webbplats — analys ej tillämplig"
-        : "Analys startad — poller efter resultat…";
-      toast({ title: "Analys", description: statusMsg });
+        ? t("powerCall.session.analysisNoWebsite")
+        : t("powerCall.session.analysisStarted");
+      toast({ title: t("powerCall.session.toastAnalysis"), description: statusMsg });
 
       // Poll for up to 30s until analysis appears
       for (let i = 0; i < 10; i++) {
@@ -516,16 +521,16 @@ export default function PowerCallSessionPage() {
             webAnalysis: webRes.data?.[0] || prev.webAnalysis,
             geoAnalysis: geoRes.data?.[0] || prev.geoAnalysis,
           } : prev);
-          toast({ title: "Analys klar", description: "Samtalsmanus uppdaterat" });
+          toast({ title: t("powerCall.session.toastAnalysisDone"), description: t("powerCall.session.analysisPitchUpdated") });
           break;
         }
       }
     } catch {
-      toast({ title: "Analys misslyckades", variant: "destructive" });
+      toast({ title: t("powerCall.session.toastAnalysisFailed"), variant: "destructive" });
     } finally {
       setIsGeneratingAnalysis(false);
     }
-  }, [currentLead, getToken, toast]);
+  }, [currentLead, getToken, toast, t]);
 
   // ── End session ─────────────────────────────────────────────────────────────
 
@@ -546,7 +551,7 @@ export default function PowerCallSessionPage() {
 
   // ── Pitch lines ─────────────────────────────────────────────────────────────
 
-  const pitchLines = currentLead ? buildPitch(currentLead) : [];
+  const pitchLines = currentLead ? buildPitch(currentLead, t) : [];
   const hasAnalysis = !!(currentLead?.webAnalysis || currentLead?.geoAnalysis);
 
   // ── Start screen ─────────────────────────────────────────────────────────────
@@ -560,22 +565,22 @@ export default function PowerCallSessionPage() {
               <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <Zap className="h-7 w-7 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold mb-2">Power Call</h1>
+              <h1 className="text-2xl font-bold mb-2">{t("powerCall.session.title")}</h1>
               <p className="text-muted-foreground text-sm">
-                Ring leads effektivt, ett i taget.
+                {t("powerCall.session.startSubtitle")}
               </p>
             </div>
 
             <Card>
               <CardContent className="p-5 space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Välj lista (valfritt)</Label>
+                  <Label>{t("powerCall.session.selectListLabel")}</Label>
                   <Select value={selectedListId} onValueChange={setSelectedListId}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Alla aktiva leads</SelectItem>
+                      <SelectItem value="all">{t("powerCall.session.allActiveLeads")}</SelectItem>
                       {lists.map((l: { id: string; name: string }) => (
                         <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
                       ))}
@@ -590,14 +595,14 @@ export default function PowerCallSessionPage() {
                   disabled={isLoadingLead}
                 >
                   {isLoadingLead ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Phone className="h-4 w-4 mr-2" />}
-                  Starta session
+                  {t("powerCall.session.startSession")}
                 </Button>
               </CardContent>
             </Card>
 
             <div className="text-center">
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/outreach-pro"><ArrowLeft className="h-3.5 w-3.5 mr-1" />Tillbaka</Link>
+                <Link to="/outreach-pro"><ArrowLeft className="h-3.5 w-3.5 mr-1" />{t("powerCall.session.back")}</Link>
               </Button>
             </div>
           </div>
@@ -614,14 +619,14 @@ export default function PowerCallSessionPage() {
         <div className="flex items-center justify-center min-h-[70vh] p-4">
           <div className="max-w-md w-full text-center space-y-4">
             <CheckCircle className="h-14 w-14 text-green-500 mx-auto" />
-            <h2 className="text-xl font-bold">Session klar!</h2>
+            <h2 className="text-xl font-bold">{t("powerCall.session.doneTitle")}</h2>
             <p className="text-muted-foreground">
-              Du har ringt <span className="font-semibold text-foreground">{callsThisSession}</span> leads i denna session.
+              {t("powerCall.session.doneCount", { count: callsThisSession })}
             </p>
-            <p className="text-sm text-muted-foreground">Inga fler leads att ringa just nu.</p>
+            <p className="text-sm text-muted-foreground">{t("powerCall.session.doneNoMore")}</p>
             <div className="flex gap-3 justify-center pt-2">
-              <Button variant="outline" onClick={handleEndSession}>Avsluta</Button>
-              <Button onClick={handleStartSession}>Starta om</Button>
+              <Button variant="outline" onClick={handleEndSession}>{t("powerCall.session.end")}</Button>
+              <Button onClick={handleStartSession}>{t("powerCall.session.restart")}</Button>
             </div>
           </div>
         </div>

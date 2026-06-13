@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format, formatDistanceToNow, isToday, isYesterday } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { 
   Mail, 
   Phone, 
@@ -41,6 +42,8 @@ interface ActivityTimelineProps {
 }
 
 export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: ActivityTimelineProps) {
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -75,8 +78,8 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
       allEvents.push({
         id: `lead-created-${leadId}`,
         type: 'lead_created',
-        title: 'Lead skapad',
-        description: `Källa: ${getSourceLabel(leadSource)}`,
+        title: t("leadDetail.at_leadCreated"),
+        description: t("leadDetail.at_sourcePrefix", { source: getSourceLabel(leadSource) }),
         timestamp: leadCreatedAt,
         userId: null,
       });
@@ -104,7 +107,7 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
             id: `email-sent-${email.id}`,
             type: 'email_sent',
             title: email.subject,
-            description: `Till: ${email.recipient_email}`,
+            description: t("leadDetail.at_toPrefix", { email: email.recipient_email }),
             timestamp: email.created_at,
             userId: email.sent_by,
             metadata: {
@@ -118,8 +121,10 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
             allEvents.push({
               id: `email-opened-${email.id}`,
               type: 'email_opened',
-              title: `E-post öppnad`,
-              description: `"${email.subject}" öppnades${email.opened_count && email.opened_count > 1 ? ` (${email.opened_count} gånger)` : ''}`,
+              title: t("leadDetail.at_emailOpenedTitle"),
+              description: email.opened_count && email.opened_count > 1
+                ? t("leadDetail.at_emailOpenedDescCount", { subject: email.subject, count: String(email.opened_count) })
+                : t("leadDetail.at_emailOpenedDesc", { subject: email.subject }),
               timestamp: email.opened_at,
               userId: null,
               metadata: {
@@ -136,8 +141,8 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
           allEvents.push({
             id: `email-reply-${reply.id}`,
             type: 'email_reply',
-            title: reply.subject || 'Svar mottaget',
-            description: `Från: ${reply.from_name || reply.from_email}`,
+            title: reply.subject || t("leadDetail.at_replyReceived"),
+            description: t("leadDetail.at_fromPrefix", { name: reply.from_name || reply.from_email }),
             timestamp: reply.received_at,
             userId: null,
             metadata: {
@@ -162,8 +167,8 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
           allEvents.push({
             id: `web-analysis-${analysis.id}`,
             type: 'web_analysis',
-            title: 'Webbanalys slutförd',
-            description: avgScore !== null ? `Genomsnittspoäng: ${avgScore}/100` : undefined,
+            title: t("leadDetail.at_webAnalysisDone"),
+            description: avgScore !== null ? t("leadDetail.at_avgScore", { score: String(avgScore) }) : undefined,
             timestamp: analysis.created_at,
             userId: analysis.analyzed_by,
             metadata: {
@@ -182,8 +187,8 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
           allEvents.push({
             id: `seo-analysis-${seo.id}`,
             type: 'seo_analysis',
-            title: 'SEO-analys slutförd',
-            description: seo.visibility_score ? `Synlighetspoäng: ${seo.visibility_score}/100` : undefined,
+            title: t("leadDetail.at_seoAnalysisDone"),
+            description: seo.visibility_score ? t("leadDetail.at_visibilityScore", { score: String(seo.visibility_score) }) : undefined,
             timestamp: seo.created_at,
             userId: seo.analyzed_by,
             metadata: {
@@ -222,10 +227,10 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
 
   const getSourceLabel = (source: string) => {
     const sourceMap: Record<string, string> = {
-      manual: 'Manuell',
+      manual: t("leadDetail.at_sourceManual"),
       google_places: 'Google Places',
-      web_analysis: 'Webbanalys',
-      import: 'Import',
+      web_analysis: t("leadDetail.at_sourceWebAnalysis"),
+      import: t("leadDetail.at_sourceImport"),
     };
     return sourceMap[source] || source;
   };
@@ -244,11 +249,11 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
       let label: string;
       
       if (isToday(date)) {
-        label = 'Idag';
+        label = t("leadDetail.at_today");
       } else if (isYesterday(date)) {
-        label = 'Igår';
+        label = t("leadDetail.at_yesterday");
       } else {
-        label = format(date, "d MMMM yyyy", { locale: sv });
+        label = format(date, "d MMMM yyyy", { locale: dateLocale });
       }
       
       if (label !== currentLabel) {
@@ -300,18 +305,18 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
 
   const getEventLabel = (type: TimelineEvent['type']) => {
     switch (type) {
-      case 'email_sent': return 'E-post skickad';
-      case 'email_opened': return 'E-post öppnad';
-      case 'email_reply': return 'Svar mottaget';
-      case 'call': return 'Samtal';
-      case 'meeting': return 'Möte';
-      case 'note': return 'Anteckning';
-      case 'task_completed': return 'Uppgift slutförd';
-      case 'task_created': return 'Uppgift skapad';
-      case 'web_analysis': return 'Webbanalys';
-      case 'seo_analysis': return 'SEO-analys';
-      case 'report_opened': return 'Rapport öppnad';
-      case 'lead_created': return 'Lead skapad';
+      case 'email_sent': return t("leadDetail.at_labelEmailSent");
+      case 'email_opened': return t("leadDetail.at_labelEmailOpened");
+      case 'email_reply': return t("leadDetail.at_labelEmailReply");
+      case 'call': return t("leadDetail.at_labelCall");
+      case 'meeting': return t("leadDetail.at_labelMeeting");
+      case 'note': return t("leadDetail.at_labelNote");
+      case 'task_completed': return t("leadDetail.at_labelTaskCompleted");
+      case 'task_created': return t("leadDetail.at_labelTaskCreated");
+      case 'web_analysis': return t("leadDetail.at_labelWebAnalysis");
+      case 'seo_analysis': return t("leadDetail.at_labelSeoAnalysis");
+      case 'report_opened': return t("leadDetail.at_labelReportOpened");
+      case 'lead_created': return t("leadDetail.at_labelLeadCreated");
       default: return type;
     }
   };

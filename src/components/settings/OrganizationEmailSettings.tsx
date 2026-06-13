@@ -8,6 +8,7 @@ import { Loader2, Save, Mail, Key, AlertTriangle, CheckCircle2 } from "lucide-re
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface OrganizationEmailConfig {
   sender_email: string;
@@ -26,6 +27,7 @@ export function OrganizationEmailSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (user?.id) {
@@ -76,8 +78,8 @@ export function OrganizationEmailSettings() {
   const handleSave = async () => {
     if (!organizationId) {
       toast({
-        title: "Ingen organisation",
-        description: "Du tillhör ingen organisation ännu.",
+        title: t("settings.noOrgTitle"),
+        description: t("settings.noOrgDesc"),
         variant: "destructive",
       });
       return;
@@ -96,14 +98,14 @@ export function OrganizationEmailSettings() {
       if (error) throw error;
 
       toast({
-        title: "E-postinställningar sparade",
-        description: "Organisationens e-postkonfiguration har uppdaterats.",
+        title: t("settings.orgEmailSavedTitle"),
+        description: t("settings.orgEmailSavedDesc"),
       });
     } catch (error) {
       console.error("Error saving email config:", error);
       toast({
-        title: "Fel",
-        description: "Kunde inte spara e-postinställningarna",
+        title: t("settings.error"),
+        description: t("settings.orgEmailSaveErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -125,7 +127,7 @@ export function OrganizationEmailSettings() {
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <p className="text-muted-foreground">Du tillhör ingen organisation.</p>
+          <p className="text-muted-foreground">{t("settings.noOrgMembership")}</p>
         </CardContent>
       </Card>
     );
@@ -137,19 +139,19 @@ export function OrganizationEmailSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Organisations e-postinställningar
+            {t("settings.orgEmailTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Endast administratörer kan ändra organisationens e-postinställningar.
+              {t("settings.orgEmailAdminOnly")}
             </AlertDescription>
           </Alert>
           <div className="mt-4 p-4 rounded-lg border bg-muted/30">
             <p className="text-sm">
-              <strong>Avsändare:</strong> {config.sender_name || "Ej konfigurerat"} &lt;{config.sender_email || "noreply@resend.dev"}&gt;
+              <strong>{t("settings.senderLabel")}</strong> {config.sender_name || t("settings.notConfigured")} &lt;{config.sender_email || "noreply@resend.dev"}&gt;
             </p>
           </div>
         </CardContent>
@@ -162,29 +164,29 @@ export function OrganizationEmailSettings() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Mail className="h-5 w-5" />
-          Organisations e-postinställningar
+          {t("settings.orgEmailTitle")}
         </CardTitle>
         <CardDescription>
-          Konfigurera hur outreach-mail skickas från din organisation
+          {t("settings.orgEmailDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="org_sender_name">Avsändarnamn</Label>
+            <Label htmlFor="org_sender_name">{t("settings.senderName")}</Label>
             <Input
               id="org_sender_name"
-              placeholder="Din Organisation"
+              placeholder={t("settings.orgSenderNamePlaceholder")}
               value={config.sender_name}
               onChange={(e) => setConfig({ ...config, sender_name: e.target.value })}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="org_sender_email">Avsändaradress</Label>
+            <Label htmlFor="org_sender_email">{t("settings.senderAddress")}</Label>
             <Input
               id="org_sender_email"
               type="email"
-              placeholder="hej@dinorganisation.se"
+              placeholder={t("settings.orgSenderEmailPlaceholder")}
               value={config.sender_email}
               onChange={(e) => setConfig({ ...config, sender_email: e.target.value })}
             />
@@ -192,9 +194,9 @@ export function OrganizationEmailSettings() {
         </div>
 
         <div className="p-4 rounded-lg border bg-muted/30">
-          <p className="text-sm font-medium mb-1">Förhandsgranskning:</p>
+          <p className="text-sm font-medium mb-1">{t("settings.preview")}</p>
           <p className="text-sm text-muted-foreground">
-            {config.sender_name || "Din Organisation"} &lt;{config.sender_email || "noreply@resend.dev"}&gt;
+            {config.sender_name || t("settings.orgPreviewFallbackName")} &lt;{config.sender_email || "noreply@resend.dev"}&gt;
           </p>
         </div>
 
@@ -202,14 +204,14 @@ export function OrganizationEmailSettings() {
         <div className="space-y-3">
           <Label className="flex items-center gap-2">
             <Key className="h-4 w-4" />
-            Egen Resend API-nyckel
+            {t("settings.ownResendKey")}
           </Label>
           
           {config.resend_api_key_configured ? (
             <Alert className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
               <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
               <AlertDescription className="text-green-800 dark:text-green-200">
-                En egen Resend API-nyckel är konfigurerad. Mail skickas från er verifierade domän.
+                {t("settings.resendConfigured")}
               </AlertDescription>
             </Alert>
           ) : (
@@ -217,16 +219,16 @@ export function OrganizationEmailSettings() {
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 <p className="mb-2">
-                  För att skicka mail från <strong>{config.sender_email || "er egen domän"}</strong> behöver du:
+                  {t("settings.resendSetupIntro", { domain: config.sender_email || t("settings.resendSetupDomainFallback") })}
                 </p>
                 <ol className="list-decimal list-inside space-y-1 text-sm">
-                  <li>Skapa konto på <a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">resend.com</a></li>
-                  <li>Verifiera din domän (DNS-poster)</li>
-                  <li>Skapa en API-nyckel</li>
-                  <li>Kontakta support för att lägga till nyckeln</li>
+                  <li>{t("settings.resendStep1")} <a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">resend.com</a></li>
+                  <li>{t("settings.resendStep2")}</li>
+                  <li>{t("settings.resendStep3")}</li>
+                  <li>{t("settings.resendStep4")}</li>
                 </ol>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Utan egen nyckel skickas mail från standardadressen noreply@resend.dev
+                  {t("settings.resendDefaultNote")}
                 </p>
               </AlertDescription>
             </Alert>
@@ -237,12 +239,12 @@ export function OrganizationEmailSettings() {
           {isSaving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sparar...
+              {t("settings.saving")}
             </>
           ) : (
             <>
               <Save className="mr-2 h-4 w-4" />
-              Spara e-postinställningar
+              {t("settings.saveOrgEmail")}
             </>
           )}
         </Button>

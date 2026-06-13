@@ -11,7 +11,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { buildGeoReportPayload } from "@/components/reports/buildGeoReport";
 import { validateReportSchema } from "@/components/reports/reportSchema";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import {
   BarChart3,
   Brain,
@@ -111,11 +112,11 @@ const severityIcon = (s: string) => {
   }
 };
 
-const priorityLabel = (p: string) => {
+const priorityLabel = (p: string, t: (key: string) => string) => {
   switch (p) {
-    case "quick_win": return { label: "Quick Win", variant: "default" as const, icon: <Zap className="h-3 w-3" /> };
-    case "medium": return { label: "Medium", variant: "secondary" as const, icon: <Target className="h-3 w-3" /> };
-    case "long_term": return { label: "Långsiktigt", variant: "outline" as const, icon: <Clock className="h-3 w-3" /> };
+    case "quick_win": return { label: t("leadDetail.ac_priorityQuickWin"), variant: "default" as const, icon: <Zap className="h-3 w-3" /> };
+    case "medium": return { label: t("leadDetail.ac_priorityMedium"), variant: "secondary" as const, icon: <Target className="h-3 w-3" /> };
+    case "long_term": return { label: t("leadDetail.ac_priorityLongTerm"), variant: "outline" as const, icon: <Clock className="h-3 w-3" /> };
     default: return { label: p, variant: "outline" as const, icon: null };
   }
 };
@@ -126,6 +127,8 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
   const [geoReportOpen, setGeoReportOpen] = useState(false);
   const [isCreatingReport, setIsCreatingReport] = useState(false);
   const { toast } = useToast();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -228,12 +231,12 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
         body: { leadId },
       });
       if (res.error) throw new Error(res.error.message);
-      toast({ title: "GEO-analys klar!", description: `Poäng: ${res.data.geo_score}/100` });
+      toast({ title: t("leadDetail.ac_toastGeoDoneTitle"), description: t("leadDetail.ac_toastGeoDoneDesc", { score: res.data.geo_score }) });
       queryClient.invalidateQueries({ queryKey: ["geo-analyses", leadId] });
     } catch (e) {
       toast({
-        title: "Fel vid GEO-analys",
-        description: e instanceof Error ? e.message : "Okänt fel",
+        title: t("leadDetail.ac_toastGeoErrorTitle"),
+        description: e instanceof Error ? e.message : t("leadDetail.ac_unknownError"),
         variant: "destructive",
       });
     } finally {
@@ -260,18 +263,18 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
         body: { url: website, leadId, organizationId },
       });
       if (res.error) throw new Error(res.error.message);
-      if (!res.data?.success) throw new Error(res.data?.error || "SEO-analys misslyckades");
+      if (!res.data?.success) throw new Error(res.data?.error || t("leadDetail.ac_seoAnalysisFailed"));
 
       toast({
-        title: "SEO-analys klar!",
-        description: `Synlighetspoäng: ${res.data.data?.visibility_score ?? "–"}/100`,
+        title: t("leadDetail.ac_toastSeoDoneTitle"),
+        description: t("leadDetail.ac_toastSeoDoneDesc", { score: res.data.data?.visibility_score ?? "–" }),
       });
       queryClient.invalidateQueries({ queryKey: ["lead-detail", leadId] });
       queryClient.invalidateQueries({ queryKey: ["seo-cache", domainHost] });
     } catch (e) {
       toast({
-        title: "Fel vid SEO-analys",
-        description: e instanceof Error ? e.message : "Okänt fel",
+        title: t("leadDetail.ac_toastSeoErrorTitle"),
+        description: e instanceof Error ? e.message : t("leadDetail.ac_unknownError"),
         variant: "destructive",
       });
     } finally {
@@ -303,7 +306,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
       );
 
       if (!validateReportSchema(payload)) {
-        throw new Error("Genererat rapportschema är ogiltigt");
+        throw new Error(t("leadDetail.ac_invalidReportSchema"));
       }
 
       const { data: report, error } = await supabase
@@ -328,12 +331,12 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
         enabled: false,
       });
 
-      toast({ title: "Rapport skapad!", description: "GEO-rapporten har genererats" });
+      toast({ title: t("leadDetail.ac_toastReportCreatedTitle"), description: t("leadDetail.ac_toastReportCreatedDesc") });
       queryClient.invalidateQueries({ queryKey: ["lead-reports", leadId] });
     } catch (e) {
       toast({
-        title: "Fel",
-        description: e instanceof Error ? e.message : "Kunde inte skapa rapport",
+        title: t("leadDetail.ac_toastErrorTitle"),
+        description: e instanceof Error ? e.message : t("leadDetail.ac_couldNotCreateReport"),
         variant: "destructive",
       });
     } finally {
@@ -357,16 +360,16 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
         <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="web" className="text-xs sm:text-sm">
             <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-            Webbanalys
+            {t("leadDetail.ac_tabWeb")}
           </TabsTrigger>
           <TabsTrigger value="geo" className="text-xs sm:text-sm">
             <Brain className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-            GEO / AI
+            {t("leadDetail.ac_tabGeo")}
           </TabsTrigger>
           <TabsTrigger value="seo" className="text-xs sm:text-sm">
             <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-            SEO Intel
-            <Badge variant="outline" className="ml-1 text-[9px] px-1 py-0">Betald</Badge>
+            {t("leadDetail.ac_tabSeo")}
+            <Badge variant="outline" className="ml-1 text-[9px] px-1 py-0">{t("leadDetail.ac_badgePaid")}</Badge>
           </TabsTrigger>
         </TabsList>
 
@@ -375,12 +378,12 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div>
-                <CardTitle className="text-base">Webbanalys</CardTitle>
+                <CardTitle className="text-base">{t("leadDetail.ac_webTitle")}</CardTitle>
                 <CardDescription className="text-xs">Lighthouse / PageSpeed</CardDescription>
               </div>
               {website && (
                 <Button size="sm" onClick={onNavigateAnalyze}>
-                  <Play className="mr-1 h-3 w-3" /> Ny analys
+                  <Play className="mr-1 h-3 w-3" /> {t("leadDetail.ac_newAnalysis")}
                 </Button>
               )}
             </CardHeader>
@@ -388,10 +391,10 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
               {!latestAnalysis ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <BarChart3 className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Inga analyser ännu</p>
+                  <p className="text-sm">{t("leadDetail.ac_noAnalysesYet")}</p>
                   {website && (
                     <Button size="sm" className="mt-3" onClick={onNavigateAnalyze}>
-                      Kör analys
+                      {t("leadDetail.ac_runAnalysis")}
                     </Button>
                   )}
                 </div>
@@ -405,16 +408,16 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-muted-foreground">
-                          {format(new Date(a.created_at), "d MMM yyyy", { locale: sv })}
+                          {format(new Date(a.created_at), "d MMM yyyy", { locale: dateLocale })}
                         </span>
                         {a.analyzed_by && <UserAvatar userId={a.analyzed_by} size="xs" />}
                       </div>
                       <div className="grid grid-cols-4 gap-2 text-center">
                         {[
-                          { label: "Prest.", score: a.performance_score },
-                          { label: "Tillg.", score: a.accessibility_score },
-                          { label: "SEO", score: a.seo_score },
-                          { label: "B.P.", score: a.best_practices_score },
+                          { label: t("leadDetail.ac_metricPerformance"), score: a.performance_score },
+                          { label: t("leadDetail.ac_metricAccessibility"), score: a.accessibility_score },
+                          { label: t("leadDetail.ac_metricSeo"), score: a.seo_score },
+                          { label: t("leadDetail.ac_metricBestPractices"), score: a.best_practices_score },
                         ].map((m) => (
                           <div key={m.label}>
                             <p className="text-[10px] text-muted-foreground">{m.label}</p>
@@ -435,15 +438,15 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div>
-                <CardTitle className="text-base">GEO / AI-synlighet</CardTitle>
-                <CardDescription className="text-xs">Analys av AI-motoroptimering</CardDescription>
+                <CardTitle className="text-base">{t("leadDetail.ac_geoTitle")}</CardTitle>
+                <CardDescription className="text-xs">{t("leadDetail.ac_geoDescription")}</CardDescription>
               </div>
               {website && (
                 <Button size="sm" onClick={handleRunGeo} disabled={isRunningGeo}>
                   {isRunningGeo ? (
-                    <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Kör...</>
+                    <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> {t("leadDetail.ac_running")}</>
                   ) : (
-                    <><Play className="mr-1 h-3 w-3" /> Kör GEO-analys</>
+                    <><Play className="mr-1 h-3 w-3" /> {t("leadDetail.ac_runGeoAnalysis")}</>
                   )}
                 </Button>
               )}
@@ -452,26 +455,26 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
               {!latestGeo ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Brain className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Ingen GEO-analys körd ännu</p>
-                  <p className="text-xs mt-1">Analysera webbplatsens synlighet i AI-motorer som ChatGPT, Gemini och Perplexity</p>
+                  <p className="text-sm">{t("leadDetail.ac_noGeoYet")}</p>
+                  <p className="text-xs mt-1">{t("leadDetail.ac_geoEmptyHint")}</p>
                   {website && (
                     <Button size="sm" className="mt-3" onClick={handleRunGeo} disabled={isRunningGeo}>
                       {isRunningGeo ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Brain className="mr-1 h-3 w-3" />}
-                      Kör GEO-analys
+                      {t("leadDetail.ac_runGeoAnalysis")}
                     </Button>
                   )}
                 </div>
               ) : latestGeo.status === "running" ? (
                 <div className="text-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
-                  <p className="text-sm">Analyserar...</p>
+                  <p className="text-sm">{t("leadDetail.ac_analyzing")}</p>
                 </div>
               ) : latestGeo.status === "failed" ? (
                 <div className="text-center py-8 text-destructive">
                   <AlertCircle className="h-8 w-8 mx-auto mb-2" />
-                  <p className="text-sm">Analysen misslyckades</p>
+                  <p className="text-sm">{t("leadDetail.ac_analysisFailed")}</p>
                   <Button size="sm" variant="outline" className="mt-3" onClick={handleRunGeo}>
-                    <RefreshCw className="mr-1 h-3 w-3" /> Försök igen
+                    <RefreshCw className="mr-1 h-3 w-3" /> {t("leadDetail.ac_tryAgain")}
                   </Button>
                 </div>
               ) : (

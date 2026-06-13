@@ -7,9 +7,10 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, FileText, Clock, Download } from "lucide-react";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { toast } from "sonner";
 import { SignatureCanvas } from "@/components/quotes/SignatureCanvas";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface QuoteData {
   id: string;
@@ -61,6 +62,8 @@ interface SenderInfo {
 }
 
 export default function PublicQuotePage() {
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const { token } = useParams<{ token: string }>();
   const [quote, setQuote] = useState<QuoteData | null>(null);
   const [items, setItems] = useState<QuoteItem[]>([]);
@@ -139,7 +142,7 @@ export default function PublicQuotePage() {
       p_signature_data: signatureData,
     });
     if (!error) {
-      toast.success((quote as any).document_label === "avtal" ? "Avtalet har accepterats och signerats!" : "Offerten har accepterats och signerats!");
+      toast.success((quote as any).document_label === "avtal" ? t("publicPages.quote.agreementAcceptedSigned") : t("publicPages.quote.offerAcceptedSigned"));
       setQuote({
         ...quote,
         status: "accepted",
@@ -167,7 +170,7 @@ export default function PublicQuotePage() {
       p_action: "rejected",
     });
     if (!error) {
-      toast.info((quote as any).document_label === "avtal" ? "Avtalet har avböjts." : "Offerten har avböjts.");
+      toast.info((quote as any).document_label === "avtal" ? t("publicPages.quote.agreementRejected") : t("publicPages.quote.offerRejected"));
       setQuote({ ...quote, status: "rejected" });
     }
   };
@@ -194,7 +197,7 @@ export default function PublicQuotePage() {
         setTimeout(() => printWindow.print(), 2000);
       }
     } catch (err: any) {
-      toast.error("Kunde inte generera PDF");
+      toast.error(t("publicPages.quote.pdfError"));
     } finally {
       setDownloadingPdf(false);
     }
@@ -203,7 +206,7 @@ export default function PublicQuotePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Laddar offert...</div>
+        <div className="animate-pulse text-muted-foreground">{t("publicPages.quote.loading")}</div>
       </div>
     );
   }
@@ -214,8 +217,8 @@ export default function PublicQuotePage() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Dokumentet hittades inte</h2>
-            <p className="text-muted-foreground">Länken kan vara ogiltig eller har gått ut.</p>
+            <h2 className="text-xl font-semibold mb-2">{t("publicPages.quote.notFoundTitle")}</h2>
+            <p className="text-muted-foreground">{t("publicPages.quote.notFoundBody")}</p>
           </CardContent>
         </Card>
       </div>
@@ -226,13 +229,13 @@ export default function PublicQuotePage() {
   const canRespond = ["sent", "viewed"].includes(quote.status) && !isExpired;
 
   const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-    draft: { label: "Utkast", variant: "secondary" },
-    sent: { label: "Skickad", variant: "default" },
-    viewed: { label: "Visad", variant: "outline" },
-    accepted: { label: "Accepterad", variant: "default" },
-    won: { label: "🎉 Affär", variant: "default" },
-    rejected: { label: "Avböjd", variant: "destructive" },
-    expired: { label: "Utgången", variant: "secondary" },
+    draft: { label: t("publicPages.quote.statusDraft"), variant: "secondary" },
+    sent: { label: t("publicPages.quote.statusSent"), variant: "default" },
+    viewed: { label: t("publicPages.quote.statusViewed"), variant: "outline" },
+    accepted: { label: t("publicPages.quote.statusAccepted"), variant: "default" },
+    won: { label: t("publicPages.quote.statusWon"), variant: "default" },
+    rejected: { label: t("publicPages.quote.statusRejected"), variant: "destructive" },
+    expired: { label: t("publicPages.quote.statusExpired"), variant: "secondary" },
   };
 
   const statusInfo = statusConfig[quote.status] || statusConfig.draft;
@@ -247,7 +250,7 @@ export default function PublicQuotePage() {
               <div className="flex justify-center mb-4 pb-4 border-b">
                 <img
                   src={senderInfo?.company_logo_url || org?.logo_url || ""}
-                  alt={org?.name || "Företag"}
+                  alt={org?.name || t("publicPages.quote.company")}
                   className="max-h-16 max-w-[240px] object-contain"
                   crossOrigin="anonymous"
                 />
@@ -255,9 +258,9 @@ export default function PublicQuotePage() {
             )}
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{org?.name || "Företag"}</p>
+                <p className="text-sm text-muted-foreground">{org?.name || t("publicPages.quote.company")}</p>
                 <h1 className="text-2xl font-bold tracking-tight">{quote.title}</h1>
-                <p className="text-sm text-muted-foreground">{(quote as any).document_label === "avtal" ? "Avtal" : "Offert"} #{quote.quote_number}</p>
+                <p className="text-sm text-muted-foreground">{(quote as any).document_label === "avtal" ? t("publicPages.quote.agreement") : t("publicPages.quote.offer")} #{quote.quote_number}</p>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
@@ -270,15 +273,15 @@ export default function PublicQuotePage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {quote.recipient_name && (
-              <p><span className="text-muted-foreground">Till:</span> {quote.recipient_name}</p>
+              <p><span className="text-muted-foreground">{t("publicPages.quote.to")}</span> {quote.recipient_name}</p>
             )}
             {quote.valid_until && (
               <p className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-muted-foreground">Giltig t.o.m:</span>{" "}
+                <span className="text-muted-foreground">{t("publicPages.quote.validUntil")}</span>{" "}
                 <span className={isExpired ? "text-destructive font-medium" : ""}>
-                  {format(new Date(quote.valid_until), "d MMMM yyyy", { locale: sv })}
-                  {isExpired && " (utgången)"}
+                  {format(new Date(quote.valid_until), "d MMMM yyyy", { locale: dateLocale })}
+                  {isExpired && t("publicPages.quote.expiredSuffix")}
                 </span>
               </p>
             )}

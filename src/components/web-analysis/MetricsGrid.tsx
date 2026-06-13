@@ -1,5 +1,6 @@
 import { PageSpeedMetrics, webAnalysisApi } from "@/lib/api/webAnalysis";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface MetricItem {
   label: string;
@@ -15,41 +16,42 @@ interface MetricsGridProps {
 }
 
 export function MetricsGrid({ metrics, compact = false }: MetricsGridProps) {
+  const { t } = useTranslation();
   const metricItems: MetricItem[] = [
-    { 
-      label: "First Contentful Paint (FCP)", 
+    {
+      label: "First Contentful Paint (FCP)",
       value: metrics.firstContentfulPaint,
-      description: "Tid tills första innehållet visas",
+      description: t("webAnalysis.metricFcpDesc"),
       thresholds: { good: 1800, poor: 3000 }
     },
-    { 
-      label: "Largest Contentful Paint (LCP)", 
+    {
+      label: "Largest Contentful Paint (LCP)",
       value: metrics.largestContentfulPaint,
-      description: "Tid tills huvudinnehållet visas",
+      description: t("webAnalysis.metricLcpDesc"),
       thresholds: { good: 2500, poor: 4000 }
     },
-    { 
-      label: "Speed Index", 
+    {
+      label: "Speed Index",
       value: metrics.speedIndex,
-      description: "Hur snabbt innehållet blir synligt",
+      description: t("webAnalysis.metricSpeedIndexDesc"),
       thresholds: { good: 3400, poor: 5800 }
     },
-    { 
-      label: "Total Blocking Time (TBT)", 
+    {
+      label: "Total Blocking Time (TBT)",
       value: metrics.totalBlockingTime,
-      description: "Tid då sidan är blockerad",
+      description: t("webAnalysis.metricTbtDesc"),
       thresholds: { good: 200, poor: 600 }
     },
-    { 
-      label: "Time to Interactive (TTI)", 
+    {
+      label: "Time to Interactive (TTI)",
       value: metrics.timeToInteractive,
-      description: "Tid tills sidan är interaktiv",
+      description: t("webAnalysis.metricTtiDesc"),
       thresholds: { good: 3800, poor: 7300 }
     },
-    { 
-      label: "Cumulative Layout Shift (CLS)", 
+    {
+      label: "Cumulative Layout Shift (CLS)",
       value: metrics.cumulativeLayoutShift,
-      description: "Layoutstabilitet (0 = perfekt)",
+      description: t("webAnalysis.metricClsDesc"),
       isCls: true,
       thresholds: { good: 0.1, poor: 0.25 }
     },

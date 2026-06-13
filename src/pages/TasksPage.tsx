@@ -20,10 +20,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { notifyTaskAssigned } from "@/hooks/useNotifications";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 const priorityColors: Record<string, string> = {
   low: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
@@ -32,8 +33,8 @@ const priorityColors: Record<string, string> = {
   urgent: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
 };
 
-const priorityLabels: Record<string, string> = {
-  low: "Låg", medium: "Medium", high: "Hög", urgent: "Brådskande",
+const priorityKeys: Record<string, string> = {
+  low: "tasks.priorityLow", medium: "tasks.priorityMedium", high: "tasks.priorityHigh", urgent: "tasks.priorityUrgent",
 };
 
 interface Task {
@@ -54,6 +55,8 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { toast } = useToast();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const { members: teamMembers, getMember } = useTeamMembers();
@@ -86,7 +89,7 @@ export default function TasksPage() {
     }).eq("id", task.id);
 
     if (error) {
-      toast({ title: "Fel", description: "Kunde inte uppdatera uppgift", variant: "destructive" });
+      toast({ title: t("tasks.toastError"), description: t("tasks.toastUpdateFail"), variant: "destructive" });
     } else {
       invalidate();
     }
@@ -95,12 +98,12 @@ export default function TasksPage() {
   const handleAssignTask = async (taskId: string, newAssigneeId: string, task: Task) => {
     const { error } = await supabase.from("tasks").update({ assigned_to: newAssigneeId }).eq("id", taskId);
     if (error) {
-      toast({ title: "Fel", description: "Kunde inte tilldela uppgift", variant: "destructive" });
+      toast({ title: t("tasks.toastError"), description: t("tasks.toastAssignFail"), variant: "destructive" });
     } else {
       if (newAssigneeId !== user?.id) {
         await notifyTaskAssigned(newAssigneeId, task.title, taskId, task.lead_id);
       }
-      toast({ title: "Uppgift tilldelad", description: `Uppgiften har tilldelats ${getMember(newAssigneeId)?.full_name || "användaren"}` });
+      toast({ title: t("tasks.toastAssignedTitle"), description: t("tasks.toastAssignedDesc", { name: getMember(newAssigneeId)?.full_name || t("tasks.theUser") }) });
       invalidate();
     }
   };
@@ -117,16 +120,16 @@ export default function TasksPage() {
   };
 
   return (
-    <AppLayout title="Tasks">
+    <AppLayout title={t("tasks.pageTitle")}>
       <div className="space-y-4 md:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">Tasks & Uppföljningar</h2>
-            <p className="text-sm md:text-base text-muted-foreground">Hantera uppgifter och schemalagda uppföljningar</p>
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">{t("tasks.heading")}</h2>
+            <p className="text-sm md:text-base text-muted-foreground">{t("tasks.subtitle")}</p>
           </div>
           <Button className="w-full sm:w-auto" onClick={() => setShowCreateDialog(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Ny task
+            {t("tasks.newTask")}
           </Button>
         </div>
 
@@ -135,18 +138,18 @@ export default function TasksPage() {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Sök tasks..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
+                <Input placeholder={t("tasks.searchPlaceholder")} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full sm:w-40">
                   <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("tasks.statusFilter")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Alla</SelectItem>
-                  <SelectItem value="todo">Att göra</SelectItem>
-                  <SelectItem value="in_progress">Pågående</SelectItem>
-                  <SelectItem value="completed">Klart</SelectItem>
+                  <SelectItem value="all">{t("tasks.statusAll")}</SelectItem>
+                  <SelectItem value="todo">{t("tasks.statusTodo")}</SelectItem>
+                  <SelectItem value="in_progress">{t("tasks.statusInProgress")}</SelectItem>
+                  <SelectItem value="completed">{t("tasks.statusCompleted")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -163,10 +166,10 @@ export default function TasksPage() {
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <CheckSquare className="h-12 w-12 text-muted-foreground/50 mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-1">
-                  {tasks.length === 0 ? "Inga tasks ännu" : "Inga matchande tasks"}
+                  {tasks.length === 0 ? t("tasks.emptyNoTasks") : t("tasks.emptyNoMatch")}
                 </h3>
                 <p className="text-muted-foreground mb-4">
-                  {tasks.length === 0 ? "Klicka på 'Ny task' för att skapa din första uppgift" : "Prova att ändra sökfilter"}
+                  {tasks.length === 0 ? t("tasks.emptyNoTasksDesc") : t("tasks.emptyNoMatchDesc")}
                 </p>
               </div>
             ) : (
@@ -205,7 +208,7 @@ export default function TasksPage() {
                             </button>
                           </PopoverTrigger>
                           <PopoverContent className="w-48 p-2" align="end" onClick={(e) => e.stopPropagation()}>
-                            <p className="text-xs font-medium text-muted-foreground mb-2 px-2">Tilldela till</p>
+                            <p className="text-xs font-medium text-muted-foreground mb-2 px-2">{t("tasks.assignTo")}</p>
                             <div className="space-y-1">
                               {teamMembers.map((member) => (
                                 <button
@@ -221,11 +224,11 @@ export default function TasksPage() {
                           </PopoverContent>
                         </Popover>
                       ) : task.assigned_to ? <UserAvatar userId={task.assigned_to} size="sm" /> : null}
-                      <Badge variant="secondary" className={cn("text-xs", priorityColors[task.priority])}>{priorityLabels[task.priority]}</Badge>
+                      <Badge variant="secondary" className={cn("text-xs", priorityColors[task.priority])}>{t(priorityKeys[task.priority])}</Badge>
                       {task.due_date && (
                         <div className={cn("flex items-center text-xs", isOverdue(task.due_date) && task.status !== "completed" ? "text-destructive" : "text-muted-foreground")}>
                           <Calendar className="mr-1 h-3 w-3" />
-                          {format(new Date(task.due_date), "d MMM", { locale: sv })}
+                          {format(new Date(task.due_date), "d MMM", { locale: dateLocale })}
                         </div>
                       )}
                     </div>

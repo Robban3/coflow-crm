@@ -6,6 +6,7 @@ import { Upload, FileText, CheckCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Papa from "papaparse";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 const BATCH_SIZE = 500;
 
@@ -46,6 +47,8 @@ function mapRow(r: Record<string, string>) {
 
 export function CompanyRegistryUpload() {
   const { toast } = useToast();
+  const { t, language } = useTranslation();
+  const numberLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
   const fileRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -59,7 +62,7 @@ export function CompanyRegistryUpload() {
     setIsUploading(true);
     setProgress(0);
     setStats(null);
-    setStatusText("Läser fil...");
+    setStatusText(t("companyUpload.readingFile"));
 
     const text = await file.text();
 
@@ -92,17 +95,17 @@ export function CompanyRegistryUpload() {
     }
 
     if (rows.length === 0) {
-      toast({ title: "Tom fil", description: "Ingen data hittades i filen", variant: "destructive" });
+      toast({ title: t("companyUpload.emptyFileTitle"), description: t("companyUpload.emptyFileDesc"), variant: "destructive" });
       setIsUploading(false);
       return;
     }
 
     // Map all rows first
-    setStatusText("Bearbetar rader...");
+    setStatusText(t("companyUpload.processingRows"));
     const mapped = rows.map(mapRow).filter(r => r.company_name && r.org_number);
 
     if (mapped.length === 0) {
-      toast({ title: "Ingen giltig data", description: "Inga rader kunde mappas. Kontrollera kolumnnamnen.", variant: "destructive" });
+      toast({ title: t("companyUpload.noValidTitle"), description: t("companyUpload.noValidDesc"), variant: "destructive" });
       setIsUploading(false);
       return;
     }
@@ -112,7 +115,7 @@ export function CompanyRegistryUpload() {
     let totalErrors = 0;
     const batches = Math.ceil(totalRows / BATCH_SIZE);
 
-    setStatusText(`Laddar upp ${totalRows.toLocaleString("sv-SE")} företag i ${batches} batchar...`);
+    setStatusText(t("companyUpload.uploadingBatches", { count: totalRows.toLocaleString(numberLocale), batches }));
 
     for (let i = 0; i < batches; i++) {
       const batch = mapped.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
@@ -130,7 +133,7 @@ export function CompanyRegistryUpload() {
 
       const pct = Math.round(((i + 1) / batches) * 100);
       setProgress(pct);
-      setStatusText(`Batch ${i + 1}/${batches} — ${totalInserted.toLocaleString("sv-SE")} uppladdade`);
+      setStatusText(t("companyUpload.batchProgress", { current: i + 1, total: batches, inserted: totalInserted.toLocaleString(numberLocale) }));
 
       // Yield to UI thread
       if (i < batches - 1) await delay(50);
@@ -141,8 +144,8 @@ export function CompanyRegistryUpload() {
     setIsUploading(false);
 
     toast({
-      title: "Uppladdning klar",
-      description: `${totalInserted.toLocaleString("sv-SE")} av ${totalRows.toLocaleString("sv-SE")} företag laddades upp`,
+      title: t("companyUpload.doneTitle"),
+      description: t("companyUpload.doneDesc", { inserted: totalInserted.toLocaleString(numberLocale), total: totalRows.toLocaleString(numberLocale) }),
     });
 
     if (fileRef.current) fileRef.current.value = "";
@@ -153,12 +156,12 @@ export function CompanyRegistryUpload() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Upload className="h-4 w-4" />
-          Ladda upp företagsregister (Admin)
+          {t("companyUpload.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Ladda upp en CSV-fil med svenska företag. Dubbletter uppdateras automatiskt baserat på organisationsnummer.
+          {t("companyUpload.desc")}
         </p>
 
         <div className="flex items-center gap-3">
@@ -176,7 +179,7 @@ export function CompanyRegistryUpload() {
             variant="outline"
           >
             <FileText className="h-4 w-4 mr-2" />
-            Välj CSV-fil
+            {t("companyUpload.chooseFile")}
           </Button>
         </div>
 
@@ -195,8 +198,8 @@ export function CompanyRegistryUpload() {
               <AlertCircle className="h-4 w-4 text-destructive" />
             )}
             <span>
-              {stats.inserted.toLocaleString("sv-SE")} av {stats.total.toLocaleString("sv-SE")} företag laddades upp.
-              {stats.errors > 0 && ` ${stats.errors.toLocaleString("sv-SE")} fel.`}
+              {t("companyUpload.statsUploaded", { inserted: stats.inserted.toLocaleString(numberLocale), total: stats.total.toLocaleString(numberLocale) })}
+              {stats.errors > 0 && ` ${t("companyUpload.statsErrors", { errors: stats.errors.toLocaleString(numberLocale) })}`}
             </span>
           </div>
         )}

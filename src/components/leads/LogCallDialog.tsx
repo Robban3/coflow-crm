@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import {
   PhoneMissed,
@@ -83,6 +84,7 @@ export function LogCallDialog({
 }: LogCallDialogProps) {
   const organizationId = useOrganizationId();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const [selectedOutcome, setSelectedOutcome] = useState<CallOutcome | null>(null);
   const [note, setNote] = useState("");
@@ -140,7 +142,7 @@ export function LogCallDialog({
           .from("tasks")
           .insert({
             lead_id: leadId,
-            title: `Återkoppla: ${leadName || "Lead"}`,
+            title: t("leadDetail.lc_callbackTaskTitle", { name: leadName || t("leadDetail.lc_leadFallback") }),
             description: callbackNote || null,
             priority: "medium",
             due_date: dueDate.toISOString(),
@@ -183,8 +185,8 @@ export function LogCallDialog({
       }
 
       toast({
-        title: "Samtal sparat",
-        description: `${selectedOutcome.label}${callbackTaskId ? " — Uppföljning skapad" : ""}`,
+        title: t("leadDetail.lc_savedTitle"),
+        description: `${selectedOutcome.label}${callbackTaskId ? t("leadDetail.lc_followUpCreated") : ""}`,
       });
 
       onOpenChange(false);

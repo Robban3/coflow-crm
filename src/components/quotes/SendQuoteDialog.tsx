@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface SendQuoteDialogProps {
   quoteId: string;
@@ -33,6 +34,7 @@ export function SendQuoteDialog({
   onSent,
   onClose,
 }: SendQuoteDialogProps) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState(initialEmail);
   const [name, setName] = useState(initialName);
   const [message, setMessage] = useState("");
@@ -42,7 +44,7 @@ export function SendQuoteDialog({
 
   const handleSend = async () => {
     if (!email) {
-      toast.error("Ange mottagarens e-postadress");
+      toast.error(t("quotes.enterRecipientEmail"));
       return;
     }
     setSending(true);
@@ -70,10 +72,14 @@ export function SendQuoteDialog({
         })
         .eq("id", quoteId);
 
-      toast.success(`${documentLabel === "avtal" ? "Avtalet" : "Offerten"} skickades till ${email}`);
+      toast.success(
+        documentLabel === "avtal"
+          ? t("quotes.agreementSentTo", { email })
+          : t("quotes.quoteSentTo", { email })
+      );
       onSent();
     } catch (err: any) {
-      toast.error("Kunde inte skicka: " + (err.message || "Okänt fel"));
+      toast.error(t("quotes.couldNotSend", { error: err.message || t("quotes.unknownError") }));
     } finally {
       setSending(false);
     }
@@ -81,31 +87,31 @@ export function SendQuoteDialog({
 
   const copyLink = () => {
     navigator.clipboard.writeText(quoteUrl);
-    toast.success("Länk kopierad!");
+    toast.success(t("quotes.linkCopied"));
   };
 
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Skicka {documentLabel}</DialogTitle>
+          <DialogTitle>{documentLabel === "avtal" ? t("quotes.sendAvtal") : t("quotes.sendOffert")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label>Mottagare (namn)</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Kontaktperson" />
+            <Label>{t("quotes.recipientName")}</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("quotes.contactPerson")} />
           </div>
           <div>
-            <Label>E-postadress</Label>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="kontakt@foretag.se" />
+            <Label>{t("quotes.emailAddress")}</Label>
+            <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder={t("quotes.emailPlaceholder")} />
           </div>
           <div>
-            <Label>Personligt meddelande (valfritt)</Label>
+            <Label>{t("quotes.personalMessage")}</Label>
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Hej! Här kommer offerten vi pratade om..."
+              placeholder={t("quotes.messagePlaceholder")}
               rows={3}
             />
           </div>
@@ -120,11 +126,11 @@ export function SendQuoteDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Avbryt
+            {t("quotes.cancel")}
           </Button>
           <Button onClick={handleSend} disabled={sending}>
             <Send className="h-4 w-4 mr-2" />
-            {sending ? "Skickar..." : "Skicka via e-post"}
+            {sending ? t("quotes.sending") : t("quotes.sendViaEmail")}
           </Button>
         </DialogFooter>
       </DialogContent>

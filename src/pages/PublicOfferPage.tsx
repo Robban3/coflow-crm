@@ -12,8 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle, XCircle, FileText, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { SignatureCanvas } from "@/components/quotes/SignatureCanvas";
 
 interface OrgInfo {
@@ -23,6 +24,8 @@ interface OrgInfo {
 
 export default function PublicOfferPage() {
   const { token } = useParams<{ token: string }>();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const [doc, setDoc] = useState<DocType | null>(null);
   const [blocks, setBlocks] = useState<DocumentBlock[]>([]);
   const [org, setOrg] = useState<OrgInfo | null>(null);
@@ -106,7 +109,7 @@ export default function PublicOfferPage() {
       p_signature_data: signatureData,
     });
     if (!error) {
-      toast.success("Offerten har accepterats och signerats!");
+      toast.success(t("publicPages.offer.acceptedSigned"));
       setDoc({
         ...doc,
         status: "accepted",
@@ -126,7 +129,7 @@ export default function PublicOfferPage() {
       p_action: "rejected",
     });
     if (!error) {
-      toast.info("Offerten har avböjts.");
+      toast.info(t("publicPages.offer.rejected"));
       setDoc({ ...doc, status: "rejected" });
     }
   };
@@ -134,7 +137,7 @@ export default function PublicOfferPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Laddar offert...</div>
+        <div className="animate-pulse text-muted-foreground">{t("publicPages.offer.loading")}</div>
       </div>
     );
   }
@@ -145,8 +148,8 @@ export default function PublicOfferPage() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Offerten hittades inte</h2>
-            <p className="text-muted-foreground">Länken kan vara ogiltig eller har gått ut.</p>
+            <h2 className="text-xl font-semibold mb-2">{t("publicPages.offer.notFoundTitle")}</h2>
+            <p className="text-muted-foreground">{t("publicPages.offer.notFoundBody")}</p>
           </CardContent>
         </Card>
       </div>
@@ -159,12 +162,12 @@ export default function PublicOfferPage() {
   const totals = calculateDocumentTotals(blocks);
 
   const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-    draft: { label: "Utkast", variant: "secondary" },
-    sent: { label: "Skickad", variant: "default" },
-    viewed: { label: "Visad", variant: "outline" },
-    accepted: { label: "Accepterad", variant: "default" },
-    rejected: { label: "Avböjd", variant: "destructive" },
-    expired: { label: "Utgången", variant: "secondary" },
+    draft: { label: t("publicPages.offer.statusDraft"), variant: "secondary" },
+    sent: { label: t("publicPages.offer.statusSent"), variant: "default" },
+    viewed: { label: t("publicPages.offer.statusViewed"), variant: "outline" },
+    accepted: { label: t("publicPages.offer.statusAccepted"), variant: "default" },
+    rejected: { label: t("publicPages.offer.statusRejected"), variant: "destructive" },
+    expired: { label: t("publicPages.offer.statusExpired"), variant: "secondary" },
   };
 
   const statusInfo = statusConfig[doc.status] || statusConfig.draft;
@@ -179,7 +182,7 @@ export default function PublicOfferPage() {
               <div className="flex justify-center mb-4 pb-4 border-b">
                 <img
                   src={org.logo_url}
-                  alt={org.name || "Företag"}
+                  alt={org.name || t("publicPages.offer.company")}
                   className="max-h-16 max-w-[240px] object-contain"
                   crossOrigin="anonymous"
                 />
@@ -187,7 +190,7 @@ export default function PublicOfferPage() {
             )}
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{org?.name || "Företag"}</p>
+                <p className="text-sm text-muted-foreground">{org?.name || t("publicPages.offer.company")}</p>
                 <h1 className="text-2xl font-bold tracking-tight">{doc.title}</h1>
                 {doc.document_number && (
                   <p className="text-sm text-muted-foreground">#{doc.document_number}</p>
@@ -198,15 +201,15 @@ export default function PublicOfferPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {doc.recipient_name && (
-              <p><span className="text-muted-foreground">Till:</span> {doc.recipient_name}</p>
+              <p><span className="text-muted-foreground">{t("publicPages.offer.to")}</span> {doc.recipient_name}</p>
             )}
             {doc.valid_until && (
               <p className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-muted-foreground">Giltig t.o.m:</span>{" "}
+                <span className="text-muted-foreground">{t("publicPages.offer.validUntil")}</span>{" "}
                 <span className={isExpired ? "text-destructive font-medium" : ""}>
-                  {format(new Date(doc.valid_until), "d MMMM yyyy", { locale: sv })}
-                  {isExpired && " (utgången)"}
+                  {format(new Date(doc.valid_until), "d MMMM yyyy", { locale: dateLocale })}
+                  {isExpired && t("publicPages.offer.expiredSuffix")}
                 </span>
               </p>
             )}
@@ -228,16 +231,16 @@ export default function PublicOfferPage() {
             <CardContent className="pt-6">
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Netto</span>
+                  <span className="text-muted-foreground">{t("publicPages.offer.net")}</span>
                   <span>{totals.subtotal.toLocaleString("sv-SE")} kr</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Moms</span>
+                  <span className="text-muted-foreground">{t("publicPages.offer.vat")}</span>
                   <span>{totals.vat_total.toLocaleString("sv-SE")} kr</span>
                 </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between text-lg font-bold">
-                  <span>Totalt</span>
+                  <span>{t("publicPages.offer.total")}</span>
                   <span>{totals.total.toLocaleString("sv-SE")} {doc.currency || "SEK"}</span>
                 </div>
               </div>
@@ -251,13 +254,13 @@ export default function PublicOfferPage() {
             <CardContent className="pt-6 space-y-4 text-sm">
               {doc.notes && (
                 <div>
-                  <h3 className="font-medium mb-1">Meddelande</h3>
+                  <h3 className="font-medium mb-1">{t("publicPages.offer.message")}</h3>
                   <p className="text-muted-foreground whitespace-pre-wrap">{doc.notes}</p>
                 </div>
               )}
               {doc.terms && (
                 <div>
-                  <h3 className="font-medium mb-1">Villkor</h3>
+                  <h3 className="font-medium mb-1">{t("publicPages.offer.terms")}</h3>
                   <p className="text-muted-foreground whitespace-pre-wrap">{doc.terms}</p>
                 </div>
               )}
@@ -269,12 +272,12 @@ export default function PublicOfferPage() {
         {doc.status === "accepted" && doc.recipient_signature_data && (
           <Card>
             <CardContent className="pt-6">
-              <h3 className="font-medium mb-3">Signatur</h3>
+              <h3 className="font-medium mb-3">{t("publicPages.offer.signature")}</h3>
               <div className="border rounded-lg p-4 bg-background">
-                <img src={doc.recipient_signature_data} alt="Signatur" className="max-h-24" />
+                <img src={doc.recipient_signature_data} alt={t("publicPages.offer.signatureAlt")} className="max-h-24" />
                 {doc.recipient_signed_at && (
                   <p className="text-xs text-muted-foreground mt-2">
-                    Signerad {format(new Date(doc.recipient_signed_at), "d MMMM yyyy, HH:mm", { locale: sv })}
+                    {t("publicPages.offer.signedAt", { date: format(new Date(doc.recipient_signed_at), "d MMMM yyyy, HH:mm", { locale: dateLocale }) })}
                   </p>
                 )}
               </div>
@@ -287,16 +290,16 @@ export default function PublicOfferPage() {
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground mb-4">
-                Granska offerten ovan och acceptera eller avböj nedan.
+                {t("publicPages.offer.reviewPrompt")}
               </p>
               <div className="flex gap-3">
                 <Button onClick={() => setSigningMode(true)} className="flex-1">
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Acceptera & Signera
+                  {t("publicPages.offer.acceptAndSign")}
                 </Button>
                 <Button variant="destructive" onClick={handleReject} className="flex-1">
                   <XCircle className="h-4 w-4 mr-2" />
-                  Avböj
+                  {t("publicPages.offer.reject")}
                 </Button>
               </div>
             </CardContent>
@@ -306,13 +309,13 @@ export default function PublicOfferPage() {
         {signingMode && (
           <Card>
             <CardContent className="pt-6">
-              <h3 className="font-medium mb-3">Signera offerten</h3>
+              <h3 className="font-medium mb-3">{t("publicPages.offer.signTitle")}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Rita din signatur nedan för att acceptera offerten.
+                {t("publicPages.offer.signPrompt")}
               </p>
               <SignatureCanvas onSave={handleAcceptWithSignature} />
               <Button variant="outline" className="mt-3" onClick={() => setSigningMode(false)}>
-                Avbryt
+                {t("publicPages.offer.cancel")}
               </Button>
             </CardContent>
           </Card>
@@ -322,10 +325,10 @@ export default function PublicOfferPage() {
           <Card>
             <CardContent className="pt-6 text-center">
               <XCircle className="h-8 w-8 mx-auto text-destructive mb-2" />
-              <p className="font-medium">Offerten har avböjts</p>
+              <p className="font-medium">{t("publicPages.offer.rejectedTitle")}</p>
               {doc.rejected_at && (
                 <p className="text-sm text-muted-foreground">
-                  {format(new Date(doc.rejected_at), "d MMMM yyyy", { locale: sv })}
+                  {format(new Date(doc.rejected_at), "d MMMM yyyy", { locale: dateLocale })}
                 </p>
               )}
             </CardContent>

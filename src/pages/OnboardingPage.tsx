@@ -10,13 +10,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Building2, Mail, ArrowRight, Check, Briefcase } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileImageUpload } from "@/components/settings/ProfileImageUpload";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 const INDUSTRY_TEMPLATES = [
-  { id: "telephony", label: "Telefoni", description: "Telefonilösningar, växlar, abonnemang" },
-  { id: "fleet", label: "Fordonsleasing", description: "Billeasing, fordonsflottor, transportlösningar" },
-  { id: "it", label: "IT-tjänster", description: "IT-support, molntjänster, säkerhet" },
-  { id: "web", label: "Webblösningar", description: "Webbdesign, SEO, digital marknadsföring" },
-  { id: "other", label: "Annat", description: "Beskriv din verksamhet nedan" },
+  { id: "telephony", labelKey: "onboarding.industryTelephonyLabel", descriptionKey: "onboarding.industryTelephonyDesc" },
+  { id: "fleet", labelKey: "onboarding.industryFleetLabel", descriptionKey: "onboarding.industryFleetDesc" },
+  { id: "it", labelKey: "onboarding.industryItLabel", descriptionKey: "onboarding.industryItDesc" },
+  { id: "web", labelKey: "onboarding.industryWebLabel", descriptionKey: "onboarding.industryWebDesc" },
+  { id: "other", labelKey: "onboarding.industryOtherLabel", descriptionKey: "onboarding.industryOtherDesc" },
 ];
 
 interface OnboardingData {
@@ -44,6 +45,7 @@ export default function OnboardingPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Check if user already completed onboarding
   useEffect(() => {
@@ -67,8 +69,8 @@ export default function OnboardingPage() {
   const handleNext = () => {
     if (step === 1 && !data.organizationName) {
       toast({
-        title: "Organisationsnamn krävs",
-        description: "Ange ett namn för din organisation.",
+        title: t("onboarding.toastOrgNameRequiredTitle"),
+        description: t("onboarding.toastOrgNameRequiredDesc"),
         variant: "destructive",
       });
       return;
@@ -120,16 +122,16 @@ export default function OnboardingPage() {
       // Admin role is automatically assigned via database trigger
 
       toast({
-        title: "Välkommen!",
-        description: `${data.organizationName} är nu redo att användas.`,
+        title: t("onboarding.toastWelcomeTitle"),
+        description: t("onboarding.toastWelcomeDesc", { name: data.organizationName }),
       });
 
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Onboarding error:", error);
       toast({
-        title: "Något gick fel",
-        description: error.message || "Kunde inte slutföra konfigurationen",
+        title: t("onboarding.toastErrorTitle"),
+        description: error.message || t("onboarding.toastErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -146,35 +148,35 @@ export default function OnboardingPage() {
               <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-4">
                 <Building2 className="h-7 w-7 text-primary-foreground" />
               </div>
-              <CardTitle className="text-2xl">Skapa din organisation</CardTitle>
+              <CardTitle className="text-2xl">{t("onboarding.step1Title")}</CardTitle>
               <CardDescription>
-                Börja med grundläggande information om ditt företag
+                {t("onboarding.step1Desc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="orgName">Organisationsnamn *</Label>
+                <Label htmlFor="orgName">{t("onboarding.orgNameLabel")}</Label>
                 <Input
                   id="orgName"
-                  placeholder="Ditt Företag AB"
+                  placeholder={t("onboarding.orgNamePlaceholder")}
                   value={data.organizationName}
                   onChange={(e) => setData({ ...data, organizationName: e.target.value })}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="website">Hemsida</Label>
+                <Label htmlFor="website">{t("onboarding.websiteLabel")}</Label>
                 <Input
                   id="website"
                   type="url"
-                  placeholder="https://dittforetag.se"
+                  placeholder={t("onboarding.websitePlaceholder")}
                   value={data.website}
                   onChange={(e) => setData({ ...data, website: e.target.value })}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Logotyp</Label>
+                <Label>{t("onboarding.logoLabel")}</Label>
                 <ProfileImageUpload
                   currentUrl={data.logoUrl}
                   userId={user?.id || "temp"}
@@ -195,43 +197,43 @@ export default function OnboardingPage() {
               <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-4">
                 <Mail className="h-7 w-7 text-primary-foreground" />
               </div>
-              <CardTitle className="text-2xl">E-postkonfiguration</CardTitle>
+              <CardTitle className="text-2xl">{t("onboarding.step2Title")}</CardTitle>
               <CardDescription>
-                Ställ in hur dina outreach-mail ska skickas
+                {t("onboarding.step2Desc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="senderName">Avsändarnamn</Label>
+                <Label htmlFor="senderName">{t("onboarding.senderNameLabel")}</Label>
                 <Input
                   id="senderName"
-                  placeholder={data.organizationName || "Ditt Företag"}
+                  placeholder={data.organizationName || t("onboarding.senderNamePlaceholder")}
                   value={data.senderName}
                   onChange={(e) => setData({ ...data, senderName: e.target.value })}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Namnet som visas för mottagaren
+                  {t("onboarding.senderNameHint")}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="senderEmail">Avsändaradress</Label>
+                <Label htmlFor="senderEmail">{t("onboarding.senderEmailLabel")}</Label>
                 <Input
                   id="senderEmail"
                   type="email"
-                  placeholder="hej@dittforetag.se"
+                  placeholder={t("onboarding.senderEmailPlaceholder")}
                   value={data.senderEmail}
                   onChange={(e) => setData({ ...data, senderEmail: e.target.value })}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Lämna tomt för standardadressen. För att använda en egen domän behöver du verifiera den i Resend och lägga till API-nyckel i inställningarna efter registrering.
+                  {t("onboarding.senderEmailHint")}
                 </p>
               </div>
 
               <div className="p-4 rounded-lg border bg-muted/30">
-                <p className="text-sm font-medium mb-1">Förhandsgranskning:</p>
+                <p className="text-sm font-medium mb-1">{t("onboarding.previewLabel")}</p>
                 <p className="text-sm text-muted-foreground">
-                  {data.senderName || data.organizationName || "Din Organisation"} &lt;{data.senderEmail || "noreply@resend.dev"}&gt;
+                  {data.senderName || data.organizationName || t("onboarding.previewFallbackOrg")} &lt;{data.senderEmail || "noreply@resend.dev"}&gt;
                 </p>
               </div>
             </CardContent>
@@ -245,14 +247,14 @@ export default function OnboardingPage() {
               <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-4">
                 <Briefcase className="h-7 w-7 text-primary-foreground" />
               </div>
-              <CardTitle className="text-2xl">Vad säljer ni?</CardTitle>
+              <CardTitle className="text-2xl">{t("onboarding.step3Title")}</CardTitle>
               <CardDescription>
-                Beskriv era tjänster för att anpassa AI-genererade mail
+                {t("onboarding.step3Desc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-3">
-                <Label>Välj bransch</Label>
+                <Label>{t("onboarding.chooseIndustryLabel")}</Label>
                 <div className="grid gap-2">
                   {INDUSTRY_TEMPLATES.map((template) => (
                     <button
@@ -273,8 +275,8 @@ export default function OnboardingPage() {
                         )}
                       </div>
                       <div>
-                        <p className="font-medium">{template.label}</p>
-                        <p className="text-sm text-muted-foreground">{template.description}</p>
+                        <p className="font-medium">{t(template.labelKey)}</p>
+                        <p className="text-sm text-muted-foreground">{t(template.descriptionKey)}</p>
                       </div>
                     </button>
                   ))}
@@ -282,16 +284,16 @@ export default function OnboardingPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="serviceDesc">Beskriv era tjänster</Label>
+                <Label htmlFor="serviceDesc">{t("onboarding.serviceDescLabel")}</Label>
                 <Textarea
                   id="serviceDesc"
-                  placeholder="Beskriv vad ni erbjuder, era USP:ar, och vad som gör er unika..."
+                  placeholder={t("onboarding.serviceDescPlaceholder")}
                   value={data.serviceDescription}
                   onChange={(e) => setData({ ...data, serviceDescription: e.target.value })}
                   rows={4}
                 />
                 <p className="text-xs text-muted-foreground">
-                  AI:n använder denna information för att skapa relevanta outreach-mail
+                  {t("onboarding.serviceDescHint")}
                 </p>
               </div>
             </CardContent>
@@ -318,7 +320,7 @@ export default function OnboardingPage() {
           ))}
         </div>
         <p className="text-center text-sm text-muted-foreground mt-2">
-          Steg {step} av 3
+          {t("onboarding.progressStep", { step })}
         </p>
 
         {renderStep()}
@@ -326,7 +328,7 @@ export default function OnboardingPage() {
         <div className="flex justify-between p-6 pt-0">
           {step > 1 ? (
             <Button variant="outline" onClick={handleBack} disabled={isLoading}>
-              Tillbaka
+              {t("onboarding.back")}
             </Button>
           ) : (
             <div />
@@ -334,7 +336,7 @@ export default function OnboardingPage() {
           
           {step < 3 ? (
             <Button onClick={handleNext}>
-              Fortsätt
+              {t("onboarding.continue")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
@@ -342,11 +344,11 @@ export default function OnboardingPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Skapar...
+                  {t("onboarding.creating")}
                 </>
               ) : (
                 <>
-                  Slutför
+                  {t("onboarding.finish")}
                   <Check className="ml-2 h-4 w-4" />
                 </>
               )}

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Save, Settings } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import {
   Sheet,
   SheetContent,
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/sheet";
 
 export function TemplateEditor() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -164,9 +166,9 @@ export function TemplateEditor() {
       queryClient.invalidateQueries({ queryKey: ["template_version_latest", id] });
       queryClient.invalidateQueries({ queryKey: ["document_template", id] });
       setDirty(false);
-      toast.success("Mall sparad (ny version)");
+      toast.success(t("templates.editor.savedTitle"));
     },
-    onError: () => toast.error("Kunde inte spara mall"),
+    onError: () => toast.error(t("templates.editor.saveError")),
   });
 
   return (
@@ -182,18 +184,18 @@ export function TemplateEditor() {
             setDirty(true);
           }}
           className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 px-0 h-auto"
-          placeholder="Mallnamn"
+          placeholder={t("templates.editor.namePlaceholder")}
         />
         <div className="ml-auto flex gap-2">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4 mr-1" /> Varumärke
+                <Settings className="h-4 w-4 mr-1" /> {t("templates.editor.brand")}
               </Button>
             </SheetTrigger>
             <SheetContent>
               <SheetHeader>
-                <SheetTitle>Varumärkesinställningar</SheetTitle>
+                <SheetTitle>{t("templates.editor.brandSettings")}</SheetTitle>
               </SheetHeader>
               <BrandSettingsPanel
                 settings={brandSettings}
@@ -209,7 +211,7 @@ export function TemplateEditor() {
             onClick={() => saveMutation.mutate()}
             disabled={!dirty || saveMutation.isPending}
           >
-            <Save className="h-4 w-4 mr-1" /> Spara
+            <Save className="h-4 w-4 mr-1" /> {t("templates.editor.save")}
           </Button>
         </div>
       </div>
@@ -220,7 +222,7 @@ export function TemplateEditor() {
 
       {blocks.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
-          <p>Inga block ännu. Klicka "Lägg till block" för att börja.</p>
+          <p>{t("templates.editor.emptyBlocks")}</p>
         </div>
       ) : (
         <SortableBlockList
