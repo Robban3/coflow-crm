@@ -314,9 +314,7 @@ export function TeamManagement() {
                 <div className="flex items-center gap-2">
                   {member.role === "admin" ? (
                     <Badge className="flex items-center gap-1">
-                      <Shield className="h-3 w-3" />
-                      Admin
-                    </Badge>
+                      <Shield className="h-3 w-3" />{t("settings.roleAdmin")}</Badge>
                   ) : (
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <User className="h-3 w-3" />
@@ -453,9 +451,7 @@ export function TeamManagement() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-              Avbryt
-            </Button>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>{t("settings.cancel")}</Button>
             <Button onClick={handleAddUser} disabled={isCreating}>
               {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Skapa användare
@@ -468,14 +464,12 @@ export function TeamManagement() {
       <Dialog open={showInviteCodeDialog} onOpenChange={setShowInviteCodeDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Skapa inbjudningskod</DialogTitle>
-            <DialogDescription>
-              Generera en kod som nya användare kan använda vid registrering
-            </DialogDescription>
+            <DialogTitle>{t("settings.createInviteTitle")}</DialogTitle>
+            <DialogDescription>{t("settings.createInviteDesc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Antal användningar</Label>
+              <Label>{t("settings.numberOfUses")}</Label>
               <Select
                 value={String(inviteCodeForm.maxUses)}
                 onValueChange={(v) => setInviteCodeForm({ maxUses: parseInt(v) })}
@@ -487,15 +481,13 @@ export function TeamManagement() {
                   <SelectItem value="1">1 användning</SelectItem>
                   <SelectItem value="5">5 användningar</SelectItem>
                   <SelectItem value="10">10 användningar</SelectItem>
-                  <SelectItem value="100">Obegränsat (100)</SelectItem>
+                  <SelectItem value="100">{t("settings.usesUnlimited")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowInviteCodeDialog(false)}>
-              Avbryt
-            </Button>
+            <Button variant="outline" onClick={() => setShowInviteCodeDialog(false)}>{t("settings.cancel")}</Button>
             <Button onClick={handleCreateInviteCode} disabled={isCreating}>
               {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Generera kod

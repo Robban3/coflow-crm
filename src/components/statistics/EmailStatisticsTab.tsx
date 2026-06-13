@@ -212,10 +212,8 @@ export function EmailStatisticsTab() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <Mail className="h-12 w-12 text-muted-foreground/40 mb-4" />
-        <h2 className="text-lg font-semibold mb-2">Ingen maildata ännu</h2>
-        <p className="text-muted-foreground text-sm max-w-md">
-          Statistik visas här när mail har skickats under den valda perioden.
-        </p>
+        <h2 className="text-lg font-semibold mb-2">{t("statistics.emailEmptyTitle")}</h2>
+        <p className="text-muted-foreground text-sm max-w-md">{t("statistics.emailEmptyDesc")}</p>
       </div>
     );
   }
@@ -238,17 +236,17 @@ export function EmailStatisticsTab() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <KPICard icon={<Mail className="h-4 w-4" />} label="Skickade" value={stats.total} />
-        <KPICard icon={<MailOpen className="h-4 w-4" />} label="Öppnade" value={stats.opened} sub={`${stats.openRate}%`} />
-        <KPICard icon={<MessageSquare className="h-4 w-4" />} label="Svar" value={stats.replied} sub={`${stats.replyRate}%`} />
-        <KPICard icon={<Eye className="h-4 w-4" />} label="Levererade" value={stats.delivered} />
-        <KPICard icon={<TrendingUp className="h-4 w-4" />} label="Misslyckade" value={stats.failed} variant={stats.failed > 0 ? "destructive" : "default"} />
+        <KPICard icon={<Mail className="h-4 w-4" />} label={t("statistics.sent")} value={stats.total} />
+        <KPICard icon={<MailOpen className="h-4 w-4" />} label={t("statistics.opened")} value={stats.opened} sub={`${stats.openRate}%`} />
+        <KPICard icon={<MessageSquare className="h-4 w-4" />} label={t("statistics.answered")} value={stats.replied} sub={`${stats.replyRate}%`} />
+        <KPICard icon={<Eye className="h-4 w-4" />} label={t("statistics.delivered")} value={stats.delivered} />
+        <KPICard icon={<TrendingUp className="h-4 w-4" />} label={t("statistics.failed")} value={stats.failed} variant={stats.failed > 0 ? "destructive" : "default"} />
       </div>
 
       {/* Chart: sent vs opened over time */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Mail över tid</CardTitle>
+          <CardTitle className="text-base">{t("statistics.emailsOverTime")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-72">
@@ -275,7 +273,7 @@ export function EmailStatisticsTab() {
       {stats.timeSeries.length > 2 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Öppningsfrekvens över tid</CardTitle>
+            <CardTitle className="text-base">{t("statistics.openRateOverTime")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-56">
@@ -303,17 +301,17 @@ export function EmailStatisticsTab() {
         {/* By source */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Per källa</CardTitle>
+            <CardTitle className="text-base">{t("statistics.perSource")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Källa</TableHead>
-                  <TableHead className="text-right">Skickade</TableHead>
-                  <TableHead className="text-right">Öppnade</TableHead>
-                  <TableHead className="text-right">Svar</TableHead>
-                  <TableHead className="text-right">Öppn. %</TableHead>
+                  <TableHead>{t("statistics.source")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.sent")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.opened")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.answered")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.openPct")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -338,23 +336,23 @@ export function EmailStatisticsTab() {
         {/* By sender */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Per avsändare</CardTitle>
+            <CardTitle className="text-base">{t("statistics.perSender")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Avsändare</TableHead>
-                  <TableHead className="text-right">Skickade</TableHead>
-                  <TableHead className="text-right">Öppnade</TableHead>
-                  <TableHead className="text-right">Svar</TableHead>
-                  <TableHead className="text-right">Öppn. %</TableHead>
+                  <TableHead>{t("statistics.sender")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.sent")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.opened")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.answered")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.openPct")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {stats.bySender.sort((a, b) => b.sent - a.sent).map(row => (
                   <TableRow key={row.userId}>
-                    <TableCell className="font-medium">{profileMap.get(row.userId) ?? "Okänd"}</TableCell>
+                    <TableCell className="font-medium">{profileMap.get(row.userId) ?? t("statistics.unknown")}</TableCell>
                     <TableCell className="text-right">{row.sent}</TableCell>
                     <TableCell className="text-right">{row.opened}</TableCell>
                     <TableCell className="text-right">{row.replied}</TableCell>
@@ -372,20 +370,20 @@ export function EmailStatisticsTab() {
       {/* Recent emails table */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Senaste mail</CardTitle>
+          <CardTitle className="text-base">{t("statistics.recentEmails")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Datum</TableHead>
-                  <TableHead>Ämne</TableHead>
-                  <TableHead>Mottagare</TableHead>
-                  <TableHead>Avsändare</TableHead>
-                  <TableHead>Källa</TableHead>
-                  <TableHead className="text-center">Öppnad</TableHead>
-                  <TableHead className="text-center">Svar</TableHead>
+                  <TableHead>{t("statistics.date")}</TableHead>
+                  <TableHead>{t("statistics.subject")}</TableHead>
+                  <TableHead>{t("statistics.recipient")}</TableHead>
+                  <TableHead>{t("statistics.sender")}</TableHead>
+                  <TableHead>{t("statistics.source")}</TableHead>
+                  <TableHead className="text-center">{t("statistics.openedCol")}</TableHead>
+                  <TableHead className="text-center">{t("statistics.answered")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -406,14 +404,14 @@ export function EmailStatisticsTab() {
                           <MailOpen className="h-3.5 w-3.5" /> {e.opened_count ?? 1}x
                         </span>
                       ) : e.send_error ? (
-                        <Badge variant="destructive" className="text-xs">Fel</Badge>
+                        <Badge variant="destructive" className="text-xs">{t("statistics.error")}</Badge>
                       ) : (
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </TableCell>
                     <TableCell className="text-center">
                       {stats.replySet.has(e.id) ? (
-                        <Badge className="bg-chart-3/20 text-chart-3 text-xs border-0">Ja</Badge>
+                        <Badge className="bg-chart-3/20 text-chart-3 text-xs border-0">{t("statistics.yes")}</Badge>
                       ) : (
                         <span className="text-muted-foreground text-xs">—</span>
                       )}

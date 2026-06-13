@@ -475,9 +475,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        Laddar offert...
-      </div>
+      <div className="flex items-center justify-center py-20 text-muted-foreground">{t("quotes.loadingQuote")}</div>
     );
   }
 
@@ -506,17 +504,13 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
           {viewToken && (
             <>
               <Button variant="outline" size="sm" onClick={copyLink}>
-                <Copy className="h-4 w-4 mr-1" />
-                Kopiera länk
-              </Button>
+                <Copy className="h-4 w-4 mr-1" />{t("quotes.copyLink")}</Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => window.open(`/quote/${viewToken}`, "_blank")}
               >
-                <ExternalLink className="h-4 w-4 mr-1" />
-                Förhandsgranska
-              </Button>
+                <ExternalLink className="h-4 w-4 mr-1" />{t("quotes.preview")}</Button>
             </>
           )}
           {viewCount > 0 && (
@@ -549,10 +543,10 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
               variant="default"
               onClick={convertToDeal}
               disabled={convertingToDeal}
-              title="Markera offerten som vunnen affär"
+              title={t("quotes.markAsDealTitle")}
             >
               <CheckCircle2 className="h-4 w-4 mr-1" />
-              {convertingToDeal ? "Konverterar..." : "Markera som affär"}
+              {convertingToDeal ? "Konverterar..." : t("quotes.markAsDeal")}
             </Button>
           )}
         </div>
@@ -569,11 +563,11 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 relative">
-                  <Label>Titel / Sök lead</Label>
+                  <Label>{t("quotes.titleSearchLead")}</Label>
                   <Input
                     value={title}
                     onChange={(e) => handleTitleChange(e.target.value)}
-                    placeholder="Skriv företagsnamn för att söka bland leads..."
+                    placeholder={t("quotes.searchLeadPlaceholder")}
                     disabled={isReadOnly}
                     onFocus={() => { if (leadSearchResults.length > 0) setShowLeadDropdown(true); }}
                     onBlur={() => setTimeout(() => setShowLeadDropdown(false), 200)}
@@ -597,30 +591,30 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                     </div>
                   )}
                   {leadId && (
-                    <p className="text-xs text-muted-foreground mt-1">Kopplad till lead</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("quotes.linkedToLead")}</p>
                   )}
                 </div>
                 <div>
-                  <Label>Mottagare (namn)</Label>
+                  <Label>{t("quotes.recipientName")}</Label>
                   <Input
                     value={recipientName}
                     onChange={(e) => setRecipientName(e.target.value)}
-                    placeholder="Företagsnamn / Kontaktperson"
+                    placeholder={t("quotes.recipientNamePlaceholder")}
                     disabled={isReadOnly}
                   />
                 </div>
                 <div>
-                  <Label>Mottagare (e-post)</Label>
+                  <Label>{t("quotes.recipientEmail")}</Label>
                   <Input
                     value={recipientEmail}
                     onChange={(e) => setRecipientEmail(e.target.value)}
-                    placeholder="kontakt@foretag.se"
+                    placeholder={t("quotes.emailPlaceholder")}
                     type="email"
                     disabled={isReadOnly}
                   />
                 </div>
                 <div>
-                  <Label>Giltig till</Label>
+                  <Label>{t("quotes.validUntil")}</Label>
                   <Input
                     type="date"
                     value={validUntil}
@@ -629,19 +623,19 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                   />
                 </div>
                 <div>
-                  <Label>Dokumenttyp</Label>
+                  <Label>{t("quotes.documentType")}</Label>
                   <Select value={documentLabel} onValueChange={(v) => setDocumentLabel(v as "offert" | "avtal")} disabled={isReadOnly}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="offert">Offert</SelectItem>
-                      <SelectItem value="avtal">Avtal</SelectItem>
+                      <SelectItem value="offert">{t("quotes.offert")}</SelectItem>
+                      <SelectItem value="avtal">{t("quotes.avtal")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Valuta</Label>
+                  <Label>{t("quotes.currency")}</Label>
                   <Select value={currency} onValueChange={setCurrency}>
                     <SelectTrigger>
                       <SelectValue />
@@ -660,35 +654,29 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
           {/* Line items */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Rader</CardTitle>
+              <CardTitle className="text-base">{t("quotes.rows")}</CardTitle>
               {!isReadOnly && (
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setShowProductPicker(true)}>
-                    Från katalog
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setShowProductPicker(true)}>{t("quotes.fromCatalog")}</Button>
                   <Button variant="outline" size="sm" onClick={() => addItem()}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Fri rad
-                  </Button>
+                    <Plus className="h-4 w-4 mr-1" />{t("quotes.freeRow")}</Button>
                 </div>
               )}
             </CardHeader>
             <CardContent>
               {items.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  Lägg till produkter eller tjänster
-                </div>
+                <div className="text-center py-8 text-muted-foreground text-sm">{t("quotes.addProductsServices")}</div>
               ) : (
                 <div className="space-y-3">
                   {/* Header */}
                   <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-1">
-                    <div className="col-span-3">Beskrivning</div>
-                    <div className="col-span-1 text-right">Antal</div>
-                    <div className="col-span-1">Enhet</div>
+                    <div className="col-span-3">{t("quotes.description")}</div>
+                    <div className="col-span-1 text-right">{t("quotes.colQuantity")}</div>
+                    <div className="col-span-1">{t("quotes.unit")}</div>
                     <div className="col-span-2 text-right">Á-pris</div>
-                    <div className="col-span-1 text-right">Rabatt %</div>
-                    <div className="col-span-1 text-center">Typ</div>
-                    <div className="col-span-2 text-right">Summa</div>
+                    <div className="col-span-1 text-right">{t("quotes.colDiscount")}</div>
+                    <div className="col-span-1 text-center">{t("quotes.colType")}</div>
+                    <div className="col-span-2 text-right">{t("quotes.colTotal")}</div>
                     <div className="col-span-1" />
                   </div>
                   {items.map((item, idx) => (
@@ -697,7 +685,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                         <Input
                           value={item.description}
                           onChange={(e) => updateItem(idx, "description", e.target.value)}
-                          placeholder="Beskrivning"
+                          placeholder={t("quotes.description")}
                           className="text-sm"
                           disabled={isReadOnly}
                         />
@@ -742,7 +730,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                           step={1}
                           placeholder="0"
                           disabled={isReadOnly}
-                          title="Rabatt på just denna rad (%)"
+                          title={t("quotes.rowDiscountTitle")}
                         />
                       </div>
                       <div className="col-span-1">
@@ -755,8 +743,8 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="one_time">Engång</SelectItem>
-                            <SelectItem value="monthly">Månad</SelectItem>
+                            <SelectItem value="one_time">{t("quotes.billingOneTime")}</SelectItem>
+                            <SelectItem value="monthly">{t("quotes.billingMonthly")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -792,21 +780,21 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div>
-                <Label>Meddelande till mottagare</Label>
+                <Label>{t("quotes.messageToRecipient")}</Label>
                 <Textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="T.ex. tack för ett bra möte..."
+                  placeholder={t("quotes.messageToRecipientPlaceholder")}
                   rows={3}
                   disabled={isReadOnly}
                 />
               </div>
               <div>
-                <Label>Villkor</Label>
+                <Label>{t("quotes.terms")}</Label>
                 <Textarea
                   value={terms}
                   onChange={(e) => setTerms(e.target.value)}
-                  placeholder="Betalningsvillkor, leveranstid etc."
+                  placeholder={t("quotes.termsPlaceholder")}
                   rows={3}
                   disabled={isReadOnly}
                 />
@@ -819,17 +807,17 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Summering</CardTitle>
+              <CardTitle className="text-base">{t("quotes.summary")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               {hasOneTime && hasMonthly ? (
                 <>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Engångskostnader</span>
+                    <span className="text-muted-foreground">{t("quotes.oneTimeCosts")}</span>
                     <span>{oneTimeSubtotal.toLocaleString("sv-SE")} kr</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Månadskostnader</span>
+                    <span className="text-muted-foreground">{t("quotes.monthlyCosts")}</span>
                     <span>{monthlySubtotal.toLocaleString("sv-SE")} kr/mån</span>
                   </div>
                   <Separator />
@@ -840,7 +828,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                 <span>{subtotal.toLocaleString("sv-SE")} kr</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">Rabatt</span>
+                <span className="text-muted-foreground">{t("quotes.discount")}</span>
                 <Input
                   type="number"
                   value={discountPercent}
@@ -856,24 +844,24 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Moms</span>
+                <span className="text-muted-foreground">{t("quotes.vatLabel")}</span>
                 <span>{vatTotal.toLocaleString("sv-SE")} kr</span>
               </div>
               <Separator />
               {hasOneTime && hasMonthly ? (
                 <div className="space-y-2">
                   <div className="flex justify-between font-bold">
-                    <span>Engångsbelopp</span>
+                    <span>{t("quotes.oneTimeAmount")}</span>
                     <span>{(oneTimeSubtotal * (1 - discountPercent / 100)).toLocaleString("sv-SE")} {currency}</span>
                   </div>
                   <div className="flex justify-between font-bold">
-                    <span>Månadsbelopp</span>
+                    <span>{t("quotes.monthlyAmount")}</span>
                     <span>{(monthlySubtotal * (1 - discountPercent / 100)).toLocaleString("sv-SE")} {currency}/mån</span>
                   </div>
                 </div>
               ) : (
                 <div className="flex justify-between text-lg font-bold">
-                  <span>Totalt</span>
+                  <span>{t("quotes.total")}</span>
                   <span>
                     {total.toLocaleString("sv-SE")} {currency}
                     {hasMonthly && !hasOneTime && "/mån"}
@@ -885,7 +873,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Status</CardTitle>
+              <CardTitle className="text-base">{t("quotes.status")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Badge
@@ -910,13 +898,11 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                   : status === "won"
                   ? "🎉 Vunnen affär"
                   : status === "rejected"
-                  ? "Avböjd"
+                  ? t("quotes.statusRejected")
                   : status}
               </Badge>
               {isWon && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Denna offert är konverterad till affär och låst.
-                </p>
+                <p className="text-xs text-muted-foreground mt-2">{t("quotes.quoteLockedNote")}</p>
               )}
             </CardContent>
           </Card>
@@ -925,12 +911,10 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
           {!isReadOnly && (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-base">Avsändarsignatur</CardTitle>
+                <CardTitle className="text-base">{t("quotes.senderSignature")}</CardTitle>
                 {!showSignature && !senderSignature && (
                   <Button variant="outline" size="sm" onClick={() => setShowSignature(true)}>
-                    <Edit className="h-3.5 w-3.5 mr-1" />
-                    Signera
-                  </Button>
+                    <Edit className="h-3.5 w-3.5 mr-1" />{t("quotes.sign")}</Button>
                 )}
               </CardHeader>
               <CardContent>
@@ -939,21 +923,19 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                     <div className="border rounded-lg p-3 bg-white">
                       <img src={senderSignature} alt="Din signatur" className="max-h-16" />
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => { setSenderSignature(null); setShowSignature(true); }}>
-                      Ändra signatur
-                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSenderSignature(null); setShowSignature(true); }}>{t("quotes.changeSignature")}</Button>
                   </div>
                 ) : showSignature ? (
                   <SignatureCanvas
-                    label="Rita din signatur"
+                    label={t("quotes.drawYourSignature")}
                     onSave={(data) => {
                       setSenderSignature(data);
                       setShowSignature(false);
-                      toast.success("Signatur sparad – glöm inte att spara offerten");
+                      toast.success(t("quotes.signatureSavedNote"));
                     }}
                   />
                 ) : (
-                  <p className="text-sm text-muted-foreground">Ingen signatur tillagd</p>
+                  <p className="text-sm text-muted-foreground">{t("quotes.noSignatureAdded")}</p>
                 )}
               </CardContent>
             </Card>
@@ -963,14 +945,14 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
           {isReadOnly && (senderSignature || recipientSignature) && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Signaturer</CardTitle>
+                <CardTitle className="text-base">{t("quotes.signatures")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {senderSignature && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Avsändare</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t("quotes.sender")}</p>
                     <div className="border rounded-lg p-3 bg-white">
-                      <img src={senderSignature} alt="Avsändarens signatur" className="max-h-16" />
+                      <img src={senderSignature} alt=t("quotes.senderSignatureAlt") className="max-h-16" />
                     </div>
                     {senderSignedAt && (
                       <p className="text-xs text-muted-foreground mt-1">

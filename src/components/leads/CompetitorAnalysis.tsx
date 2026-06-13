@@ -377,7 +377,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
                         size="sm" 
                         variant="ghost"
                         onClick={() => handleAnalyzeCompetitor(competitor)}
-                        title="Analysera webbplats"
+                        title={t("leadDetail.pw_actionAnalyzeTitle")}
                       >
                         <BarChart3 className="h-4 w-4" />
                       </Button>
@@ -418,7 +418,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Webbplats</label>
+              <label className="text-sm font-medium">{t("leadDetail.pw_badgeWebsite")}</label>
               <Input
                 placeholder="t.ex. konkurrent.se"
                 value={manualForm.url}
@@ -427,9 +427,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-              Avbryt
-            </Button>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>{t("leadDetail.ef_cancel")}</Button>
             <Button 
               onClick={handleAddManual} 
               disabled={!manualForm.name || !manualForm.url || isAddingManual}
@@ -513,7 +511,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
                         {result.website ? (
                           <p className="text-xs text-primary truncate">{result.website}</p>
                         ) : (
-                          <p className="text-xs text-muted-foreground italic">Ingen webbplats</p>
+                          <p className="text-xs text-muted-foreground italic">{t("leadDetail.co_noWebsiteTitle")}</p>
                         )}
                         {result.rating && (
                           <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
@@ -529,9 +527,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAutoDialog(false)}>
-              Avbryt
-            </Button>
+            <Button variant="outline" onClick={() => setShowAutoDialog(false)}>{t("leadDetail.ef_cancel")}</Button>
             {autoResults.length > 0 && (
               <Button 
                 onClick={handleAddSelected} 

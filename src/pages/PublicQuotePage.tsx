@@ -309,11 +309,11 @@ export default function PublicQuotePage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-left text-muted-foreground">
-                        <th className="pb-3 font-medium">Beskrivning</th>
-                        <th className="pb-3 font-medium text-right">Antal</th>
+                        <th className="pb-3 font-medium">{t("publicPages.quote.colDescription")}</th>
+                        <th className="pb-3 font-medium text-right">{t("publicPages.quote.colQuantity")}</th>
                         <th className="pb-3 font-medium text-right">Á-pris</th>
-                        <th className="pb-3 font-medium text-right">Rabatt</th>
-                        <th className="pb-3 font-medium text-right">Summa</th>
+                        <th className="pb-3 font-medium text-right">{t("publicPages.quote.colDiscount")}</th>
+                        <th className="pb-3 font-medium text-right">{t("publicPages.quote.colSum")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -326,7 +326,7 @@ export default function PublicQuotePage() {
                             <td className="py-3">
                               <div>{item.description}</div>
                               {isMonthly && (
-                                <div className="text-xs text-muted-foreground mt-0.5">Återkommande månadskostnad</div>
+                                <div className="text-xs text-muted-foreground mt-0.5">{t("publicPages.quote.recurringMonthly")}</div>
                               )}
                             </td>
                             <td className="py-3 text-right whitespace-nowrap">{item.quantity} {item.unit}</td>
@@ -359,23 +359,23 @@ export default function PublicQuotePage() {
                     {hasOneTime && hasMonthly && (
                       <>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Engångskostnader</span>
+                          <span className="text-muted-foreground">{t("publicPages.quote.oneTimeCosts")}</span>
                           <span>{oneTimeTotal.toLocaleString("sv-SE")} kr</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Månadskostnader</span>
+                          <span className="text-muted-foreground">{t("publicPages.quote.monthlyCosts")}</span>
                           <span>{monthlyTotal.toLocaleString("sv-SE")} kr/mån</span>
                         </div>
                         <Separator className="my-2" />
                       </>
                     )}
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Netto</span>
+                      <span className="text-muted-foreground">{t("publicPages.offer.net")}</span>
                       <span>{Number(quote.subtotal).toLocaleString("sv-SE")} kr</span>
                     </div>
                     {hasAnyLineDiscount && lineDiscountTotal > 0 && (
                       <div className="flex justify-between text-destructive">
-                        <span>Radrabatter totalt</span>
+                        <span>{t("publicPages.quote.lineDiscountsTotal")}</span>
                         <span>-{lineDiscountTotal.toLocaleString("sv-SE")} kr</span>
                       </div>
                     )}
@@ -386,24 +386,24 @@ export default function PublicQuotePage() {
                       </div>
                     )}
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Moms</span>
+                      <span className="text-muted-foreground">{t("publicPages.offer.vat")}</span>
                       <span>{Number(quote.vat_total).toLocaleString("sv-SE")} kr</span>
                     </div>
                     <Separator className="my-2" />
                     {hasOneTime && hasMonthly ? (
                       <div className="space-y-1">
                         <div className="flex justify-between text-base font-bold">
-                          <span>Engångsbelopp</span>
+                          <span>{t("publicPages.quote.oneTimeAmount")}</span>
                           <span>{(oneTimeTotal * (1 - Number(quote.discount_percent) / 100)).toLocaleString("sv-SE")} {quote.currency}</span>
                         </div>
                         <div className="flex justify-between text-base font-bold">
-                          <span>Månadsbelopp</span>
+                          <span>{t("publicPages.quote.monthlyAmount")}</span>
                           <span>{(monthlyTotal * (1 - Number(quote.discount_percent) / 100)).toLocaleString("sv-SE")} {quote.currency}/mån</span>
                         </div>
                       </div>
                     ) : (
                       <div className="flex justify-between text-lg font-bold">
-                        <span>Totalt</span>
+                        <span>{t("publicPages.offer.total")}</span>
                         <span>
                           {Number(quote.total).toLocaleString("sv-SE")} {quote.currency}
                           {hasMonthly && !hasOneTime && "/mån"}
@@ -423,13 +423,13 @@ export default function PublicQuotePage() {
             <CardContent className="pt-6 space-y-4 text-sm">
               {quote.notes && (
                 <div>
-                  <h3 className="font-medium mb-1">Meddelande</h3>
+                  <h3 className="font-medium mb-1">{t("publicPages.offer.message")}</h3>
                   <p className="text-muted-foreground whitespace-pre-wrap">{quote.notes}</p>
                 </div>
               )}
               {quote.terms && (
                 <div>
-                  <h3 className="font-medium mb-1">Villkor</h3>
+                  <h3 className="font-medium mb-1">{t("publicPages.offer.terms")}</h3>
                   <p className="text-muted-foreground whitespace-pre-wrap">{quote.terms}</p>
                 </div>
               )}
@@ -441,16 +441,16 @@ export default function PublicQuotePage() {
         {(quote.sender_signature_data || quote.recipient_signature_data) && (
           <Card>
             <CardContent className="pt-6">
-              <h3 className="font-medium mb-4 text-sm">Signaturer</h3>
+              <h3 className="font-medium mb-4 text-sm">{t("publicPages.quote.signatures")}</h3>
               <div className="flex flex-col sm:flex-row gap-6">
                 {quote.sender_signature_data && (
                   <div className="flex-1">
-                    <p className="text-xs text-muted-foreground mb-1">Avsändare</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t("publicPages.quote.sender")}</p>
                     <p className="text-sm font-medium mb-1">
-                      {senderInfo?.sender_display_name || senderInfo?.full_name || org?.name || "Avsändare"}
+                      {senderInfo?.sender_display_name || senderInfo?.full_name || org?.name || t("publicPages.quote.sender")}
                     </p>
                     <div className="border rounded-lg p-3 bg-white">
-                      <img src={quote.sender_signature_data} alt="Avsändarens signatur" className="max-h-16" />
+                      <img src={quote.sender_signature_data} alt=t("publicPages.quote.senderSignatureAlt") className="max-h-16" />
                     </div>
                     {quote.sender_signed_at && (
                       <p className="text-xs text-muted-foreground mt-1">
@@ -461,7 +461,7 @@ export default function PublicQuotePage() {
                 )}
                 {quote.recipient_signature_data && (
                   <div className="flex-1">
-                    <p className="text-xs text-muted-foreground mb-1">Mottagare</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t("publicPages.quote.recipient")}</p>
                     <p className="text-sm font-medium mb-1">
                       {quote.recipient_name || "Mottagare"}
                     </p>
@@ -486,13 +486,9 @@ export default function PublicQuotePage() {
             <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button className="flex-1" size="lg" onClick={() => setSigningMode(true)}>
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  Acceptera och signera
-                </Button>
+                  <CheckCircle className="h-5 w-5 mr-2" />{t("publicPages.quote.acceptAndSign")}</Button>
                 <Button variant="outline" className="flex-1" size="lg" onClick={handleReject}>
-                  <XCircle className="h-5 w-5 mr-2" />
-                  Avböj offert
-                </Button>
+                  <XCircle className="h-5 w-5 mr-2" />{t("publicPages.quote.rejectOffer")}</Button>
               </div>
             </CardContent>
           </Card>
@@ -501,20 +497,16 @@ export default function PublicQuotePage() {
         {canRespond && signingMode && (
           <Card>
             <CardContent className="pt-6 space-y-4">
-              <h3 className="font-medium">Signera för att acceptera offerten</h3>
-              <p className="text-sm text-muted-foreground">
-                Rita din signatur nedan med musen eller fingret. Genom att signera accepterar du villkoren i denna offert.
-              </p>
+              <h3 className="font-medium">{t("publicPages.quote.signToAccept")}</h3>
+              <p className="text-sm text-muted-foreground">{t("publicPages.quote.signInstructions")}</p>
               {quote.recipient_name && (
                 <p className="text-sm font-medium">{quote.recipient_name}</p>
               )}
               <SignatureCanvas
-                label="Din signatur"
+                label={t("publicPages.quote.yourSignature")}
                 onSave={handleAcceptWithSignature}
               />
-              <Button variant="ghost" size="sm" onClick={() => setSigningMode(false)}>
-                Avbryt
-              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setSigningMode(false)}>{t("publicPages.offer.cancel")}</Button>
             </CardContent>
           </Card>
         )}
@@ -523,7 +515,7 @@ export default function PublicQuotePage() {
           <Card className="border-primary/30 bg-primary/5">
             <CardContent className="pt-6 text-center">
               <CheckCircle className="h-8 w-8 mx-auto text-primary mb-2" />
-              <p className="font-medium">Offerten har accepterats</p>
+              <p className="font-medium">{t("publicPages.quote.offerAccepted")}</p>
               {quote.recipient_signed_at && (
                 <p className="text-sm text-muted-foreground">
                   Signerad {format(new Date(quote.recipient_signed_at), "d MMMM yyyy", { locale: sv })}

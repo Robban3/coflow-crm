@@ -194,8 +194,8 @@ export function LogCallDialog({
     } catch (error) {
       console.error("Error saving call:", error);
       toast({
-        title: "Fel",
-        description: "Kunde inte spara samtalet",
+        title: t("leadDetail.ac_toastErrorTitle"),
+        description: t("leadDetail.lc_couldNotSave"),
         variant: "destructive",
       });
     } finally {
@@ -208,9 +208,7 @@ export function LogCallDialog({
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Phone className="h-5 w-5" />
-            Logga samtal
-          </DialogTitle>
+            <Phone className="h-5 w-5" />{t("leadDetail.lc_dialogTitle")}</DialogTitle>
           <DialogDescription>
             {leadName && <span className="font-medium text-foreground">{leadName}</span>}
             {leadPhone && <span className="ml-2 text-muted-foreground">• {leadPhone}</span>}
@@ -220,7 +218,7 @@ export function LogCallDialog({
         <div className="space-y-4 py-2">
           {/* Outcome picker grid */}
           <div>
-            <Label className="text-sm mb-2 block">Utfall</Label>
+            <Label className="text-sm mb-2 block">{t("leadDetail.lc_outcomeLabel")}</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {outcomes.map((outcome) => {
                 const Icon = ICON_MAP[outcome.icon || ""] || Phone;
@@ -257,10 +255,10 @@ export function LogCallDialog({
                 onChange={(e) => setNote(e.target.value)}
                 placeholder={
                   selectedOutcome.key === "not_interested"
-                    ? "Varför är de inte intresserade?"
+                    ? t("leadDetail.lc_notePlaceholderNotInterested")
                     : selectedOutcome.key === "answered"
                     ? "Kort sammanfattning av samtalet"
-                    : "Lägg till notering..."
+                    : t("leadDetail.lc_notePlaceholderDefault")
                 }
                 rows={3}
               />
@@ -271,12 +269,10 @@ export function LogCallDialog({
           {selectedOutcome?.requires_task && (
             <div className="space-y-3 p-3 rounded-lg border border-amber-300/50 bg-amber-50/50 dark:bg-amber-950/20 animate-in fade-in-50 duration-200">
               <Label className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
-                <CalendarClock className="h-4 w-4" />
-                Schemalägg uppföljning
-              </Label>
+                <CalendarClock className="h-4 w-4" />{t("leadDetail.lc_scheduleFollowUp")}</Label>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs">Datum *</Label>
+                  <Label className="text-xs">{t("leadDetail.lc_dateLabel")}</Label>
                   <Input
                     type="date"
                     value={callbackDate}
@@ -285,7 +281,7 @@ export function LogCallDialog({
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">Tid</Label>
+                  <Label className="text-xs">{t("leadDetail.lc_timeLabel")}</Label>
                   <Input
                     type="time"
                     value={callbackTime}
@@ -294,11 +290,11 @@ export function LogCallDialog({
                 </div>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Extra notering (valfri)</Label>
+                <Label className="text-xs">{t("leadDetail.lc_extraNoteLabel")}</Label>
                 <Input
                   value={callbackNote}
                   onChange={(e) => setCallbackNote(e.target.value)}
-                  placeholder="T.ex. Ring efter lunch"
+                  placeholder={t("leadDetail.lc_extraNotePlaceholder")}
                 />
               </div>
             </div>
@@ -306,15 +302,11 @@ export function LogCallDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Avbryt
-          </Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("leadDetail.ef_cancel")}</Button>
           <Button onClick={handleSave} disabled={!canSave || isSaving}>
             {isSaving ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sparar...
-              </>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("leadDetail.lc_saving")}</>
             ) : (
               "Spara"
             )}

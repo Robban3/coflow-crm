@@ -803,9 +803,7 @@ export function PlaceWorkflowDialog({
                     )}
                     {leadCreated && (
                       <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
-                        <CheckCircle2 className="h-4 w-4" />
-                        Lead skapad
-                      </div>
+                        <CheckCircle2 className="h-4 w-4" />{t("leadDetail.at_leadCreated")}</div>
                     )}
                     {analysisResult && (
                       <div className="flex items-center gap-2 text-sm text-primary">
@@ -839,7 +837,7 @@ export function PlaceWorkflowDialog({
                     {[
                       { label: "Prestanda", score: analysisResult.performance_score },
                       { label: "Tillgänglighet", score: analysisResult.accessibility_score },
-                      { label: "SEO", score: analysisResult.seo_score },
+                      { label: t("leadDetail.ac_metricSeo"), score: analysisResult.seo_score },
                       { label: "Best Practice", score: analysisResult.best_practices_score },
                     ].map(({ label, score }) => (
                       <div
@@ -935,7 +933,7 @@ export function PlaceWorkflowDialog({
                 <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
                   <CheckCircle2 className="h-12 w-12 text-emerald-500" />
                   <div>
-                    <p className="font-medium">Mail skickat!</p>
+                    <p className="font-medium">{t("leadDetail.pw_emailSentTitle")}</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       Mailet har skickats till {recipientEmail}
                     </p>
@@ -982,9 +980,7 @@ export function PlaceWorkflowDialog({
 
                   <div className="space-y-2">
                     <Label htmlFor="contact" className="flex items-center gap-2">
-                      <User className="h-3.5 w-3.5" />
-                      Kontaktperson
-                    </Label>
+                      <User className="h-3.5 w-3.5" />{t("leadDetail.ws_fieldContactPerson")}</Label>
                     <Input
                       id="contact"
                       placeholder="Anna Andersson"
@@ -1099,9 +1095,7 @@ export function PlaceWorkflowDialog({
                           <Loader2 className="h-3 w-3 animate-spin" />
                         ) : (
                           <>
-                            <Zap className="mr-1 h-3 w-3" />
-                            Hämta data
-                          </>
+                            <Zap className="mr-1 h-3 w-3" />{t("leadDetail.fd_fetchData")}</>
                         )}
                       </Button>
                     </div>
@@ -1111,9 +1105,7 @@ export function PlaceWorkflowDialog({
                   <div className="space-y-3">
                     <div className="space-y-2">
                       <Label htmlFor="leadCompany" className="flex items-center gap-2">
-                        <Building2 className="h-3.5 w-3.5" />
-                        Företagsnamn *
-                      </Label>
+                        <Building2 className="h-3.5 w-3.5" />{t("leadDetail.ldp_companyNameLabel")}</Label>
                       <Input
                         id="leadCompany"
                         value={leadFormData.companyName}
@@ -1126,9 +1118,7 @@ export function PlaceWorkflowDialog({
 
                     <div className="space-y-2">
                       <Label htmlFor="leadContact" className="flex items-center gap-2">
-                        <User className="h-3.5 w-3.5" />
-                        Kontaktperson
-                      </Label>
+                        <User className="h-3.5 w-3.5" />{t("leadDetail.ws_fieldContactPerson")}</Label>
                       <Input
                         id="leadContact"
                         value={leadFormData.contactName}
@@ -1142,9 +1132,7 @@ export function PlaceWorkflowDialog({
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
                         <Label htmlFor="leadEmail" className="flex items-center gap-2">
-                          <Mail className="h-3.5 w-3.5" />
-                          E-post
-                        </Label>
+                          <Mail className="h-3.5 w-3.5" />{t("leadDetail.ws_fieldEmail")}</Label>
                         <Input
                           id="leadEmail"
                           type="email"
@@ -1158,9 +1146,7 @@ export function PlaceWorkflowDialog({
 
                       <div className="space-y-2">
                         <Label htmlFor="leadPhone" className="flex items-center gap-2">
-                          <Phone className="h-3.5 w-3.5" />
-                          Telefon
-                        </Label>
+                          <Phone className="h-3.5 w-3.5" />{t("leadDetail.ws_fieldPhone")}</Label>
                         <Input
                           id="leadPhone"
                           value={leadFormData.phone}
@@ -1180,14 +1166,10 @@ export function PlaceWorkflowDialog({
                   >
                     {isSavingLead ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sparar...
-                      </>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("leadDetail.lc_saving")}</>
                     ) : (
                       <>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Skapa lead
-                      </>
+                        <Plus className="mr-2 h-4 w-4" />{t("leadDetail.pw_actionCreateLeadTitle")}</>
                     )}
                   </Button>
                 </>

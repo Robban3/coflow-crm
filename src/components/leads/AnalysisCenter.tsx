@@ -524,7 +524,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                                     )}
                                   </div>
                                   <Badge variant={f.severity === "high" ? "destructive" : f.severity === "medium" ? "secondary" : "outline"} className="text-[10px] shrink-0">
-                                    {f.severity === "high" ? "Hög" : f.severity === "medium" ? "Medium" : "Låg"}
+                                    {f.severity === "high" ? t("leadDetail.ldp_priorityHigh") : f.severity === "medium" ? "Medium" : t("leadDetail.ldp_priorityLow")}
                                   </Badge>
                                 </div>
                               </div>
@@ -624,15 +624,14 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                 <CardTitle className="text-base flex items-center gap-2">
                   SEO Intelligence
                   <Badge variant="outline" className="text-[10px]">
-                    <DollarSign className="h-3 w-3 mr-0.5" />Betald
-                  </Badge>
+                    <DollarSign className="h-3 w-3 mr-0.5" />{t("leadDetail.ac_badgePaid")}</Badge>
                 </CardTitle>
                 <CardDescription className="text-xs">DataForSEO – realtidsdata om Google-synlighet</CardDescription>
               </div>
               {website && (
                 <Button size="sm" onClick={handleRunSeo} disabled={isRunningSeo}>
                   {isRunningSeo ? (
-                    <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Kör...</>
+                    <><Loader2 className="mr-1 h-3 w-3 animate-spin" />{t("leadDetail.ac_running")}</>
                   ) : (
                     <><Play className="mr-1 h-3 w-3" /> Kör SEO-analys</>
                   )}
@@ -776,8 +775,8 @@ function QuickScanSection({ leadId, website }: { leadId: string; website: string
       refetch();
     } catch (e) {
       toast({
-        title: "Fel",
-        description: e instanceof Error ? e.message : "Okänt fel",
+        title: t("leadDetail.ac_toastErrorTitle"),
+        description: e instanceof Error ? e.message : t("leadDetail.ac_unknownError"),
         variant: "destructive",
       });
     } finally {
@@ -796,7 +795,7 @@ function QuickScanSection({ leadId, website }: { leadId: string; website: string
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Badge variant={latestQuickScan.status === "completed" ? "default" : latestQuickScan.status === "failed" ? "destructive" : "secondary"} className="text-[10px]">
-                {latestQuickScan.status === "completed" ? "Klar" : latestQuickScan.status === "running" ? "Kör..." : latestQuickScan.status === "queued" ? "Köad" : "Misslyckad"}
+                {latestQuickScan.status === "completed" ? "Klar" : latestQuickScan.status === "running" ? t("leadDetail.ac_running") : latestQuickScan.status === "queued" ? "Köad" : "Misslyckad"}
               </Badge>
               {latestQuickScan.geo_score != null && (
                 <span className={`text-sm font-bold ${latestQuickScan.geo_score >= 80 ? "text-green-600 dark:text-green-400" : latestQuickScan.geo_score >= 50 ? "text-yellow-600 dark:text-yellow-400" : "text-red-600 dark:text-red-400"}`}>

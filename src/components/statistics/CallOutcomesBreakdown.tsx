@@ -146,22 +146,22 @@ export function CallOutcomesBreakdown({ data }: Props) {
       {per_user.length > 0 && (
         <Card className="border-border/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Samtal per användare</CardTitle>
+            <CardTitle className="text-base">{t("statistics.callsPerUser")}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Användare</TableHead>
-                    <TableHead className="text-right">Samtal</TableHead>
-                    <TableHead className="text-right">Svar</TableHead>
-                    <TableHead className="text-right">Ej svar</TableHead>
-                    <TableHead className="text-right">Återk.</TableHead>
-                    <TableHead className="text-right">Ej intr.</TableHead>
-                    <TableHead className="text-right">Bokad</TableHead>
-                    <TableHead className="text-right">Svar%</TableHead>
-                    <TableHead className="text-right">Bokad%</TableHead>
+                    <TableHead>{t("statistics.user")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.calls")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.answered")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.legendNoAnswer")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.colCallback")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.colNotInterested")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.legendBooked")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.answerPct")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.bookedPct")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

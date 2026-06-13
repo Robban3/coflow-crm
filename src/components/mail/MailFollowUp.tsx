@@ -302,9 +302,7 @@ export function MailFollowUp() {
                 <TableHead>Företag</TableHead>
                 <TableHead className="hidden md:table-cell">Kontakt</TableHead>
                 <TableHead className="hidden sm:table-cell">E-post</TableHead>
-                <TableHead className="hidden lg:table-cell">
-                  Senaste kontakt
-                </TableHead>
+                <TableHead className="hidden lg:table-cell">{t("mail.followUp.lastContactLabel")}</TableHead>
                 <TableHead className="text-right">Åtgärder</TableHead>
               </TableRow>
             </TableHeader>
@@ -323,7 +321,7 @@ export function MailFollowUp() {
                       className="font-medium hover:text-primary transition-colors flex items-center gap-1.5"
                     >
                       <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                      {lead.company_name || "Okänt företag"}
+                      {lead.company_name || t("mail.unknownCompany")}
                     </Link>
                   </TableCell>
                   <TableCell className="hidden md:table-cell text-muted-foreground">
@@ -352,7 +350,7 @@ export function MailFollowUp() {
                         onClick={() => setFollowUpLeadIds([lead.id])}
                       >
                         <Send className="h-3.5 w-3.5 mr-1" />
-                        <span className="hidden sm:inline">Uppföljning</span>
+                        <span className="hidden sm:inline">{t("mail.tabFollowUp")}</span>
                       </Button>
                       <Button
                         size="sm"
@@ -398,9 +396,7 @@ export function MailFollowUp() {
             <Button
               variant="outline"
               onClick={() => setShowNotInterestedDialog(false)}
-            >
-              Avbryt
-            </Button>
+            >{t("mail.cancel")}</Button>
             <Button
               variant="destructive"
               onClick={handleMarkNotInterested}
