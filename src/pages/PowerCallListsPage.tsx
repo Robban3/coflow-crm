@@ -22,7 +22,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import {
   Plus,
   List,
@@ -46,16 +47,18 @@ interface PowerCallList {
   updated_at: string;
 }
 
-const SOURCE_TYPE_LABELS: Record<string, string> = {
-  static: "Statisk lista",
-  filter: "Dynamisk (filter)",
-  import: "Import",
+const SOURCE_TYPE_KEYS: Record<string, string> = {
+  static: "powerCall.lists.sourceStatic",
+  filter: "powerCall.lists.sourceFilter",
+  import: "powerCall.lists.sourceImport",
 };
 
 export default function PowerCallListsPage() {
   const organizationId = useOrganizationId();
   const { user, userRole } = useAuth();
   const { toast } = useToast();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const queryClient = useQueryClient();
   const isAdmin = userRole === "admin";
 
@@ -94,7 +97,7 @@ export default function PowerCallListsPage() {
         shared_to_team: sharedToTeam,
       });
       if (error) throw error;
-      toast({ title: "Lista skapad" });
+      toast({ title: t("powerCall.lists.toastCreated") });
       queryClient.invalidateQueries({ queryKey: ["power-call-lists"] });
       setCreateOpen(false);
       setName("");
@@ -102,19 +105,19 @@ export default function PowerCallListsPage() {
       setSourceType("static");
       setSharedToTeam(true);
     } catch (err) {
-      toast({ title: "Fel", description: "Kunde inte skapa lista", variant: "destructive" });
+      toast({ title: t("powerCall.lists.toastError"), description: t("powerCall.lists.toastCreateFailed"), variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Ta bort listan?")) return;
+    if (!confirm(t("powerCall.lists.confirmDelete"))) return;
     const { error } = await supabase.from("power_call_lists").delete().eq("id", id);
     if (error) {
-      toast({ title: "Fel", description: "Kunde inte ta bort listan", variant: "destructive" });
+      toast({ title: t("powerCall.lists.toastError"), description: t("powerCall.lists.toastDeleteFailed"), variant: "destructive" });
     } else {
-      toast({ title: "Lista borttagen" });
+      toast({ title: t("powerCall.lists.toastDeleted") });
       queryClient.invalidateQueries({ queryKey: ["power-call-lists"] });
     }
   };
@@ -129,13 +132,13 @@ export default function PowerCallListsPage() {
               <Link to="/outreach-pro"><ArrowLeft className="h-4 w-4" /></Link>
             </Button>
             <div>
-              <h1 className="text-xl font-bold tracking-tight">Ringlistor</h1>
-              <p className="text-sm text-muted-foreground">Köer av leads för Power Call-sessioner</p>
+              <h1 className="text-xl font-bold tracking-tight">{t("powerCall.lists.title")}</h1>
+              <p className="text-sm text-muted-foreground">{t("powerCall.lists.subtitle")}</p>
             </div>
           </div>
           <Button onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4 mr-1.5" />
-            Ny lista
+            {t("powerCall.lists.newList")}
           </Button>
         </div>
 
@@ -147,13 +150,13 @@ export default function PowerCallListsPage() {
         ) : lists.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center border rounded-xl bg-card/50">
             <List className="h-10 w-10 text-muted-foreground/40 mb-3" />
-            <h3 className="font-semibold mb-1">Inga listor ännu</h3>
+            <h3 className="font-semibold mb-1">{t("powerCall.lists.emptyTitle")}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Skapa din första ringlista för att starta Power Call-sessioner
+              {t("powerCall.lists.emptyDesc")}
             </p>
             <Button onClick={() => setCreateOpen(true)}>
               <Plus className="h-4 w-4 mr-1.5" />
-              Skapa lista
+              {t("powerCall.lists.createList")}
             </Button>
           </div>
         ) : (
@@ -171,12 +174,12 @@ export default function PowerCallListsPage() {
                           ) : (
                             <Hash className="h-3 w-3 mr-1" />
                           )}
-                          {SOURCE_TYPE_LABELS[list.source_type] || list.source_type}
+                          {SOURCE_TYPE_KEYS[list.source_type] ? t(SOURCE_TYPE_KEYS[list.source_type]) : list.source_type}
                         </Badge>
                         {list.shared_to_team && (
                           <Badge variant="secondary" className="text-xs shrink-0">
                             <Users className="h-3 w-3 mr-1" />
-                            Delad
+                            {t("powerCall.lists.shared")}
                           </Badge>
                         )}
                       </div>
@@ -184,14 +187,14 @@ export default function PowerCallListsPage() {
                         <p className="text-sm text-muted-foreground line-clamp-1">{list.description}</p>
                       )}
                       <p className="text-xs text-muted-foreground mt-1">
-                        Skapad {format(new Date(list.created_at), "d MMM yyyy", { locale: sv })}
+                        {t("powerCall.lists.createdAt", { date: format(new Date(list.created_at), "d MMM yyyy", { locale: dateLocale }) })}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Button size="sm" asChild>
                         <Link to={`/outreach-pro/power-call?list=${list.id}`}>
                           <PhoneCall className="h-3.5 w-3.5 mr-1.5" />
-                          Ringa
+                          {t("powerCall.lists.call")}
                         </Link>
                       </Button>
                       {(isAdmin || list.created_by === user?.id) && (
@@ -217,53 +220,53 @@ export default function PowerCallListsPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Ny ringlista</DialogTitle>
+            <DialogTitle>{t("powerCall.lists.dialogTitle")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label>Namn *</Label>
+              <Label>{t("powerCall.lists.nameLabel")}</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="T.ex. Restauranger Stockholm"
+                placeholder={t("powerCall.lists.namePlaceholder")}
                 autoFocus
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Beskrivning</Label>
+              <Label>{t("powerCall.lists.descriptionLabel")}</Label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Valfri beskrivning..."
+                placeholder={t("powerCall.lists.descriptionPlaceholder")}
                 rows={2}
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Typ</Label>
+              <Label>{t("powerCall.lists.typeLabel")}</Label>
               <Select value={sourceType} onValueChange={setSourceType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="static">Statisk lista (välj leads manuellt)</SelectItem>
-                  <SelectItem value="filter">Dynamisk (filtrerade leads)</SelectItem>
-                  <SelectItem value="import">Import</SelectItem>
+                  <SelectItem value="static">{t("powerCall.lists.typeStaticOption")}</SelectItem>
+                  <SelectItem value="filter">{t("powerCall.lists.typeFilterOption")}</SelectItem>
+                  <SelectItem value="import">{t("powerCall.lists.typeImportOption")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <div>
-                <p className="text-sm font-medium">Dela med teamet</p>
-                <p className="text-xs text-muted-foreground">Alla i organisationen kan se och använda listan</p>
+                <p className="text-sm font-medium">{t("powerCall.lists.shareWithTeam")}</p>
+                <p className="text-xs text-muted-foreground">{t("powerCall.lists.shareWithTeamDesc")}</p>
               </div>
               <Switch checked={sharedToTeam} onCheckedChange={setSharedToTeam} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>Avbryt</Button>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>{t("powerCall.lists.cancel")}</Button>
             <Button onClick={handleCreate} disabled={!name.trim() || isSaving}>
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
-              Skapa lista
+              {t("powerCall.lists.createList")}
             </Button>
           </DialogFooter>
         </DialogContent>

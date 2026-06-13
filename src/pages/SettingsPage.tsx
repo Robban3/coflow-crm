@@ -19,9 +19,11 @@ import { useModules } from "@/hooks/useModules";
 import { TemplatesList } from "@/components/documents/templates/TemplatesList";
 import { TemplateEditor } from "@/components/documents/templates/TemplateEditor";
 import { Routes, Route, useLocation } from "react-router-dom";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function SettingsPage() {
   const { user, isAdmin } = useAuth();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { hasModuleAccess } = useModules();
   const location = useLocation();
@@ -81,14 +83,14 @@ export default function SettingsPage() {
 
     if (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte spara profiländringar",
+        title: t("settings.profileSaveErrorTitle"),
+        description: t("settings.profileSaveErrorDesc"),
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Sparad!",
-        description: "Din profil har uppdaterats",
+        title: t("settings.profileSavedTitle"),
+        description: t("settings.profileSavedDesc"),
       });
     }
     setIsSaving(false);
@@ -97,52 +99,52 @@ export default function SettingsPage() {
   // If we're editing a specific template, render the editor directly
   if (isTemplateEditor) {
     return (
-      <AppLayout title="Redigera mall">
+      <AppLayout title={t("settings.editTemplateTitle")}>
         <TemplateEditor />
       </AppLayout>
     );
   }
 
   return (
-    <AppLayout title="Inställningar">
+    <AppLayout title={t("settings.pageTitle")}>
       <div className="space-y-4 md:space-y-6">
         <Tabs defaultValue="profile" className="space-y-4 md:space-y-6">
           <TabsList className="flex flex-wrap h-auto gap-1 w-full justify-start">
             <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <User className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Profil</span>
-              <span className="sm:hidden">Profil</span>
+              <span className="hidden sm:inline">{t("settings.tabProfile")}</span>
+              <span className="sm:hidden">{t("settings.tabProfile")}</span>
             </TabsTrigger>
             <TabsTrigger value="outreach" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Outreach</span>
-              <span className="sm:hidden">Mail</span>
+              <span className="hidden sm:inline">{t("settings.tabOutreach")}</span>
+              <span className="sm:hidden">{t("settings.tabOutreachShort")}</span>
             </TabsTrigger>
             {showTemplates && (
               <TabsTrigger value="templates" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <Layout className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Mallar</span>
-                <span className="sm:hidden">Mallar</span>
+                <span className="hidden sm:inline">{t("settings.tabTemplates")}</span>
+                <span className="sm:hidden">{t("settings.tabTemplates")}</span>
               </TabsTrigger>
             )}
             {isAdmin && (
               <TabsTrigger value="organization" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Organisation</span>
-                <span className="sm:hidden">Org</span>
+                <span className="hidden sm:inline">{t("settings.tabOrganization")}</span>
+                <span className="sm:hidden">{t("settings.tabOrganizationShort")}</span>
               </TabsTrigger>
             )}
             {isAdmin && (
               <TabsTrigger value="reports" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Rapporter</span>
-                <span className="sm:hidden">Rapp.</span>
+                <span className="hidden sm:inline">{t("settings.tabReports")}</span>
+                <span className="sm:hidden">{t("settings.tabReportsShort")}</span>
               </TabsTrigger>
             )}
             <TabsTrigger value="general" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <SettingsIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Allmänt</span>
-              <span className="sm:hidden">Mer</span>
+              <span className="hidden sm:inline">{t("settings.tabGeneral")}</span>
+              <span className="sm:hidden">{t("settings.tabGeneralShort")}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -150,9 +152,9 @@ export default function SettingsPage() {
           <TabsContent value="profile">
             <Card>
               <CardHeader>
-                <CardTitle>Profil</CardTitle>
+                <CardTitle>{t("settings.profileTitle")}</CardTitle>
                 <CardDescription>
-                  Hantera din personliga information
+                  {t("settings.profileDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -163,7 +165,7 @@ export default function SettingsPage() {
                 ) : (
                   <>
                     <div>
-                      <Label className="mb-3 block">Profilbild</Label>
+                      <Label className="mb-3 block">{t("settings.profileImage")}</Label>
                       <ProfileImageUpload
                         currentUrl={profile.avatar_url}
                         userId={user?.id || ""}
@@ -176,16 +178,16 @@ export default function SettingsPage() {
 
                     <div className="grid gap-4 max-w-md">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Namn</Label>
+                        <Label htmlFor="name">{t("settings.name")}</Label>
                         <Input
                           id="name"
                           value={profile.full_name}
                           onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
-                          placeholder="Ditt namn"
+                          placeholder={t("settings.namePlaceholder")}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="email">E-post</Label>
+                        <Label htmlFor="email">{t("settings.email")}</Label>
                         <Input
                           id="email"
                           type="email"
@@ -197,7 +199,7 @@ export default function SettingsPage() {
 
                     <Button onClick={handleSaveProfile} disabled={isSaving}>
                       {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Spara ändringar
+                      {t("settings.saveChanges")}
                     </Button>
                   </>
                 )}
@@ -236,26 +238,26 @@ export default function SettingsPage() {
           <TabsContent value="general">
             <Card>
               <CardHeader>
-                <CardTitle>Allmänna inställningar</CardTitle>
+                <CardTitle>{t("settings.generalTitle")}</CardTitle>
                 <CardDescription>
-                  Generella systeminställningar
+                  {t("settings.generalDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <p className="font-medium">Notifikationer via e-post</p>
+                    <p className="font-medium">{t("settings.emailNotifications")}</p>
                     <p className="text-sm text-muted-foreground">
-                      Få påminnelser om uppföljningar och tasks
+                      {t("settings.emailNotificationsDesc")}
                     </p>
                   </div>
                   <Switch />
                 </div>
                 <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <p className="font-medium">Veckosammanfattning</p>
+                    <p className="font-medium">{t("settings.weeklySummary")}</p>
                     <p className="text-sm text-muted-foreground">
-                      Få en sammanfattning av veckans aktiviteter
+                      {t("settings.weeklySummaryDesc")}
                     </p>
                   </div>
                   <Switch />

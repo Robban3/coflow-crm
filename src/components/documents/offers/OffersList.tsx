@@ -25,42 +25,44 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { TemplatePickerDialog } from "./TemplatePickerDialog";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
-const statusConfig: Record<string, { label: string; icon: typeof FileText; className: string }> = {
+const statusConfig: Record<string, { labelKey: string; icon: typeof FileText; className: string }> = {
   draft: {
-    label: "Utkast",
+    labelKey: "offers.status.draft",
     icon: Pencil,
     className: "bg-muted text-muted-foreground border-border",
   },
   sent: {
-    label: "Skickad",
+    labelKey: "offers.status.sent",
     icon: Send,
     className: "bg-primary/10 text-primary border-primary/20",
   },
   viewed: {
-    label: "Visad",
+    labelKey: "offers.status.viewed",
     icon: Eye,
     className: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
   },
   accepted: {
-    label: "Accepterad",
+    labelKey: "offers.status.accepted",
     icon: CheckCircle2,
     className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
   },
   rejected: {
-    label: "Avböjd",
+    labelKey: "offers.status.rejected",
     icon: XCircle,
     className: "bg-destructive/10 text-destructive border-destructive/20",
   },
   expired: {
-    label: "Utgången",
+    labelKey: "offers.status.expired",
     icon: Clock,
     className: "bg-muted text-muted-foreground border-border",
   },
 };
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const config = statusConfig[status] || statusConfig.draft;
   const Icon = config.icon;
   return (
@@ -68,14 +70,14 @@ function StatusBadge({ status }: { status: string }) {
       className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${config.className}`}
     >
       <Icon className="h-3 w-3" />
-      {config.label}
+      {t(config.labelKey)}
     </span>
   );
 }
 
-function formatAmount(amount: number | null, currency?: string | null) {
+function formatAmount(amount: number | null, currency: string | null | undefined, numberLocale: string = "sv-SE") {
   if (!amount) return "–";
-  return new Intl.NumberFormat("sv-SE", {
+  return new Intl.NumberFormat(numberLocale, {
     style: "currency",
     currency: currency || "SEK",
     minimumFractionDigits: 0,
@@ -84,6 +86,9 @@ function formatAmount(amount: number | null, currency?: string | null) {
 }
 
 export function OffersList() {
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
+  const numberLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
   const navigate = useNavigate();
   const { user } = useAuth();
   const orgId = useOrganizationId();
@@ -134,7 +139,7 @@ export function OffersList() {
 
       const { data: doc, error } = await fromTable("documents")
         .insert({
-          title: "Ny offert",
+          title: t("offers.list.newOfferTitle"),
           type: tpl?.type || "offer",
           template_id: templateId,
           template_version: ver?.version || 1,
@@ -163,9 +168,9 @@ export function OffersList() {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
       setShowPicker(false);
       navigate(`/offers/${doc.id}`);
-      toast.success("Offert skapad");
+      toast.success(t("offers.list.toastCreated"));
     },
-    onError: () => toast.error("Kunde inte skapa offert"),
+    onError: () => toast.error(t("offers.list.toastCreateError")),
   });
 
   // Merge and filter
@@ -231,14 +236,14 @@ export function OffersList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Offerter</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("offers.list.title")}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Skapa, skicka och följ upp dina offerter
+            {t("offers.list.subtitle")}
           </p>
         </div>
         <Button onClick={() => setShowPicker(true)} className="shrink-0">
           <Plus className="h-4 w-4 mr-2" />
-          Ny offert
+          {t("offers.list.newOffer")}
         </Button>
       </div>
 
@@ -246,24 +251,24 @@ export function OffersList() {
       {allOffers.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="rounded-xl border bg-card p-4">
-            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">Totalt</p>
+            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("offers.list.statTotal")}</p>
             <p className="text-2xl font-bold tracking-tight mt-1">{stats.total}</p>
           </div>
           <div className="rounded-xl border bg-card p-4">
-            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">Utkast</p>
+            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("offers.list.statDraft")}</p>
             <p className="text-2xl font-bold tracking-tight mt-1">{stats.draft}</p>
           </div>
           <div className="rounded-xl border bg-card p-4">
-            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">Skickade</p>
+            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("offers.list.statSent")}</p>
             <p className="text-2xl font-bold tracking-tight mt-1">{stats.sent}</p>
           </div>
           <div className="rounded-xl border bg-card p-4">
-            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">Accepterade</p>
+            <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">{t("offers.list.statAccepted")}</p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-2xl font-bold tracking-tight">{stats.accepted}</p>
               {stats.totalValue > 0 && (
                 <p className="text-sm font-medium text-muted-foreground">
-                  {formatAmount(stats.totalValue)}
+                  {formatAmount(stats.totalValue, null, numberLocale)}
                 </p>
               )}
             </div>
@@ -278,7 +283,7 @@ export function OffersList() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Sök på titel, mottagare eller nummer..."
+            placeholder={t("offers.list.searchPlaceholder")}
             className="pl-9 h-10"
           />
         </div>
@@ -296,19 +301,19 @@ export function OffersList() {
               <thead>
                 <tr className="border-b bg-muted/40">
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">
-                    Offert
+                    {t("offers.list.colOffer")}
                   </th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">
-                    Mottagare
+                    {t("offers.list.colRecipient")}
                   </th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">
-                    Datum
+                    {t("offers.list.colDate")}
                   </th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">
-                    Belopp
+                    {t("offers.list.colAmount")}
                   </th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground">
-                    Status
+                    {t("offers.list.colStatus")}
                   </th>
                 </tr>
               </thead>

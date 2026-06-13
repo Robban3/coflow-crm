@@ -109,6 +109,11 @@ Kan vi ta 15 min nästa vecka för att gå igenom de snabbaste förbättringarna
     "settings.emailSignature": "E-postsignatur",
     "settings.emailSignatureFallbackName": "Ditt Namn",
     "settings.emailSignatureFallbackCompany": "Företaget",
+    "settings.emailSignaturePlaceholder": `Med vänliga hälsningar,
+
+{name}
+{company}
+Tel: 070-XXX XX XX`,
     "settings.emailSignatureHelp": "Läggs till i slutet av varje AI-genererat mail",
     "settings.emailFooter": "E-postfot (frivillig)",
     "settings.emailFooterPlaceholder": "T.ex. avregistreringslänk, företagsadress, disclaimer...",
@@ -446,6 +451,11 @@ Can we take 15 minutes next week to go through the quickest improvements?`,
     "settings.emailSignature": "Email signature",
     "settings.emailSignatureFallbackName": "Your Name",
     "settings.emailSignatureFallbackCompany": "The Company",
+    "settings.emailSignaturePlaceholder": `Kind regards,
+
+{name}
+{company}
+Tel: 070-XXX XX XX`,
     "settings.emailSignatureHelp": "Added to the end of every AI-generated email",
     "settings.emailFooter": "Email footer (optional)",
     "settings.emailFooterPlaceholder": "E.g. unsubscribe link, company address, disclaimer...",
@@ -783,6 +793,11 @@ Analicé vuestro sitio – SEO: 45/100. Probablemente estáis perdiendo tráfico
     "settings.emailSignature": "Firma de correo",
     "settings.emailSignatureFallbackName": "Tu Nombre",
     "settings.emailSignatureFallbackCompany": "La Empresa",
+    "settings.emailSignaturePlaceholder": `Un saludo cordial,
+
+{name}
+{company}
+Tel: 070-XXX XX XX`,
     "settings.emailSignatureHelp": "Se añade al final de cada correo generado por IA",
     "settings.emailFooter": "Pie de correo (opcional)",
     "settings.emailFooterPlaceholder": "P. ej. enlace de baja, dirección de la empresa, aviso legal...",

@@ -39,6 +39,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMarket } from "@/hooks/useMarket";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface EmailFinderProps {
   leadId: string;
@@ -71,12 +72,13 @@ export function EmailFinder({
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const { market } = useMarket();
+  const { t } = useTranslation();
 
   const handleConfirmSearch = () => {
     if (!website) {
       toast({
-        title: "Ingen webbplats",
-        description: "Lägg till en webbplats för att söka kontaktuppgifter",
+        title: t("leadDetail.ef_noWebsiteTitle"),
+        description: t("leadDetail.ef_noWebsiteDesc"),
         variant: "destructive",
       });
       return;
@@ -97,8 +99,8 @@ export function EmailFinder({
       if (error) throw error;
       if (!data?.success) {
         toast({
-          title: "Sökning misslyckades",
-          description: data?.error || "Kunde inte hämta kontaktuppgifter",
+          title: t("leadDetail.ef_searchFailedTitle"),
+          description: data?.error || t("leadDetail.ef_couldNotFetchContact"),
           variant: "destructive",
         });
         return;
@@ -110,20 +112,20 @@ export function EmailFinder({
 
       if (!found.email && !found.phone && !found.contact_name) {
         toast({
-          title: "Inga kontaktuppgifter hittades",
-          description: "Webbplatsen avslöjade inga e-post, telefon eller namn",
+          title: t("leadDetail.ef_noContactFoundTitle"),
+          description: t("leadDetail.ef_noContactFoundDesc"),
         });
       } else if (data.updated) {
-        toast({ title: "Kontaktuppgifter uppdaterade på leadet" });
+        toast({ title: t("leadDetail.ef_contactUpdatedTitle") });
         if (found.email) onEmailFound(found.email);
       } else {
-        toast({ title: "Kontaktuppgifter hittade" });
+        toast({ title: t("leadDetail.ef_contactFoundTitle") });
       }
     } catch (err) {
       console.error("Enrich error:", err);
       toast({
-        title: "Fel",
-        description: "Kunde inte hämta kontaktuppgifter",
+        title: t("leadDetail.ef_errorTitle"),
+        description: t("leadDetail.ef_couldNotFetchContact"),
         variant: "destructive",
       });
     } finally {
@@ -144,13 +146,13 @@ export function EmailFinder({
       onEmailFound(result.email);
       setShowDialog(false);
       toast({
-        title: "E-post sparad",
-        description: `${result.email} har lagts till`,
+        title: t("leadDetail.ef_emailSavedTitle"),
+        description: t("leadDetail.ef_emailSavedDesc", { email: result.email }),
       });
     } catch {
       toast({
-        title: "Kunde inte spara",
-        description: "Ett fel uppstod",
+        title: t("leadDetail.ef_couldNotSaveTitle"),
+        description: t("leadDetail.ef_genericError"),
         variant: "destructive",
       });
     } finally {
@@ -166,18 +168,18 @@ export function EmailFinder({
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <Dog className="h-5 w-5" />
-            Aooohh!
+            {t("leadDetail.ef_confirmTitle")}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you wanna let the dogs out?
+            {t("leadDetail.ef_confirmQuestion")}
             <span className="block text-xs text-muted-foreground mt-2">
-              Berikningen skannar webbplatsen efter e-post, telefon och kontaktperson.
+              {t("leadDetail.ef_confirmHint")}
             </span>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Avbryt</AlertDialogCancel>
-          <AlertDialogAction onClick={handleSearch}>Sök</AlertDialogAction>
+          <AlertDialogCancel>{t("leadDetail.ef_cancel")}</AlertDialogCancel>
+          <AlertDialogAction onClick={handleSearch}>{t("leadDetail.ef_search")}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -201,7 +203,7 @@ export function EmailFinder({
         <Tooltip>
           <TooltipTrigger asChild>{TriggerButton}</TooltipTrigger>
           <TooltipContent>
-            {currentEmail ? "Sök fler kontaktuppgifter" : "Hitta kontaktuppgifter"}
+            {currentEmail ? t("leadDetail.ef_tooltipSearchMore") : t("leadDetail.ef_tooltipFind")}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -213,18 +215,18 @@ export function EmailFinder({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
-              Kontaktuppgifter
+              {t("leadDetail.ef_dialogTitle")}
             </DialogTitle>
             <DialogDescription>
-              Hämtade från webbplatsen via Firecrawl
+              {t("leadDetail.ef_dialogDescription")}
             </DialogDescription>
           </DialogHeader>
 
           {!result || (!result.email && !result.phone && !result.contact_name) ? (
             <div className="text-center py-8 text-muted-foreground">
               <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>Inga kontaktuppgifter hittades</p>
-              <p className="text-sm mt-1">Lägg till manuellt om du vet dem</p>
+              <p>{t("leadDetail.ef_noContactFoundShort")}</p>
+              <p className="text-sm mt-1">{t("leadDetail.ef_addManuallyHint")}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -244,7 +246,7 @@ export function EmailFinder({
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <>
-                            <CheckCircle2 className="h-4 w-4 mr-1" /> Välj
+                            <CheckCircle2 className="h-4 w-4 mr-1" /> {t("leadDetail.ef_select")}
                           </>
                         )}
                       </Button>
@@ -287,7 +289,7 @@ export function EmailFinder({
                   className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                 >
                   <ExternalLink className="h-3 w-3" />
-                  Källa: {new URL(result.source_url).hostname}
+                  {t("leadDetail.ef_sourcePrefix", { hostname: new URL(result.source_url).hostname })}
                 </a>
               )}
             </div>
@@ -295,7 +297,7 @@ export function EmailFinder({
 
           <div className="text-xs text-muted-foreground flex items-center gap-1 mt-2">
             <AlertCircle className="h-3 w-3" />
-            Data extraherad från företagets webbplats med Firecrawl.
+            {t("leadDetail.ef_footerNote")}
           </div>
         </DialogContent>
       </Dialog>

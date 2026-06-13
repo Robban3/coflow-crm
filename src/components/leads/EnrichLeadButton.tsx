@@ -4,6 +4,7 @@ import { Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMarket } from "@/hooks/useMarket";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface EnrichLeadButtonProps {
   leadId: string;
@@ -16,6 +17,7 @@ interface EnrichLeadButtonProps {
 export function EnrichLeadButton({ leadId, companyName, orgNumber, website, onEnriched }: EnrichLeadButtonProps) {
   const { toast } = useToast();
   const { market } = useMarket();
+  const { t } = useTranslation();
   const [isEnriching, setIsEnriching] = useState(false);
 
   const handleEnrich = async () => {
@@ -30,27 +32,27 @@ export function EnrichLeadButton({ leadId, companyName, orgNumber, website, onEn
       if (data?.updated) {
         const found = data.found || {};
         const parts: string[] = [];
-        if (found.phone) parts.push("telefon");
-        if (found.email) parts.push("e-post");
-        if (found.contact_name) parts.push("kontaktperson");
+        if (found.phone) parts.push(t("leadDetail.el_partPhone"));
+        if (found.email) parts.push(t("leadDetail.el_partEmail"));
+        if (found.contact_name) parts.push(t("leadDetail.el_partContact"));
 
         toast({
-          title: "Berikning klar!",
+          title: t("leadDetail.el_doneTitle"),
           description: parts.length
-            ? `Hittade: ${parts.join(", ")}${found.source_url ? ` (${new URL(found.source_url).hostname})` : ""}`
-            : "Lead uppdaterat",
+            ? `${t("leadDetail.el_foundDesc", { parts: parts.join(", ") })}${found.source_url ? ` (${new URL(found.source_url).hostname})` : ""}`
+            : t("leadDetail.el_leadUpdated"),
         });
         onEnriched?.();
       } else {
         toast({
-          title: "Ingen ny data hittades",
-          description: "Kunde inte hitta kontaktuppgifter på webbplatsen",
+          title: t("leadDetail.el_noNewDataTitle"),
+          description: t("leadDetail.el_noNewDataDesc"),
         });
       }
     } catch (error: any) {
       toast({
-        title: "Berikningsfel",
-        description: error.message || "Kunde inte berika lead",
+        title: t("leadDetail.el_errorTitle"),
+        description: error.message || t("leadDetail.el_couldNotEnrich"),
         variant: "destructive",
       });
     } finally {
@@ -65,7 +67,7 @@ export function EnrichLeadButton({ leadId, companyName, orgNumber, website, onEn
       ) : (
         <Sparkles className="h-4 w-4 mr-2" />
       )}
-      Berika kontaktinfo
+      {t("leadDetail.el_button")}
     </Button>
   );
 }

@@ -145,7 +145,7 @@ export function LeaderboardWidget() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Award className="h-4 w-4 text-amber-500" />
-            Leaderboard — förra månaden
+            {t("powerCall.leaderboard.title")}
           </CardTitle>
           {isAdmin && (
             <Button
@@ -156,7 +156,7 @@ export function LeaderboardWidget() {
               disabled={isGenerating}
             >
               {isGenerating ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-              Generera
+              {t("powerCall.leaderboard.generate")}
             </Button>
           )}
         </div>
@@ -170,7 +170,7 @@ export function LeaderboardWidget() {
           <div className="flex flex-col items-center py-6 text-center px-4">
             <Star className="h-8 w-8 text-muted-foreground/30 mb-2" />
             <p className="text-sm text-muted-foreground">
-              {isAdmin ? 'Klicka "Generera" för att skapa månadens leaderboard.' : "Inget leaderboard för förra månaden."}
+              {isAdmin ? t("powerCall.leaderboard.emptyAdmin") : t("powerCall.leaderboard.emptyUser")}
             </p>
           </div>
         ) : (
@@ -186,7 +186,7 @@ export function LeaderboardWidget() {
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{entry.name}</p>
-                  <p className="text-xs text-muted-foreground">{entry.meetings} möten</p>
+                  <p className="text-xs text-muted-foreground">{t("powerCall.leaderboard.meetings", { count: entry.meetings })}</p>
                 </div>
               </div>
             ))}
