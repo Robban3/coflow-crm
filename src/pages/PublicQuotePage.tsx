@@ -450,7 +450,7 @@ export default function PublicQuotePage() {
                       {senderInfo?.sender_display_name || senderInfo?.full_name || org?.name || t("publicPages.quote.sender")}
                     </p>
                     <div className="border rounded-lg p-3 bg-white">
-                      <img src={quote.sender_signature_data} alt=t("publicPages.quote.senderSignatureAlt") className="max-h-16" />
+                      <img src={quote.sender_signature_data} alt={t("publicPages.quote.senderSignatureAlt")} className="max-h-16" />
                     </div>
                     {quote.sender_signed_at && (
                       <p className="text-xs text-muted-foreground mt-1">

@@ -53,19 +53,19 @@ export function ServiceBusinessPlugin({ url, rawData }: ServiceBusinessPluginPro
           <FeatureItem 
             label={t("webAnalysis.featReviews")}
             present={features.hasReviews}
-            description=t("webAnalysis.featReviewsDesc")
+            description={t("webAnalysis.featReviewsDesc")}
             importance="medium"
           />
           <FeatureItem 
             label={t("webAnalysis.featContactForm")}
             present={features.hasContactForm}
-            description=t("webAnalysis.featContactFormDesc")
+            description={t("webAnalysis.featContactFormDesc")}
             importance="medium"
           />
           <FeatureItem 
             label={t("webAnalysis.featPhoneVisible")}
             present={features.hasPhoneNumber}
-            description=t("webAnalysis.featPhoneVisibleDesc")
+            description={t("webAnalysis.featPhoneVisibleDesc")}
             importance="medium"
           />
           <FeatureItem 

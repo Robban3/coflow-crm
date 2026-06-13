@@ -952,7 +952,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">{t("quotes.sender")}</p>
                     <div className="border rounded-lg p-3 bg-white">
-                      <img src={senderSignature} alt=t("quotes.senderSignatureAlt") className="max-h-16" />
+                      <img src={senderSignature} alt={t("quotes.senderSignatureAlt")} className="max-h-16" />
                     </div>
                     {senderSignedAt && (
                       <p className="text-xs text-muted-foreground mt-1">

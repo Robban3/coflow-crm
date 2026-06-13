@@ -1,0 +1,5 @@
+# Cloudflare Pages config for CoFlow CRM (Vite SPA).
+# Deploy:  npm run build  &&  npx wrangler pages deploy dist
+name = "coflow-crm"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-06-01"

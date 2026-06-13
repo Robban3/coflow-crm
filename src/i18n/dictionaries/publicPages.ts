@@ -503,5 +503,3 @@ export const publicPagesDict: FeatureDictionary = {
     "publicPages.geoFeatCitation": "Análisis de citas de IA y optimización de entidades",
   },
 };
-</content>
-</invoke>

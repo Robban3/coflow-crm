@@ -43,7 +43,7 @@ export function RestaurantHotelPlugin({ url, rawData }: RestaurantHotelPluginPro
           <FeatureItem 
             label={t("webAnalysis.featTableBooking")}
             present={features.hasOnlineBooking}
-            description=t("webAnalysis.featTableBookingDesc")
+            description={t("webAnalysis.featTableBookingDesc")}
             importance="high"
           />
           <FeatureItem 
@@ -55,19 +55,19 @@ export function RestaurantHotelPlugin({ url, rawData }: RestaurantHotelPluginPro
           <FeatureItem 
             label={t("webAnalysis.featOpeningHours")}
             present={features.hasOpeningHours}
-            description=t("webAnalysis.featOpeningHoursDesc")
+            description={t("webAnalysis.featOpeningHoursDesc")}
             importance="medium"
           />
           <FeatureItem 
             label={t("webAnalysis.featMapAddress")}
             present={features.hasLocationInfo}
-            description=t("webAnalysis.featMapAddressDesc")
+            description={t("webAnalysis.featMapAddressDesc")}
             importance="medium"
           />
           <FeatureItem 
             label={t("webAnalysis.featImageGallery")}
             present={features.hasImageGallery}
-            description=t("webAnalysis.featImageGalleryDesc")
+            description={t("webAnalysis.featImageGalleryDesc")}
             importance="medium"
           />
         </div>

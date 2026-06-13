@@ -452,5 +452,3 @@ export const powerCallDict: FeatureDictionary = {
     "powerCall.session.generateAnalysis": "Generar análisis",
   },
 };
-</content>
-</invoke>
