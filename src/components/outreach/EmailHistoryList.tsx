@@ -403,7 +403,7 @@ export function EmailHistoryList({ leadId }: EmailHistoryListProps) {
                           <div className="pt-4 space-y-3">
                             {execution.generated_body && (
                               <div className="space-y-1">
-                                <Label className="text-xs text-muted-foreground">Innehåll</Label>
+                                <Label className="text-xs text-muted-foreground">{t("outreach.common.content")}</Label>
                                 <div className="p-3 rounded-lg bg-background text-sm whitespace-pre-wrap break-words overflow-hidden">
                                   {execution.generated_body}
                                 </div>
@@ -479,14 +479,14 @@ export function EmailHistoryList({ leadId }: EmailHistoryListProps) {
             </DialogTitle>
             <DialogDescription>
               {selectedSentEmail?.created_at && (
-                <>Skickades {format(new Date(selectedSentEmail.created_at), "d MMMM yyyy, HH:mm", { locale: sv })}</>
+                <>{t("outreach.common.sentAt", { date: format(new Date(selectedSentEmail.created_at), "d MMMM yyyy, HH:mm", { locale: dateLocale }) })}</>
               )}
             </DialogDescription>
           </DialogHeader>
           {selectedSentEmail && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label className="text-muted-foreground">Till</Label>
+                <Label className="text-muted-foreground">{t("outreach.common.to")}</Label>
                 <div className="p-3 rounded-lg bg-muted break-words overflow-hidden">
                   {selectedSentEmail.recipient_name && (
                     <span className="font-medium">{selectedSentEmail.recipient_name} • </span>
@@ -495,24 +495,24 @@ export function EmailHistoryList({ leadId }: EmailHistoryListProps) {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-muted-foreground">Ämne</Label>
+                <Label className="text-muted-foreground">{t("outreach.common.subject")}</Label>
                 <div className="p-3 rounded-lg bg-muted font-medium break-words overflow-hidden">
-                  {selectedSentEmail.subject || "Inget ämne"}
+                  {selectedSentEmail.subject || t("outreach.common.noSubject")}
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-muted-foreground">Meddelande</Label>
+                <Label className="text-muted-foreground">{t("outreach.common.message")}</Label>
                 <div className="p-4 rounded-lg bg-muted whitespace-pre-wrap break-words text-sm leading-relaxed max-h-[400px] overflow-y-auto overflow-x-hidden">
-                  {selectedSentEmail.body || "Inget innehåll"}
+                  {selectedSentEmail.body || t("outreach.common.noContent")}
                 </div>
               </div>
               {selectedSentEmail.opened_at && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Eye className="h-4 w-4" />
                   <span>
-                    Öppnat {format(new Date(selectedSentEmail.opened_at), "d MMMM yyyy, HH:mm", { locale: sv })}
+                    {t("outreach.history.opened", { date: format(new Date(selectedSentEmail.opened_at), "d MMMM yyyy, HH:mm", { locale: dateLocale }) })}
                     {selectedSentEmail.opened_count && selectedSentEmail.opened_count > 1 && (
-                      <> ({selectedSentEmail.opened_count} gånger)</>
+                      <>{t("outreach.history.openedTimes", { count: selectedSentEmail.opened_count })}</>
                     )}
                   </span>
                 </div>
