@@ -19,6 +19,8 @@ import { outreachDict } from "./outreach";
 import { powerCallDict } from "./powerCall";
 import { offersDict } from "./offers";
 import { publicPagesDict } from "./publicPages";
+import { templatesDict } from "./templates";
+import { aiDict } from "./ai";
 
 export const featureDictionaries: FeatureDictionary[] = [
   tasksDict,
@@ -37,4 +39,6 @@ export const featureDictionaries: FeatureDictionary[] = [
   powerCallDict,
   offersDict,
   publicPagesDict,
+  templatesDict,
+  aiDict,
 ];
