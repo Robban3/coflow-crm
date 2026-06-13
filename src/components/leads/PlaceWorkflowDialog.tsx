@@ -1000,7 +1000,7 @@ export function PlaceWorkflowDialog({
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="body">Meddelande</Label>
+                        <Label htmlFor="body">{t("leadDetail.message_label")}</Label>
                         <Textarea
                           id="body"
                           value={emailBody}

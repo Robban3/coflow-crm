@@ -153,6 +153,8 @@ export const quotesDict: FeatureDictionary = {
     "quotes.quoteSent": "Offerten har skickats!",
     "quotes.statusWonFull": "🎉 Vunnen affär",
     "quotes.perMonth": "/mån",
+    "quotes.send": "Skicka",
+    "quotes.sendAgain": "Skicka igen",
   },
   en: {
     // ProductPicker
@@ -306,6 +308,8 @@ export const quotesDict: FeatureDictionary = {
     "quotes.quoteSent": "The quote has been sent!",
     "quotes.statusWonFull": "🎉 Won deal",
     "quotes.perMonth": "/mo",
+    "quotes.send": "Send",
+    "quotes.sendAgain": "Send again",
   },
   es: {
     // ProductPicker
@@ -459,5 +463,7 @@ export const quotesDict: FeatureDictionary = {
     "quotes.quoteSent": "¡El presupuesto se ha enviado!",
     "quotes.statusWonFull": "🎉 Trato ganado",
     "quotes.perMonth": "/mes",
+    "quotes.send": "Enviar",
+    "quotes.sendAgain": "Enviar de nuevo",
   },
 };

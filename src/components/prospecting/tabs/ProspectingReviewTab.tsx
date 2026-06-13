@@ -535,7 +535,7 @@ export default function ProspectingReviewTab() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={() => sendMutation.mutate(selectedSendable)}>
               Skicka
             </AlertDialogAction>
@@ -553,7 +553,7 @@ export default function ProspectingReviewTab() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => clearDraftsMutation.mutate()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

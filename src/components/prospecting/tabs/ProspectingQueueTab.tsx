@@ -142,7 +142,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
   // Clear all queue (admin only) – hides leads from queue without deleting, preserves sent emails
   const clearQueueMutation = useMutation({
     mutationFn: async () => {
-      if (!orgId) throw new Error("Ingen organisation");
+      if (!orgId) throw new Error(t("prospecting.noOrg"));
       // Get leads that have already been emailed
       const { data: sentLeads } = await supabase
         .from("sent_emails")

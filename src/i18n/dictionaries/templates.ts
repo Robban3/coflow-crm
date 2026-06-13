@@ -124,6 +124,8 @@ export const templatesDict: FeatureDictionary = {
     "templates.spacerMedium": "Medium (32px)",
     "templates.spacerLarge": "Stort (48px)",
     "templates.spacerXLarge": "Extra stort (64px)",
+    "templates.footerText": "Sidfotstext",
+    "templates.offerFallbackTitle": "Offert",
   },
   en: {
     "templates.docType.offer": "Quote",
@@ -242,6 +244,8 @@ export const templatesDict: FeatureDictionary = {
     "templates.spacerMedium": "Medium (32px)",
     "templates.spacerLarge": "Large (48px)",
     "templates.spacerXLarge": "Extra large (64px)",
+    "templates.footerText": "Footer text",
+    "templates.offerFallbackTitle": "Quote",
   },
   es: {
     "templates.docType.offer": "Presupuesto",
@@ -360,5 +364,7 @@ export const templatesDict: FeatureDictionary = {
     "templates.spacerMedium": "Medio (32px)",
     "templates.spacerLarge": "Grande (48px)",
     "templates.spacerXLarge": "Extra grande (64px)",
+    "templates.footerText": "Texto de pie de página",
+    "templates.offerFallbackTitle": "Presupuesto",
   },
 };

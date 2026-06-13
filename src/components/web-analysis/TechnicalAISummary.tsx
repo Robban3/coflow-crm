@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,7 @@ interface TechnicalAISummaryProps {
 }
 
 export function TechnicalAISummary({ result, url }: TechnicalAISummaryProps) {
+  const { t } = useTranslation();
   const [summary, setSummary] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -52,7 +54,7 @@ export function TechnicalAISummary({ result, url }: TechnicalAISummaryProps) {
       }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Ett fel uppstod vid generering av sammanfattning");
+      toast.error(t("webAnalysis.summaryGenError"));
     } finally {
       setIsLoading(false);
     }

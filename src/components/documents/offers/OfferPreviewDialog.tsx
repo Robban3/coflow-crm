@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ interface OfferPreviewDialogProps {
 }
 
 export function OfferPreviewDialog({ open, onClose, doc, blocks }: OfferPreviewDialogProps) {
+  const { t } = useTranslation();
   const [resolvedBlocks, setResolvedBlocks] = useState<DocumentBlock[]>(blocks);
   const [orgName, setOrgName] = useState("");
   const [orgLogo, setOrgLogo] = useState<string | null>(null);
@@ -85,7 +87,7 @@ export function OfferPreviewDialog({ open, onClose, doc, blocks }: OfferPreviewD
       <!DOCTYPE html>
       <html>
       <head>
-        <title>${doc.title || "Offert"}</title>
+        <title>${doc.title || t("templates.offerFallbackTitle")}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; color: #111; line-height: 1.5; }

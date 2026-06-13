@@ -561,6 +561,7 @@ export const leadDetailDict: FeatureDictionary = {
     "leadDetail.ac2_missingInfo": "Saknar information",
     "leadDetail.lsa_markNotInterested": "Markera som Ej intresserad",
     "leadDetail.co2_findAuto": "Hitta konkurrenter automatiskt",
+    "leadDetail.message_label": "Meddelande",
   },
   en: {
     // ActivityTimeline
@@ -1122,6 +1123,7 @@ export const leadDetailDict: FeatureDictionary = {
     "leadDetail.ac2_missingInfo": "Missing information",
     "leadDetail.lsa_markNotInterested": "Mark as Not interested",
     "leadDetail.co2_findAuto": "Find competitors automatically",
+    "leadDetail.message_label": "Message",
   },
   es: {
     // ActivityTimeline
@@ -1583,5 +1585,6 @@ export const leadDetailDict: FeatureDictionary = {
     "leadDetail.ac2_missingInfo": "Falta información",
     "leadDetail.lsa_markNotInterested": "Marcar como No interesado",
     "leadDetail.co2_findAuto": "Encontrar competidores automáticamente",
+    "leadDetail.message_label": "Mensaje",
   },
 };

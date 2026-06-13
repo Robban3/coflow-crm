@@ -326,6 +326,7 @@ export const webAnalysisDict: FeatureDictionary = {
     "webAnalysis.qoCouldNotGenerate": "Kunde inte generera mail",
     "webAnalysis.qoSentTo": "Mailet har skickats till {email}",
     "webAnalysis.qoCouldNotSend": "Kunde inte skicka mail",
+    "webAnalysis.summaryGenError": "Ett fel uppstod vid generering av sammanfattning",
   },
   en: {
     "webAnalysis.title": "Web analysis",
@@ -385,6 +386,7 @@ export const webAnalysisDict: FeatureDictionary = {
     "webAnalysis.qoCouldNotGenerate": "Could not generate email",
     "webAnalysis.qoSentTo": "The email has been sent to {email}",
     "webAnalysis.qoCouldNotSend": "Could not send email",
+    "webAnalysis.summaryGenError": "An error occurred while generating the summary",
   },
   es: {
     "webAnalysis.title": "Análisis web",
@@ -444,5 +446,6 @@ export const webAnalysisDict: FeatureDictionary = {
     "webAnalysis.qoCouldNotGenerate": "No se pudo generar el correo",
     "webAnalysis.qoSentTo": "El correo se ha enviado a {email}",
     "webAnalysis.qoCouldNotSend": "No se pudo enviar el correo",
+    "webAnalysis.summaryGenError": "Ocurrió un error al generar el resumen",
   },
 };

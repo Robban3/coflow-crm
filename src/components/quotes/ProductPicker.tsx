@@ -173,20 +173,20 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
         ) : (
           <div className="space-y-4">
             <div>
-              <Label>Namn</Label>
+              <Label>{t("quotes.name")}</Label>
               <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Produktnamn" />
             </div>
             <div>
-              <Label>Beskrivning</Label>
+              <Label>{t("quotes.description")}</Label>
               <Input value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Valfri beskrivning" />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label>Pris</Label>
+                <Label>{t("quotes.price")}</Label>
                 <Input type="number" value={newPrice} onChange={(e) => setNewPrice(Number(e.target.value))} min={0} />
               </div>
               <div>
-                <Label>Enhet</Label>
+                <Label>{t("quotes.unit")}</Label>
                 <Input value={newUnit} onChange={(e) => setNewUnit(e.target.value)} />
               </div>
               <div>

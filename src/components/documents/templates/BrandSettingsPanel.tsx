@@ -83,7 +83,7 @@ export function BrandSettingsPanel({ settings, onChange }: BrandSettingsPanelPro
       </div>
 
       <div className="space-y-2">
-        <Label>Sidfotstext</Label>
+        <Label>{t("templates.footerText")}</Label>
         <Textarea
           placeholder={t("templates.brandFooterPlaceholder")}
           value={settings.footer_text || ""}

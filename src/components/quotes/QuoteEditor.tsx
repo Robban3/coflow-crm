@@ -533,7 +533,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
               {currentQuoteId && ["draft", "sent", "viewed"].includes(status) && (
                 <Button onClick={() => setShowSendDialog(true)}>
                   <Send className="h-4 w-4 mr-1" />
-                  {status === "draft" ? "Skicka" : "Skicka igen"}
+                  {status === "draft" ? t("quotes.send") : t("quotes.sendAgain")}
                 </Button>
               )}
             </>
