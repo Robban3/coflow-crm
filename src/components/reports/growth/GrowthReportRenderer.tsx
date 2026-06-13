@@ -95,8 +95,8 @@ const severityConfig: Record<string, { label: string; color: string; icon: typeo
 
 const priorityConfig: Record<string, { label: string; timeline: string; icon: typeof Zap }> = {
   quick_win: { label: t("reports.renderer.priorityQuickWin"), timeline: "0–30 dagar", icon: Zap },
-  medium: { label: t("reports.renderer.priorityMedium"), timeline: "1–3 månader", icon: Target },
-  long_term: { label: t("reports.renderer.priorityLongTerm"), timeline: "3–6 månader", icon: Clock },
+  medium: { label: t("reports.renderer.priorityMedium"), timeline: t("reports.renderer.timelineMedium"), icon: Target },
+  long_term: { label: t("reports.renderer.priorityLongTerm"), timeline: t("reports.renderer.timelineLongTerm"), icon: Clock },
 };
 
 const tierLabels: Record<string, string> = {
@@ -389,14 +389,8 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
         <h2 className="text-lg font-semibold tracking-tight text-foreground mb-4 flex items-center gap-2">
           <span className="w-1 h-5 rounded-full bg-primary/60 shrink-0" />{t("reports.growth.bridgeTitle")}</h2>
         <div className="space-y-3 text-sm text-foreground/85 leading-relaxed max-w-[640px]">
-          <p>
-            Analysen visar att {data.biggest_barrier.title.toLowerCase()} är det som begränsar er synlighet mest just nu.
-            Det är inte ovanligt – de flesta företag i er bransch har liknande utmaningar.
-          </p>
-          <p>
-            De åtgärder som listas ovan adresserar grundorsakerna. Med rätt prioritering brukar de första
-            förbättringarna synas inom 1–3 månader, ofta snabbare för de tekniska delarna.
-          </p>
+          <p>{t("reports.growth.bridgeP1", { barrier: data.biggest_barrier.title.toLowerCase() })}</p>
+          <p>{t("reports.growth.bridgeP2")}</p>
           <p>{t("reports.growth.bridgeP3")}</p>
         </div>
       </section>
@@ -484,10 +478,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                     {/* Expected effect */}
                     <div>
                       <SectionLabel>{t("reports.growth.expectedEffect")}</SectionLabel>
-                      <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                        De flesta ser mätbar förbättring inom 60–90 dagar. Tekniska åtgärder ger snabbare resultat,
-                        medan innehålls- och synlighetsarbete bygger långsiktig tillväxt.
-                      </p>
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-1">{t("reports.growth.expectedEffectDesc")}</p>
                     </div>
 
                     {/* Price – last, subtle */}
@@ -569,9 +560,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                 </div>
                 <div className="flex-1 min-w-0">
                   <Badge className="text-[9px] bg-primary/10 text-primary border-primary/20 px-2 py-0.5 mb-2">{t("reports.growth.stronglyRecommended")}</Badge>
-                  <p className="text-sm text-foreground/90 leading-relaxed">{t("reports.growth.websiteDescPrefix")}<span className="font-semibold">{webScore}/100</span> begränsar er nuvarande webbplats effekten av allt SEO- och synlighetsarbete.
-                    En modern, optimerad grund är det viktigaste steget för att maximera er digitala tillväxt.
-                  </p>
+                  <p className="text-sm text-foreground/90 leading-relaxed">{t("reports.growth.websiteDescPrefix")}<span className="font-semibold">{webScore}/100</span>{t("reports.growth.websiteDescSuffix")}</p>
                   <div className="mt-4 rounded-lg bg-muted/30 dark:bg-muted/10 px-4 py-3">
                     <p className="text-sm text-foreground">{t("reports.growth.from")}<span className="font-semibold">{formatPrice(p.website_rebuild_from)} kr</span>
                     </p>
@@ -601,10 +590,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
       <section className="growth-report-section growth-report-cta py-4" data-track-section="next_steps">
         <div className="max-w-[560px] mx-auto text-center">
           <h2 className="text-lg font-semibold tracking-tight text-foreground mb-3">{t("reports.growth.finalCtaTitle")}</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-8">
-            En 15 minuters kostnadsfri genomgång där vi går igenom er situation
-            och tar fram en konkret plan. Inga förpliktelser.
-          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-8">{t("reports.growth.finalCtaDesc")}</p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             {data.contact?.booking_url ? (
@@ -784,7 +770,7 @@ function OrderModal({
           lead_id: leadId,
           organization_id: orgId,
           created_by: user.id,
-          notes: reportId ? `Genererad från rapport ${reportId}` : undefined,
+          notes: reportId ? t("reports.order.fromReport", { reportId }) : undefined,
         })
         .select("id")
         .single();
@@ -825,7 +811,7 @@ function OrderModal({
       if (itemErr) throw itemErr;
 
       setCreatedOfferId(quote.id);
-      toast({ title: t("reports.order.created"), description: `Offert för ${companyName} är redo.` });
+      toast({ title: t("reports.order.created"), description: t("reports.order.createdDesc", { company: companyName }) });
     } catch (err: any) {
       console.error("Create offer error:", err);
       toast({ title: t("reports.generator.error"), description: t("reports.order.createError"), variant: "destructive" });
@@ -842,7 +828,7 @@ function OrderModal({
             <CheckCircle2 className="h-12 w-12 text-primary mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">{t("reports.order.created")}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-              Offert för <span className="font-medium text-foreground">{companyName}</span> har skapats som utkast.
+{t("reports.order.createdSummary", { company: companyName })}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button asChild>
@@ -863,7 +849,7 @@ function OrderModal({
         <DialogHeader>
           <DialogTitle>{t("reports.order.title")}</DialogTitle>
           <DialogDescription>
-            Välj hur ni vill gå vidare med {companyName}.
+{t("reports.order.desc", { company: companyName })}
           </DialogDescription>
         </DialogHeader>
 
@@ -889,7 +875,7 @@ function OrderModal({
               <Monitor className="h-4 w-4 text-muted-foreground shrink-0" />
               <div>
                 <p className="text-sm font-medium text-foreground">{t("reports.pricing.websiteHeading")}</p>
-                <p className="text-xs text-muted-foreground">Från {formatPrice(pricing.website_rebuild_from)} kr (engångs)</p>
+                <p className="text-xs text-muted-foreground">{t("reports.order.websiteAddonFrom", { price: formatPrice(pricing.website_rebuild_from) })}</p>
               </div>
             </div>
             <Button

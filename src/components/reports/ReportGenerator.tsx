@@ -459,12 +459,12 @@ function generateWebAnalysisHtml(analysis: WebAnalysis, organization: { name: st
   <div class="section">
     <div class="summary">
       <div class="summary-score">${Math.round(avgScore)}</div>
-      <div class="summary-label">Genomsnittlig poäng av 100</div>
+      <div class="summary-label">${t("reports.generator.avgScoreLabel")}</div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-title">Poängsammanställning</div>
+    <div class="section-title">${t("reports.generator.scoreSummaryTitle")}</div>
     <div class="scores">
       ${scores.map(s => `
         <div class="score-card">
@@ -478,11 +478,11 @@ function generateWebAnalysisHtml(analysis: WebAnalysis, organization: { name: st
   <div class="section">
     <div class="section-title">Rekommendationer</div>
     <ul class="recommendations">
-      ${(analysis.performance_score ?? 100) < 50 ? '<li>⚡ <strong>Förbättra sidladdningstiden</strong> - Optimera bilder och minimera JavaScript för snabbare laddning.</li>' : ''}
-      ${(analysis.seo_score ?? 100) < 50 ? '<li>🔍 <strong>Förbättra SEO</strong> - Lägg till metataggar, optimera rubriker och förbättra innehållsstrukturen.</li>' : ''}
-      ${(analysis.accessibility_score ?? 100) < 50 ? '<li>♿ <strong>Förbättra tillgänglighet</strong> - Lägg till alt-texter på bilder och förbättra kontrast och navigation.</li>' : ''}
-      ${(analysis.best_practices_score ?? 100) < 50 ? '<li>✅ <strong>Följ best practices</strong> - Uppdatera säkerhetsinställningar och följ moderna webbstandarder.</li>' : ''}
-      ${avgScore >= 80 ? '<li>🎉 <strong>Bra jobbat!</strong> - Webbplatsen presterar väl. Fortsätt övervaka och optimera för ännu bättre resultat.</li>' : ''}
+      ${(analysis.performance_score ?? 100) < 50 ? `<li>${t("reports.generator.improvePerf")}</li>` : ''}
+      ${(analysis.seo_score ?? 100) < 50 ? `<li>${t("reports.generator.improveSeo")}</li>` : ''}
+      ${(analysis.accessibility_score ?? 100) < 50 ? `<li>${t("reports.generator.improveA11y")}</li>` : ''}
+      ${(analysis.best_practices_score ?? 100) < 50 ? `<li>${t("reports.generator.improveBp")}</li>` : ''}
+      ${avgScore >= 80 ? `<li>${t("reports.generator.greatJob")}</li>` : ''}
     </ul>
   </div>
 

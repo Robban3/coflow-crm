@@ -77,7 +77,7 @@ export function CreateGrowthReportDialog({ open, onOpenChange, lead }: Props) {
       const { data: report, error } = await supabase
         .from("reports")
         .insert({
-          title: `Tillväxtrapport – ${lead.company_name || "Okänt företag"}`,
+          title: t("reports.create.reportTitle", { company: lead.company_name || t("reports.create.unknownCompany") }),
           report_type: "complete_growth_report",
           lead_id: lead.id,
           organization_id: orgId,
@@ -109,15 +109,12 @@ export function CreateGrowthReportDialog({ open, onOpenChange, lead }: Props) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("reports.create.title")}</DialogTitle>
-          <DialogDescription>
-            Sammanställer befintlig analysdata till en kundredo rapport.
-            Ingen ny analys körs — endast existerande data används.
-          </DialogDescription>
+          <DialogDescription>{t("reports.create.desc")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-2">
           <p className="text-sm font-medium text-foreground">
-            {lead.company_name || "Okänt företag"}
+            {lead.company_name || t("reports.create.unknownCompany")}
           </p>
           {checking ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

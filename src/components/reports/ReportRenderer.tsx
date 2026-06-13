@@ -78,8 +78,8 @@ const severityConfig: Record<string, { label: string; color: string; icon: typeo
 
 const priorityConfig: Record<string, { label: string; timeline: string; icon: typeof Zap }> = {
   quick_win: { label: t("reports.renderer.priorityQuickWin"), timeline: "0–30 dagar", icon: Zap },
-  medium: { label: t("reports.renderer.priorityMedium"), timeline: "1–3 månader", icon: Target },
-  long_term: { label: t("reports.renderer.priorityLongTerm"), timeline: "3–6 månader", icon: Clock },
+  medium: { label: t("reports.renderer.priorityMedium"), timeline: t("reports.renderer.timelineMedium"), icon: Target },
+  long_term: { label: t("reports.renderer.priorityLongTerm"), timeline: t("reports.renderer.timelineLongTerm"), icon: Clock },
 };
 
 /* ─── Score Ring SVG ──────────────────────────────────────────────────── */
@@ -300,7 +300,7 @@ function renderSection(section: ReportSection, onBook?: () => void) {
     case "text":
       return <TextSection content={section.content} />;
     default:
-      return <TextSection content={{ text: `Okänd sektionstyp: ${section.type}` }} />;
+      return <TextSection content={{ text: t("reports.renderer.unknownSectionType", { type: section.type }) }} />;
   }
 }
 
@@ -395,7 +395,7 @@ export function ReportRenderer({ data, publicMode, reportId, leadId }: Props) {
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-4">
             <div className="rounded-xl border bg-muted/20 p-5 text-xs text-muted-foreground leading-relaxed space-y-2">
-              <p>Rapporten baseras på automatisk crawl och heuristisk analys av {data.meta.domain || "webbplatsen"}.</p>
+              <p>{t("reports.renderer.techCrawlNote", { domain: data.meta.domain || t("reports.renderer.theWebsite") })}</p>
               <p>{t("reports.renderer.techMethod")}</p>
               <p>Genererad: {data.meta.createdAt ? new Date(data.meta.createdAt).toLocaleString("sv-SE") : t("reports.renderer.unknownDate")}</p>
             </div>

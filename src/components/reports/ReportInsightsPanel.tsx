@@ -292,7 +292,7 @@ export function ReportInsightsPanel({ reportId, shareToken }: Props) {
       {d.recent_events.length > 0 && (
         <details className="group">
           <summary className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-            Senaste händelser ({d.recent_events.length})
+            {t("reports.insights.recentEvents", { count: d.recent_events.length })}
           </summary>
           <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
             {d.recent_events.map((e, i) => (
