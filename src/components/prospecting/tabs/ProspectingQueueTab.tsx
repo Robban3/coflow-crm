@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 type EnrichmentStatus = "pending" | "processing" | "ready" | "failed" | "skipped";
 type FilterKey = "all" | "processing" | "ready" | "skipped" | "failed";
@@ -33,53 +34,29 @@ interface QueueLead {
   business_fit_score: number | null;
 }
 
-const STATUS_CONFIG: Record<EnrichmentStatus, { icon: React.ReactNode; label: string; className: string }> = {
-  pending: {
-    icon: <Clock className="h-4 w-4" />,
-    label: "Väntar",
-    className: "text-muted-foreground",
-  },
-  processing: {
-    icon: <Loader2 className="h-4 w-4 animate-spin" />,
-    label: "Analyserar...",
-    className: "text-primary",
-  },
-  ready: {
-    icon: <CheckCircle2 className="h-4 w-4" />,
-    label: "Klar – utkast genererat",
-    className: "text-primary",
-  },
-  failed: {
-    icon: <AlertCircle className="h-4 w-4" />,
-    label: "Misslyckades",
-    className: "text-destructive",
-  },
-  skipped: {
-    icon: <ThumbsUp className="h-4 w-4" />,
-    label: "Bra sida – ingen åtgärd",
-    className: "text-muted-foreground",
-  },
+const STATUS_CONFIG: Record<EnrichmentStatus, { icon: React.ReactNode; className: string }> = {
+  pending: { icon: <Clock className="h-4 w-4" />, className: "text-muted-foreground" },
+  processing: { icon: <Loader2 className="h-4 w-4 animate-spin" />, className: "text-primary" },
+  ready: { icon: <CheckCircle2 className="h-4 w-4" />, className: "text-primary" },
+  failed: { icon: <AlertCircle className="h-4 w-4" />, className: "text-destructive" },
+  skipped: { icon: <ThumbsUp className="h-4 w-4" />, className: "text-muted-foreground" },
 };
 
-const FILTER_BUTTONS: { key: FilterKey; label: string }[] = [
-  { key: "all", label: "Alla" },
-  { key: "processing", label: "Analyseras" },
-  { key: "ready", label: "Redo" },
-  { key: "skipped", label: "Bra sidor" },
-  { key: "failed", label: "Misslyckades" },
-];
+const FILTER_KEYS: FilterKey[] = ["all", "processing", "ready", "skipped", "failed"];
 
-function sourceLabel(source: string | null): string {
+function sourceLabel(source: string | null, t: (k: string) => string): string {
   switch (source) {
     case "google_places": return "Google Places";
-    case "company_registry": return "Bolagsregister";
-    case "csv_import": return "CSV-import";
-    default: return source || "Manuell";
+    case "company_registry": return t("prospecting.q_source_companyRegistry");
+    case "csv_import": return t("prospecting.q_source_csv");
+    default: return source || t("prospecting.q_source_manual");
   }
 }
 
 export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { draftCount?: number; onGoToReview?: () => void }) {
   const orgId = useOrganizationId();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const queryClient = useQueryClient();
   const { isAdmin, user } = useAuth();
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -130,7 +107,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
   // Process queue mutation
   const processMutation = useMutation({
     mutationFn: async () => {
-      if (!orgId) throw new Error("Ingen organisation");
+      if (!orgId) throw new Error(t("prospecting.noOrg"));
       const { data: currentUser } = await supabase.auth.getUser();
       const { data, error } = await supabase.functions.invoke("process-enrichment-queue", {
         body: { organization_id: orgId, user_id: currentUser.user?.id },
@@ -139,7 +116,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
       return data as { processed: number; remaining: number };
     },
     onSuccess: (data) => {
-      toast.success(`${data.processed} leads analyserade${data.remaining > 0 ? `, ${data.remaining} kvar` : ""}`);
+      toast.success(data.remaining > 0 ? t("prospecting.q_processedRemaining", { processed: data.processed, remaining: data.remaining }) : t("prospecting.q_processedOnly", { processed: data.processed }));
       queryClient.invalidateQueries({ queryKey: ["prospecting-queue", orgId] });
     },
     onError: (err: Error) => toast.error(err.message),
@@ -176,7 +153,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
 
       const leadsToHide = allLeads.filter((l) => !sentLeadIds.has(l.id));
       if (leadsToHide.length === 0) {
-        toast.info("Inga leads att rensa (alla har redan fått utskick)");
+        toast.info(t("prospecting.q_nothingToClear"));
         return;
       }
       const { error } = await supabase
@@ -184,7 +161,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
         .update({ imported_via_prospecting: false })
         .in("id", leadsToHide.map((l) => l.id));
       if (error) throw error;
-      toast.success(`${leadsToHide.length} leads borttagna från kön`);
+      toast.success(t("prospecting.q_leadsRemoved", { count: leadsToHide.length }));
     },
     onSuccess: () => {
       setShowClearConfirm(false);
@@ -205,7 +182,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
         enrichment_error: null,
         detected_problems: [],
       }).eq("id", leadId);
-      toast.info("Lead markerad som väntande – kommer analyseras igen");
+      toast.info(t("prospecting.q_markedPending"));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["prospecting-queue", orgId] });
@@ -233,9 +210,9 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
         <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
           <CheckCircle2 className="h-6 w-6 text-primary" />
         </div>
-        <h3 className="text-lg font-semibold mb-1">Inga leads under bearbetning</h3>
+        <h3 className="text-lg font-semibold mb-1">{t("prospecting.q_emptyTitle")}</h3>
         <p className="text-muted-foreground text-sm max-w-sm">
-          Importera leads från fliken Hämta leads för att komma igång
+          {t("prospecting.q_emptyDesc")}
         </p>
       </div>
     );
@@ -246,28 +223,28 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
       <div className="space-y-4 mt-4">
         {/* Summary counters */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-          <span className="font-medium text-foreground">{readyCount} redo</span>
+          <span className="font-medium text-foreground">{t("prospecting.q_readyCount", { count: readyCount })}</span>
           <span>|</span>
-          <span>{skippedCount} bra sidor (ej kontaktade)</span>
+          <span>{t("prospecting.q_goodSitesCount", { count: skippedCount })}</span>
           <span>|</span>
-          <span>{failedCount} misslyckades</span>
+          <span>{t("prospecting.q_failedCount", { count: failedCount })}</span>
         </div>
 
         {/* Filter buttons */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          {FILTER_BUTTONS.map((f) => (
+          {FILTER_KEYS.map((fk) => (
             <Button
-              key={f.key}
-              variant={activeFilter === f.key ? "default" : "outline"}
+              key={fk}
+              variant={activeFilter === fk ? "default" : "outline"}
               size="sm"
               className="h-7 text-xs"
-              onClick={() => setActiveFilter(f.key)}
+              onClick={() => setActiveFilter(fk)}
             >
-              {f.label}
-              {f.key === "skipped" && skippedCount > 0 && (
+              {t(`prospecting.q_filter_${fk}`)}
+              {fk === "skipped" && skippedCount > 0 && (
                 <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">{skippedCount}</Badge>
               )}
-              {f.key === "failed" && failedCount > 0 && (
+              {fk === "failed" && failedCount > 0 && (
                 <Badge variant="destructive" className="ml-1 h-4 px-1 text-[10px]">{failedCount}</Badge>
               )}
             </Button>
@@ -276,7 +253,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
 
         {/* Top bar */}
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <h3 className="text-base font-semibold">Leads under bearbetning</h3>
+          <h3 className="text-base font-semibold">{t("prospecting.q_inProcessing")}</h3>
           <div className="flex items-center gap-3">
             {isAdmin && allLeads.length > 0 && (
               <Button
@@ -286,12 +263,12 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
                 onClick={() => setShowClearConfirm(true)}
               >
                 <Trash2 className="h-3.5 w-3.5 mr-1" />
-                Rensa kö
+                {t("prospecting.q_clearQueue")}
               </Button>
             )}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Switch checked={autoRefresh} onCheckedChange={setAutoRefresh} />
-              <span>Uppdatera automatiskt</span>
+              <span>{t("prospecting.q_autoRefresh")}</span>
             </div>
             <Button
               size="sm"
@@ -299,9 +276,9 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
               onClick={() => processMutation.mutate()}
             >
               {processMutation.isPending ? (
-                <><Loader2 className="h-4 w-4 animate-spin mr-1" />Analyserar…</>
+                <><Loader2 className="h-4 w-4 animate-spin mr-1" />{t("prospecting.q_analyzing")}</>
               ) : (
-                <><RefreshCw className="h-4 w-4 mr-1" />Analysera väntande ({pendingCount} leads)</>
+                <><RefreshCw className="h-4 w-4 mr-1" />{t("prospecting.q_analyzePending", { count: pendingCount })}</>
               )}
             </Button>
           </div>
@@ -314,12 +291,12 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
               <div className="flex items-center gap-2">
                 <Send className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">
-                  {draftCount} utkast redo att granska och skicka
+                  {t("prospecting.q_draftsReadyNotice", { count: draftCount })}
                 </span>
               </div>
               <Button size="sm" onClick={onGoToReview} className="gap-1.5">
                 <Send className="h-3.5 w-3.5" />
-                Granska & Skicka
+                {t("prospecting.tabReview")}
               </Button>
             </CardContent>
           </Card>
@@ -329,7 +306,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
         <div className="space-y-2">
           {filteredLeads.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Inga leads matchar filtret
+              {t("prospecting.q_noMatch")}
             </p>
           )}
           {filteredLeads.map((lead) => {
@@ -342,9 +319,9 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
                   {/* Company info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm truncate">{lead.company_name || "Okänt företag"}</span>
+                      <span className="font-semibold text-sm truncate">{lead.company_name || t("prospecting.q_unknownCompany")}</span>
                       <Badge variant="outline" className="text-xs shrink-0">
-                        {sourceLabel(lead.prospecting_source)}
+                        {sourceLabel(lead.prospecting_source, t)}
                       </Badge>
                       {lead.business_fit_score != null && (
                         <Badge
@@ -357,7 +334,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
                               : "border-destructive/30 text-destructive"
                           }`}
                         >
-                          Fit: {lead.business_fit_score}/10
+                          {t("prospecting.q_fit", { score: lead.business_fit_score })}
                         </Badge>
                       )}
                     </div>
@@ -383,23 +360,23 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
                       <TooltipTrigger asChild>
                         <div className={`flex items-center gap-1.5 text-sm shrink-0 ${cfg.className}`}>
                           {cfg.icon}
-                          <span>{cfg.label}</span>
+                          <span>{t(`prospecting.q_status_${status}`)}</span>
                         </div>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-xs">
-                        <p className="text-xs">{lead.enrichment_error || "Inga säljbara problem hittades – bra sida"}</p>
+                        <p className="text-xs">{lead.enrichment_error || t("prospecting.q_skippedTooltip")}</p>
                       </TooltipContent>
                     </Tooltip>
                   ) : (
                     <div className={`flex items-center gap-1.5 text-sm shrink-0 ${cfg.className}`}>
                       {cfg.icon}
-                      <span>{cfg.label}</span>
+                      <span>{t(`prospecting.q_status_${status}`)}</span>
                     </div>
                   )}
 
                   {/* Time */}
                   <span className="text-xs text-muted-foreground shrink-0">
-                    {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true, locale: sv })}
+                    {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true, locale: dateLocale })}
                   </span>
 
                   {/* Actions for failed */}
@@ -419,7 +396,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
                         {retryMutation.isPending ? (
                           <Loader2 className="h-3 w-3 animate-spin" />
                         ) : (
-                          "Försök igen"
+                          t("prospecting.q_retry")
                         )}
                       </Button>
                     </div>
@@ -437,7 +414,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
                       {forceEnrichMutation.isPending ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
                       ) : (
-                        <><RotateCcw className="h-3 w-3 mr-1" />Lägg till manuellt</>
+                        <><RotateCcw className="h-3 w-3 mr-1" />{t("prospecting.q_addManually")}</>
                       )}
                     </Button>
                   )}
@@ -451,21 +428,20 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
         <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Rensa hela kön?</AlertDialogTitle>
+              <AlertDialogTitle>{t("prospecting.q_clearConfirmTitle")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Detta tar bort alla leads från kö-vyn. Leads som redan fått utskick bevaras.
-                Leadsen raderas inte från databasen utan döljs bara från prospekteringskön.
+                {t("prospecting.q_clearConfirmBody")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Avbryt</AlertDialogCancel>
+              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => clearQueueMutation.mutate()}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {clearQueueMutation.isPending ? (
-                  <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />Rensar…</>
-                ) : "Ja, rensa kön"}
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />{t("prospecting.rev_clearing")}</>
+                ) : t("prospecting.q_yesClearQueue")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
