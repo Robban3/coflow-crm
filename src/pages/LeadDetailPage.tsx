@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -142,6 +143,7 @@ const activityTypes = [
 function AutoEnrichButton({ leadId, onDone }: { leadId: string; onDone: () => void }) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleClick = async () => {
     setLoading(true);
@@ -150,10 +152,10 @@ function AutoEnrichButton({ leadId, onDone }: { leadId: string; onDone: () => vo
         body: { lead_id: leadId },
       });
       if (error) throw error;
-      toast({ title: "Analys startad", description: data?.status === "skipped" ? "Leadet hoppades över (otillräcklig data)" : "Automatisk berikning körs" });
+      toast({ title: t("leadDetail.ldp_analysisStarted"), description: data?.status === "skipped" ? t("leadDetail.ldp_leadSkipped") : t("leadDetail.ldp_autoEnrichRunning") });
       onDone();
     } catch (e: any) {
-      toast({ title: "Fel", description: e.message || "Kunde inte starta analys", variant: "destructive" });
+      toast({ title: t("leadDetail.ldp_error"), description: e.message || t("leadDetail.ldp_couldNotStartAnalysis"), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -171,6 +173,7 @@ export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { hasModuleAccess } = useModules();
   
   const queryClient = useQueryClient();
@@ -393,8 +396,8 @@ export default function LeadDetailPage() {
 
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte lägga till aktivitet",
+        title: t("leadDetail.ldp_error"),
+        description: t("leadDetail.ldp_couldNotAddActivity"),
         variant: "destructive",
       });
     } finally {
@@ -428,8 +431,8 @@ export default function LeadDetailPage() {
 
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte spara ändringar",
+        title: t("leadDetail.ldp_error"),
+        description: t("leadDetail.ldp_couldNotSaveChanges"),
         variant: "destructive",
       });
     } finally {
@@ -522,8 +525,8 @@ export default function LeadDetailPage() {
       invalidateLead();
     } catch (error) {
       toast({
-        title: "Fel",
-        description: "Kunde inte ta bort uppgift. Du kanske inte har behörighet.",
+        title: t("leadDetail.ldp_error"),
+        description: t("leadDetail.ldp_couldNotDeleteTask"),
         variant: "destructive",
       });
     } finally {
@@ -541,8 +544,8 @@ export default function LeadDetailPage() {
       if (error) throw error;
 
       toast({
-        title: "Uppgift klar!",
-        description: "Uppgiften har markerats som slutförd",
+        title: t("leadDetail.ldp_taskDone"),
+        description: t("leadDetail.ldp_taskMarkedDone"),
       });
       
       invalidateLead();
@@ -578,10 +581,10 @@ export default function LeadDetailPage() {
 
   const getPriorityBadge = (priority: Task['priority']) => {
     switch (priority) {
-      case 'urgent': return <Badge variant="destructive" className="text-[10px]">Brådskande</Badge>;
-      case 'high': return <Badge variant="destructive" className="text-[10px] bg-orange-500">Hög</Badge>;
-      case 'medium': return <Badge variant="secondary" className="text-[10px]">Medium</Badge>;
-      case 'low': return <Badge variant="outline" className="text-[10px]">Låg</Badge>;
+      case 'urgent': return <Badge variant="destructive" className="text-[10px]">{t("leadDetail.ldp_priorityUrgent")}</Badge>;
+      case 'high': return <Badge variant="destructive" className="text-[10px] bg-orange-500">{t("leadDetail.ldp_priorityHigh")}</Badge>;
+      case 'medium': return <Badge variant="secondary" className="text-[10px]">{t("leadDetail.ldp_priorityMedium")}</Badge>;
+      case 'low': return <Badge variant="outline" className="text-[10px]">{t("leadDetail.ldp_priorityLow")}</Badge>;
     }
   };
 
@@ -616,12 +619,12 @@ export default function LeadDetailPage() {
             </Button>
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h2 className="text-xl md:text-2xl font-bold text-foreground truncate">{lead.company_name || "Okänt företag"}</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-foreground truncate">{lead.company_name || t("leadDetail.ldp_unknownCompany")}</h2>
                 {lead.company_name && (
                   <button
                     onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(lead.company_name || '')}`, '_blank')}
                     className="text-muted-foreground hover:text-primary transition-colors"
-                    title="Sök på Google"
+                    title={t("leadDetail.ldp_searchGoogle")}
                   >
                     <Search className="h-4 w-4" />
                   </button>
@@ -699,21 +702,21 @@ export default function LeadDetailPage() {
                   <div className="space-y-4">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Företagsnamn *</Label>
+                        <Label>{t("leadDetail.ldp_companyName")}</Label>
                         <Input
                           value={editForm.company_name}
                           onChange={(e) => setEditForm(prev => ({ ...prev, company_name: e.target.value }))}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Kontaktperson</Label>
+                        <Label>{t("leadDetail.ldp_contactPerson")}</Label>
                         <Input
                           value={editForm.contact_name}
                           onChange={(e) => setEditForm(prev => ({ ...prev, contact_name: e.target.value }))}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>E-post</Label>
+                        <Label>{t("leadDetail.ldp_email")}</Label>
                         <Input
                           type="email"
                           value={editForm.email}
@@ -721,21 +724,21 @@ export default function LeadDetailPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Telefon</Label>
+                        <Label>{t("leadDetail.ldp_phone")}</Label>
                         <Input
                           value={editForm.phone}
                           onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Webbplats</Label>
+                        <Label>{t("leadDetail.ldp_website")}</Label>
                         <Input
                           value={editForm.website}
                           onChange={(e) => setEditForm(prev => ({ ...prev, website: e.target.value }))}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Org-nummer</Label>
+                        <Label>{t("leadDetail.ldp_orgNumber")}</Label>
                         <Input
                           value={editForm.org_number}
                           onChange={(e) => setEditForm(prev => ({ ...prev, org_number: e.target.value }))}
@@ -995,7 +998,7 @@ export default function LeadDetailPage() {
             {/* Quick Actions - grid on mobile, list on desktop */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base md:text-lg">Snabbåtgärder</CardTitle>
+                <CardTitle className="text-base md:text-lg">{t("leadDetail.ldp_quickActions")}</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-1 gap-2">
                 <Button 
@@ -1146,25 +1149,25 @@ export default function LeadDetailPage() {
             {/* Source Info */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base md:text-lg">Källa</CardTitle>
+                <CardTitle className="text-base md:text-lg">{t("leadDetail.ldp_source")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Badge variant="secondary" className="mb-2 text-xs">
-                  {lead.source === 'web_analysis' ? 'Webbanalys' : 
+                  {lead.source === 'web_analysis' ? t("leadDetail.ldp_sourceWebAnalysis") : 
                    lead.source === 'firecrawl' ? 'Firecrawl' : 
-                   lead.source === 'manual' ? 'Manuell' : lead.source}
+                   lead.source === 'manual' ? t("leadDetail.ldp_sourceManual") : lead.source}
                 </Badge>
                 {lead.source_data && Object.keys(lead.source_data).length > 0 && (
                   <div className="mt-3 space-y-2">
                     {lead.source_data.orgNumber && (
                       <div>
-                        <p className="text-xs text-muted-foreground">Org.nr</p>
+                        <p className="text-xs text-muted-foreground">{t("leadDetail.ldp_orgNr")}</p>
                         <p className="text-sm font-medium">{String(lead.source_data.orgNumber)}</p>
                       </div>
                     )}
                     {lead.source_data.socialLinks && Array.isArray(lead.source_data.socialLinks) && (
                       <div>
-                        <p className="text-xs text-muted-foreground mb-1">Sociala medier</p>
+                        <p className="text-xs text-muted-foreground mb-1">{t("leadDetail.ldp_socialMedia")}</p>
                         <div className="flex flex-wrap gap-1">
                           {(lead.source_data.socialLinks as string[]).slice(0, 3).map((link, i) => (
                             <a 
@@ -1191,15 +1194,15 @@ export default function LeadDetailPage() {
         <Dialog open={showActivityDialog} onOpenChange={setShowActivityDialog}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Lägg till aktivitet</DialogTitle>
+              <DialogTitle>{t("leadDetail.ldp_addActivity")}</DialogTitle>
               <DialogDescription>
-                Logga ett samtal, e-post, möte eller anteckning
+                {t("leadDetail.ldp_logActivityDesc")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Typ av aktivitet</Label>
+                <Label>{t("leadDetail.ldp_activityType")}</Label>
                 <Select 
                   value={activityForm.type} 
                   onValueChange={(v) => setActivityForm(prev => ({ ...prev, type: v as Activity['type'] }))}
@@ -1214,7 +1217,7 @@ export default function LeadDetailPage() {
                         <SelectItem key={type.value} value={type.value}>
                           <div className="flex items-center gap-2">
                             <Icon className="h-4 w-4" />
-                            {type.label}
+                            {t(`leadDetail.ldp_activity_${type.value}`)}
                           </div>
                         </SelectItem>
                       );
@@ -1224,7 +1227,7 @@ export default function LeadDetailPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Rubrik *</Label>
+                <Label>{t("leadDetail.ldp_titleReq")}</Label>
                 <Input
                   value={activityForm.title}
                   onChange={(e) => setActivityForm(prev => ({ ...prev, title: e.target.value }))}
@@ -1238,11 +1241,11 @@ export default function LeadDetailPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Beskrivning</Label>
+                <Label>{t("leadDetail.ldp_description")}</Label>
                 <Textarea
                   value={activityForm.description}
                   onChange={(e) => setActivityForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Lägg till detaljer..."
+                  placeholder={t("leadDetail.ldp_addDetails")}
                   rows={4}
                 />
               </div>
@@ -1256,10 +1259,10 @@ export default function LeadDetailPage() {
                 {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sparar...
+                    {t("leadDetail.ldp_saving")}
                   </>
                 ) : (
-                  "Lägg till"
+                  t("leadDetail.ldp_add")
                 )}
               </Button>
             </DialogFooter>
@@ -1276,7 +1279,7 @@ export default function LeadDetailPage() {
         }}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>{editingTask ? 'Redigera uppgift' : 'Skapa uppgift'}</DialogTitle>
+              <DialogTitle>{editingTask ? t("leadDetail.ldp_editTask") : t("leadDetail.ldp_createTask")}</DialogTitle>
               <DialogDescription>
                 {editingTask ? 'Uppdatera uppgiftens information' : 'Lägg till en uppgift kopplad till denna lead'}
               </DialogDescription>
@@ -1284,27 +1287,27 @@ export default function LeadDetailPage() {
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Rubrik *</Label>
+                <Label>{t("leadDetail.ldp_titleReq")}</Label>
                 <Input
                   value={taskForm.title}
                   onChange={(e) => setTaskForm(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="T.ex. Ring för uppföljning"
+                  placeholder={t("leadDetail.ldp_taskTitlePlaceholder")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Beskrivning</Label>
+                <Label>{t("leadDetail.ldp_description")}</Label>
                 <Textarea
                   value={taskForm.description}
                   onChange={(e) => setTaskForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Lägg till detaljer..."
+                  placeholder={t("leadDetail.ldp_addDetails")}
                   rows={3}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Prioritet</Label>
+                  <Label>{t("leadDetail.ldp_priority")}</Label>
                   <Select 
                     value={taskForm.priority} 
                     onValueChange={(v) => setTaskForm(prev => ({ ...prev, priority: v as Task['priority'] }))}
@@ -1313,16 +1316,16 @@ export default function LeadDetailPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Låg</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">Hög</SelectItem>
-                      <SelectItem value="urgent">Brådskande</SelectItem>
+                      <SelectItem value="low">{t("leadDetail.ldp_priorityLow")}</SelectItem>
+                      <SelectItem value="medium">{t("leadDetail.ldp_priorityMedium")}</SelectItem>
+                      <SelectItem value="high">{t("leadDetail.ldp_priorityHigh")}</SelectItem>
+                      <SelectItem value="urgent">{t("leadDetail.ldp_priorityUrgent")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Förfallodatum</Label>
+                  <Label>{t("leadDetail.ldp_dueDate")}</Label>
                   <Input
                     type="date"
                     value={taskForm.due_date}
@@ -1340,10 +1343,10 @@ export default function LeadDetailPage() {
                 {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sparar...
+                    {t("leadDetail.ldp_saving")}
                   </>
                 ) : editingTask ? (
-                  "Spara ändringar"
+                  t("leadDetail.ldp_saveChanges")
                 ) : (
                   "Skapa uppgift"
                 )}
