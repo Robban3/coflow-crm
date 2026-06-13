@@ -99,69 +99,69 @@ export function NewMailDialog({ onSent }: NewMailDialogProps) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Nytt mail
+          {t("mail.newMailButton")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Nytt mail</DialogTitle>
+          <DialogTitle>{t("mail.newMailButton")}</DialogTitle>
           <DialogDescription>
-            Skriv och skicka ett nytt mail till valfri mottagare.
+            {t("mail.newMailDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label htmlFor="new-mail-to">Mottagare</Label>
+            <Label htmlFor="new-mail-to">{t("mail.recipient")}</Label>
             <Input
               id="new-mail-to"
               type="email"
-              placeholder="kontakt@foretag.se"
+              placeholder={t("mail.recipientPlaceholder")}
               value={recipientEmail}
               onChange={(event) => setRecipientEmail(event.target.value)}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-mail-subject">Ämne</Label>
+            <Label htmlFor="new-mail-subject">{t("mail.subject")}</Label>
             <Input
               id="new-mail-subject"
-              placeholder="Ämnesrad"
+              placeholder={t("mail.subjectPlaceholder")}
               value={subject}
               onChange={(event) => setSubject(event.target.value)}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-mail-body">Meddelande</Label>
+            <Label htmlFor="new-mail-body">{t("mail.message")}</Label>
             <Textarea
               id="new-mail-body"
               rows={10}
-              placeholder="Skriv ditt meddelande här..."
+              placeholder={t("mail.messagePlaceholder")}
               value={body}
               onChange={(event) => setBody(event.target.value)}
             />
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Avsändare kopplas automatiskt till inloggad användare.
+            {t("mail.senderNote")}
           </p>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isSending}>
-            Avbryt
+            {t("mail.cancel")}
           </Button>
           <Button onClick={handleSend} disabled={isSending}>
             {isSending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Skickar...
+                {t("mail.sending")}
               </>
             ) : (
               <>
                 <Send className="mr-2 h-4 w-4" />
-                Skicka mail
+                {t("mail.sendMail")}
               </>
             )}
           </Button>

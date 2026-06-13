@@ -209,13 +209,13 @@ export function ServiceProfileSettings() {
         {/* Preview of what AI will use */}
         {settings.service_description && (
           <div className="space-y-2">
-            <Label>Förhandsvisning för AI</Label>
+            <Label>{t("settings.aiPreviewLabel")}</Label>
             <div className="p-4 rounded-lg border bg-muted/30 text-sm">
               <p className="text-xs text-muted-foreground mb-2 font-medium">
-                AI:n kommer använda denna information vid outreach-generering:
+                {t("settings.aiPreviewIntro")}
               </p>
               <p className="font-medium mb-1">
-                Bransch: {selectedIndustry?.label || "Ej vald"}
+                {t("settings.industryLabel", { industry: selectedIndustry?.label || t("settings.industryNotSelected") })}
               </p>
               <div className="whitespace-pre-wrap text-muted-foreground">
                 {settings.service_description.length > 300 
@@ -228,12 +228,12 @@ export function ServiceProfileSettings() {
 
         {/* Help text about how this works with modules */}
         <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 text-sm">
-          <p className="font-medium mb-2">💡 Hur används tjänsteprofilen?</p>
+          <p className="font-medium mb-2">{t("settings.serviceProfileHelpTitle")}</p>
           <ul className="space-y-1 text-muted-foreground text-xs">
-            <li>• <strong>Telefoniförsäljning:</strong> AI:n refererar till leadens befintliga operatör och abonnemang från Fordonsdata & Telefoni-modulen</li>
-            <li>• <strong>Fordonsleasing:</strong> AI:n analyserar leadens fordonsflotta och föreslår optimerade lösningar</li>
-            <li>• <strong>Webbyrå:</strong> AI:n använder webbanalysdata som tidigare för att pitcha SEO/Ads</li>
-            <li>• <strong>Egen bransch:</strong> AI:n utgår helt från din beskrivning och anpassar efter tillgänglig leaddata</li>
+            <li>• <strong>{t("settings.serviceProfileHelpTelephony")}</strong> {t("settings.serviceProfileHelpTelephonyDesc")}</li>
+            <li>• <strong>{t("settings.serviceProfileHelpFleet")}</strong> {t("settings.serviceProfileHelpFleetDesc")}</li>
+            <li>• <strong>{t("settings.serviceProfileHelpWeb")}</strong> {t("settings.serviceProfileHelpWebDesc")}</li>
+            <li>• <strong>{t("settings.serviceProfileHelpCustom")}</strong> {t("settings.serviceProfileHelpCustomDesc")}</li>
           </ul>
         </div>
 
@@ -241,12 +241,12 @@ export function ServiceProfileSettings() {
           {isSaving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sparar...
+              {t("settings.saving")}
             </>
           ) : (
             <>
               <Save className="mr-2 h-4 w-4" />
-              Spara tjänsteprofil
+              {t("settings.saveServiceProfile")}
             </>
           )}
         </Button>

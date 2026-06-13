@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle, AlertTriangle } from "lucide-react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface ReportBookingDialogProps {
   open: boolean;
