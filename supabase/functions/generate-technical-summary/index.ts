@@ -1,4 +1,5 @@
 import { getAuthenticatedUserId } from "../_shared/auth.ts";
+import { callAI, AI_MODELS } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -61,14 +62,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!apiKey) {
-      console.error('LOVABLE_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI-tjänsten är inte konfigurerad' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     // Build detailed technical context
     const performanceProblems = analysisData.performanceAudits?.slice(0, 5).map(a => `- ${a.title}`).join('\n') || '';
@@ -136,47 +129,12 @@ Skriv på svenska. Var pedagogisk och uppmuntrande, inte dömande. Hjälp använ
 
     console.log('Generating technical AI summary for:', analysisData.url);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
+    const aiResult = await callAI({
+      model: AI_MODELS.claude,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7,
+      maxTokens: 2000,
     });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'För många förfrågningar. Vänta en stund och försök igen.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'AI-krediter slut. Kontakta administratören.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      const errorText = await response.text();
-      console.error('AI Gateway error:', errorText);
-      return new Response(
-        JSON.stringify({ success: false, error: 'Kunde inte generera teknisk sammanfattning' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const aiResult = await response.json();
     const summary = aiResult.choices?.[0]?.message?.content || 'Ingen sammanfattning genererad';
 
     console.log('Technical summary generated successfully');

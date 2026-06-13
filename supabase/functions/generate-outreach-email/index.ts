@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { callAI, AI_MODELS } from "../_shared/ai.ts";
 import { validateGenerateOutreachRequest } from "../_shared/validation.ts";
 import {
   buildOutreachSystemPrompt,
@@ -143,46 +144,13 @@ serve(async (req) => {
     const systemPrompt = buildOutreachSystemPrompt(ctx);
     const userPrompt = buildOutreachUserPrompt(ctx);
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
+    const aiData = await callAI({
+      model: AI_MODELS.claude,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
     });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI gateway error:", aiResponse.status, errorText);
-
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "För många förfrågningar, försök igen senare." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Krediter slut, lägg till credits i Lovable." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      throw new Error("AI gateway error");
-    }
-
-    const aiData = await aiResponse.json();
     const content = aiData.choices?.[0]?.message?.content;
 
     const parsed = parseOutreachResponse(content, lead.company_name || undefined);

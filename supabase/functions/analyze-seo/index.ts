@@ -418,14 +418,14 @@ BERÄKNAD BASPOÄNG: ${baseScore}/100
 VIKTIGT: Om sajten har sökord som rankar i Google, inkludera konkreta tips för att förbättra dessa positioner. Om sajten saknar rankingar, fokusera på grundläggande SEO och content-strategi.`;
 
   try {
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gemini-2.5-flash',
         messages: [
           { role: 'system', content: 'Du är en SEO-expert som ger konkreta, säljbara insikter på svenska. Basera alltid dina svar på de faktiska mätvärdena - särskilt de riktiga Google-rankingarna från DataForSEO. Svara alltid med JSON.' },
           { role: 'user', content: prompt },
@@ -598,7 +598,7 @@ Deno.serve(async (req) => {
 
     // Get API keys
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     const dataForSeoLogin = Deno.env.get('DATAFORSEO_LOGIN');
     const dataForSeoPassword = Deno.env.get('DATAFORSEO_PASSWORD');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -611,9 +611,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!lovableApiKey) {
+    if (!geminiApiKey) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Lovable API-nyckel saknas' }),
+        JSON.stringify({ success: false, error: 'AI-nyckel (GEMINI_API_KEY) saknas' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -739,7 +739,7 @@ Deno.serve(async (req) => {
     }
 
     // Step 4: Generate AI insights with real keyword data
-    const aiInsights = await generateAiInsights(seoMetrics, rankedKeywords, formattedUrl, lovableApiKey);
+    const aiInsights = await generateAiInsights(seoMetrics, rankedKeywords, formattedUrl, geminiApiKey);
 
     // Combine all results
     const result: SeoAnalysisResult = {

@@ -179,9 +179,9 @@ serve(async (req) => {
 
           if (requiresApproval) {
             // Generate email content but don't send - wait for approval
-            const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-            if (!LOVABLE_API_KEY) {
-              console.error("LOVABLE_API_KEY not configured");
+            const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+            if (!GEMINI_API_KEY) {
+              console.error("GEMINI_API_KEY not configured");
               continue;
             }
 
@@ -332,14 +332,14 @@ Generieren Sie eine E-Mail mit Betreffzeile und Text. Antworten Sie als JSON:
 
             const emailContext = userPromptByMarket[market];
 
-            const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
               method: "POST",
               headers: {
-                Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                Authorization: `Bearer ${GEMINI_API_KEY}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                model: "google/gemini-3-flash-preview",
+                model: "gemini-2.5-flash",
                 messages: [
                   { role: "system", content: systemPrompt },
                   { role: "user", content: emailContext },

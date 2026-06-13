@@ -215,11 +215,11 @@ serve(async (req) => {
       }
 
       // STEP E: AI-generated summary + actions
-      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
       let summary = "";
       let actions: any[] = [];
 
-      if (LOVABLE_API_KEY) {
+      if (GEMINI_API_KEY) {
         const findingsSummary = findings
           .map((f) => `[${f.severity.toUpperCase()}] ${f.title}: ${f.description}`)
           .join("\n");
@@ -256,15 +256,15 @@ Svara som JSON:
 
         try {
           const aiRes = await fetch(
-            "https://ai.gateway.lovable.dev/v1/chat/completions",
+            "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
             {
               method: "POST",
               headers: {
-                Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                Authorization: `Bearer ${GEMINI_API_KEY}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                model: "google/gemini-3-flash-preview",
+                model: "gemini-2.5-flash",
                 messages: [
                   {
                     role: "system",

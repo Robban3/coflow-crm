@@ -1,4 +1,5 @@
 import { getAuthenticatedUserId } from "../_shared/auth.ts";
+import { callAI, AI_MODELS } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,14 +57,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!apiKey) {
-      console.error('LOVABLE_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI-tjänsten är inte konfigurerad' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     // Create a prompt for generating the summary
     const prompt = `Du är en expert på webbprestanda och SEO. Analysera följande webbplatsresultat och ge en sammanfattning på svenska som är lätt att förstå för både kunden och säljare.
@@ -103,35 +96,12 @@ Håll språket enkelt och undvik teknisk jargong. Fokusera på affärsvärdet oc
 
     console.log('Generating AI summary for:', analysisData.url);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 1500,
-      }),
+    const aiResult = await callAI({
+      model: AI_MODELS.claude,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7,
+      maxTokens: 1500,
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', errorText);
-      return new Response(
-        JSON.stringify({ success: false, error: 'Kunde inte generera sammanfattning' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const aiResult = await response.json();
     const summary = aiResult.choices?.[0]?.message?.content || 'Ingen sammanfattning genererad';
 
     console.log('Summary generated successfully');
