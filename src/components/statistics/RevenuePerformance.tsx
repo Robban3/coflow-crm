@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -39,6 +40,7 @@ function formatSEK(amount: number) {
 }
 
 export function RevenuePerformance({ data }: Props) {
+  const { t } = useTranslation();
   if (!data || data.total_deals === 0) return null;
 
   return (
@@ -49,20 +51,20 @@ export function RevenuePerformance({ data }: Props) {
           <CardContent className="p-4 text-center">
             <DollarSign className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
             <p className="text-2xl font-bold">{formatSEK(data.total_revenue)}</p>
-            <p className="text-xs text-muted-foreground">Total intäkt</p>
+            <p className="text-xs text-muted-foreground">{t("statistics.totalRevenue")}</p>
           </CardContent>
         </Card>
         <Card className="border-border/50">
           <CardContent className="p-4 text-center">
             <TrendingUp className="h-4 w-4 text-primary mx-auto mb-1" />
             <p className="text-2xl font-bold">{data.total_deals}</p>
-            <p className="text-xs text-muted-foreground">Affärer vunna</p>
+            <p className="text-xs text-muted-foreground">{t("statistics.dealsWon")}</p>
           </CardContent>
         </Card>
         <Card className="border-border/50">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{formatSEK(data.avg_deal_size)}</p>
-            <p className="text-xs text-muted-foreground">Snitt affärsstorlek</p>
+            <p className="text-xs text-muted-foreground">{t("statistics.avgDealSize")}</p>
           </CardContent>
         </Card>
       </div>
@@ -71,19 +73,19 @@ export function RevenuePerformance({ data }: Props) {
       {data.per_user.length > 0 && (
         <Card className="border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Intäkt per användare</CardTitle>
+            <CardTitle className="text-base">{t("statistics.revenuePerUser")}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Användare</TableHead>
-                    <TableHead className="text-right">Affärer</TableHead>
-                    <TableHead className="text-right">Intäkt</TableHead>
-                    <TableHead className="text-right">Snitt</TableHead>
-                    <TableHead className="text-right">Close%</TableHead>
-                    <TableHead className="text-right">Dagar</TableHead>
+                    <TableHead>{t("statistics.user")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.deals")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.revenue")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.avg")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.closePct")}</TableHead>
+                    <TableHead className="text-right">{t("statistics.days")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

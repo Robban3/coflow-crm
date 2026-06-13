@@ -1,5 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Granularity, PeriodPreset } from "@/pages/StatisticsPage";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Props {
   granularity: Granularity;
@@ -21,6 +22,7 @@ const PERIOD_GRANULARITY: Record<PeriodPreset, Granularity> = {
 };
 
 export function StatisticsFilters({ onGranularityChange, periodPreset, onPeriodPresetChange }: Props) {
+  const { t } = useTranslation();
   const handlePeriodChange = (p: PeriodPreset) => {
     onPeriodPresetChange(p);
     onGranularityChange(PERIOD_GRANULARITY[p] ?? "day");
@@ -33,14 +35,14 @@ export function StatisticsFilters({ onGranularityChange, periodPreset, onPeriodP
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="today">Idag</SelectItem>
-          <SelectItem value="yesterday">Igår</SelectItem>
-          <SelectItem value="last_7_days">Senaste 7 dagar</SelectItem>
-          <SelectItem value="last_30_days">Senaste 30 dagar</SelectItem>
-          <SelectItem value="this_week">Denna vecka</SelectItem>
-          <SelectItem value="last_week">Förra veckan</SelectItem>
-          <SelectItem value="this_month">Denna månad</SelectItem>
-          <SelectItem value="last_month">Förra månaden</SelectItem>
+          <SelectItem value="today">{t("statistics.periodToday")}</SelectItem>
+          <SelectItem value="yesterday">{t("statistics.periodYesterday")}</SelectItem>
+          <SelectItem value="last_7_days">{t("statistics.periodLast7Days")}</SelectItem>
+          <SelectItem value="last_30_days">{t("statistics.periodLast30Days")}</SelectItem>
+          <SelectItem value="this_week">{t("statistics.periodThisWeek")}</SelectItem>
+          <SelectItem value="last_week">{t("statistics.periodLastWeek")}</SelectItem>
+          <SelectItem value="this_month">{t("statistics.periodThisMonth")}</SelectItem>
+          <SelectItem value="last_month">{t("statistics.periodLastMonth")}</SelectItem>
         </SelectContent>
       </Select>
     </div>

@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from "recharts";
 import type { TimeSeriesEntry, Granularity } from "@/pages/StatisticsPage";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Props {
   timeSeries: TimeSeriesEntry[];
@@ -20,11 +21,11 @@ const CHART_COLORS = [
 ];
 
 const DATA_KEYS = [
-  { key: "emails", name: "Mail" },
-  { key: "calls", name: "Samtal" },
-  { key: "meetings", name: "Möten" },
-  { key: "documents", name: "Dokument" },
-  { key: "tasks", name: "Uppgifter" },
+  { key: "emails", nameKey: "statistics.email" },
+  { key: "calls", nameKey: "statistics.calls" },
+  { key: "meetings", nameKey: "statistics.meetings" },
+  { key: "documents", nameKey: "statistics.documents" },
+  { key: "tasks", nameKey: "statistics.tasks" },
 ];
 
 const tooltipStyle = {
@@ -35,18 +36,19 @@ const tooltipStyle = {
 };
 
 export function StatisticsCharts({ timeSeries, byType, granularity = "week" }: Props) {
+  const { t } = useTranslation();
   const useBarChart = granularity === "day";
 
   return (
     <div className="space-y-6">
       <Card className="border-border/50">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Aktivitet över tid</CardTitle>
+          <CardTitle className="text-base">{t("statistics.activityOverTime")}</CardTitle>
         </CardHeader>
         <CardContent>
           {timeSeries.length === 0 ? (
             <div className="h-64 flex items-center justify-center text-sm text-muted-foreground">
-              Ingen data för vald period
+              {t("statistics.noDataForPeriod")}
             </div>
           ) : useBarChart ? (
             <ResponsiveContainer width="100%" height={280}>
@@ -56,7 +58,7 @@ export function StatisticsCharts({ timeSeries, byType, granularity = "week" }: P
                 <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" allowDecimals={false} />
                 <Tooltip contentStyle={tooltipStyle} labelFormatter={formatDateLabel} />
                 {DATA_KEYS.map((dk, i) => (
-                  <Bar key={dk.key} dataKey={dk.key} name={dk.name} fill={CHART_COLORS[i]} radius={[2, 2, 0, 0]} />
+                  <Bar key={dk.key} dataKey={dk.key} name={t(dk.nameKey)} fill={CHART_COLORS[i]} radius={[2, 2, 0, 0]} />
                 ))}
               </BarChart>
             </ResponsiveContainer>
@@ -68,7 +70,7 @@ export function StatisticsCharts({ timeSeries, byType, granularity = "week" }: P
                 <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" />
                 <Tooltip contentStyle={tooltipStyle} />
                 {DATA_KEYS.map((dk, i) => (
-                  <Area key={dk.key} type="monotone" dataKey={dk.key} stackId="1" stroke={CHART_COLORS[i]} fill={CHART_COLORS[i]} fillOpacity={0.3} name={dk.name} />
+                  <Area key={dk.key} type="monotone" dataKey={dk.key} stackId="1" stroke={CHART_COLORS[i]} fill={CHART_COLORS[i]} fillOpacity={0.3} name={t(dk.nameKey)} />
                 ))}
               </AreaChart>
             </ResponsiveContainer>
@@ -79,7 +81,7 @@ export function StatisticsCharts({ timeSeries, byType, granularity = "week" }: P
       {byType.length > 0 && (
         <Card className="border-border/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Fördelning per typ</CardTitle>
+            <CardTitle className="text-base">{t("statistics.distributionByType")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
