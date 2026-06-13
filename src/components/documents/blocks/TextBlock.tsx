@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function TextBlockRenderer({ block, readOnly, structureLocked, onChange }: Props) {
+  const { t } = useTranslation();
   const config = block.config as TextBlockConfig;
 
   const editor = useEditor({
@@ -68,7 +70,7 @@ export function TextBlockRenderer({ block, readOnly, structureLocked, onChange }
             <SelectContent>
               <SelectItem value="h1">Rubrik 1</SelectItem>
               <SelectItem value="h2">Rubrik 2</SelectItem>
-              <SelectItem value="p">Brödtext</SelectItem>
+              <SelectItem value="p">{t("templates.textBlockBody")}</SelectItem>
             </SelectContent>
           </Select>
           {editor && (

@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { type DocumentBlock, type KeyValueBlockConfig } from "./types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function KeyValueBlockRenderer({ block, readOnly, structureLocked, onChange }: Props) {
+  const { t } = useTranslation();
   const config = block.config as KeyValueBlockConfig;
   const pairs = config.pairs || [];
 
@@ -71,7 +73,7 @@ export function KeyValueBlockRenderer({ block, readOnly, structureLocked, onChan
           />
           <Input
             value={p.value}
-            placeholder="Värde"
+            placeholder={t("templates.kvValuePlaceholder")}
             className="h-8 text-sm flex-1"
             onChange={(e) => updatePair(i, { value: e.target.value })}
           />

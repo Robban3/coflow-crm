@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ export function LeadOwnerSelect({
   compact = false,
   leadCompanyName,
 }: LeadOwnerSelectProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [allMembers, setAllMembers] = useState<TeamMember[]>([]);
   const [leadMembers, setLeadMembers] = useState<LeadMember[]>([]);
@@ -94,7 +96,7 @@ export function LeadOwnerSelect({
       onOwnerChange?.(memberId);
     } catch (error) {
       console.error("Error adding member:", error);
-      toast({ title: "Fel", description: "Kunde inte lägga till medlem", variant: "destructive" });
+      toast({ title: t("leadDetail.owner_errorTitle"), description: t("leadDetail.owner_addError"), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }

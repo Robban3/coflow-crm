@@ -123,7 +123,7 @@ export function EmailThreadView({ leadId, leadName, className }: EmailThreadView
     ...replies.map((reply): ThreadMessage => ({
       id: reply.id,
       type: "reply",
-      subject: reply.subject || "(Inget ämne)",
+      subject: reply.subject || t("leadDetail.et_noSubject"),
       body: reply.body_text || reply.body_html || "",
       timestamp: reply.received_at,
       from: reply.from_name || reply.from_email,

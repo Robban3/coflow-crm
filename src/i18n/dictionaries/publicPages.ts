@@ -164,6 +164,7 @@ export const publicPagesDict: FeatureDictionary = {
     "publicPages.geoTitleNoName": "GEO Rapport",
     "publicPages.geoDesc": "GEO & AI-synlighetsrapport för {name}",
     "publicPages.geoDescNoName": "GEO & AI-synlighetsrapport",
+    "publicPages.perMonth": "/mån",
   },
   en: {
     // PublicBookingPage
@@ -328,6 +329,7 @@ export const publicPagesDict: FeatureDictionary = {
     "publicPages.geoTitleNoName": "GEO Report",
     "publicPages.geoDesc": "GEO & AI visibility report for {name}",
     "publicPages.geoDescNoName": "GEO & AI visibility report",
+    "publicPages.perMonth": "/mo",
   },
   es: {
     // PublicBookingPage
@@ -492,6 +494,7 @@ export const publicPagesDict: FeatureDictionary = {
     "publicPages.geoTitleNoName": "Informe GEO",
     "publicPages.geoDesc": "Informe de visibilidad GEO e IA para {name}",
     "publicPages.geoDescNoName": "Informe de visibilidad GEO e IA",
+    "publicPages.perMonth": "/mes",
   },
 };
 </content>

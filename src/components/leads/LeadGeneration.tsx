@@ -283,7 +283,7 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="email@företag.se"
+                  placeholder={t("leadGen.email") && "email@foretag.se"}
                 />
               </div>
 

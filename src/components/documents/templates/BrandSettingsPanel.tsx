@@ -85,7 +85,7 @@ export function BrandSettingsPanel({ settings, onChange }: BrandSettingsPanelPro
       <div className="space-y-2">
         <Label>Sidfotstext</Label>
         <Textarea
-          placeholder="Text som visas längst ned i dokumentet..."
+          placeholder={t("templates.brandFooterPlaceholder")}
           value={settings.footer_text || ""}
           onChange={(e) => update("footer_text", e.target.value)}
           rows={3}

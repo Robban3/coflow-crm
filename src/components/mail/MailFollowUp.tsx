@@ -376,7 +376,7 @@ export function MailFollowUp() {
             <DialogTitle>Markera som Ej intresserad</DialogTitle>
             <DialogDescription>
               {notInterestedLeadIds.length === 1
-                ? "Denna lead filtreras bort från uppföljning."
+                ? t("mail.followUp.filteredOut")
                 : `${notInterestedLeadIds.length} leads filtreras bort från uppföljning.`}
             </DialogDescription>
           </DialogHeader>

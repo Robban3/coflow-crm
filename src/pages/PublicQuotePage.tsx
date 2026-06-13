@@ -406,7 +406,7 @@ export default function PublicQuotePage() {
                         <span>{t("publicPages.offer.total")}</span>
                         <span>
                           {Number(quote.total).toLocaleString("sv-SE")} {quote.currency}
-                          {hasMonthly && !hasOneTime && "/mån"}
+                          {hasMonthly && !hasOneTime && t("publicPages.perMonth")}
                         </span>
                       </div>
                     )}

@@ -111,6 +111,9 @@ export const templatesDict: FeatureDictionary = {
     "templates.alignLeft": "Vänster",
     "templates.alignCenter": "Center",
     "templates.alignRight": "Höger",
+    "templates.brandFooterPlaceholder": "Text som visas längst ned i dokumentet...",
+    "templates.textBlockBody": "Brödtext",
+    "templates.kvValuePlaceholder": "Värde",
   },
   en: {
     "templates.docType.offer": "Quote",
@@ -216,6 +219,9 @@ export const templatesDict: FeatureDictionary = {
     "templates.alignLeft": "Left",
     "templates.alignCenter": "Center",
     "templates.alignRight": "Right",
+    "templates.brandFooterPlaceholder": "Text shown at the bottom of the document...",
+    "templates.textBlockBody": "Body text",
+    "templates.kvValuePlaceholder": "Value",
   },
   es: {
     "templates.docType.offer": "Presupuesto",
@@ -321,5 +327,8 @@ export const templatesDict: FeatureDictionary = {
     "templates.alignLeft": "Izquierda",
     "templates.alignCenter": "Centro",
     "templates.alignRight": "Derecha",
+    "templates.brandFooterPlaceholder": "Texto que se muestra al final del documento...",
+    "templates.textBlockBody": "Texto del cuerpo",
+    "templates.kvValuePlaceholder": "Valor",
   },
 };

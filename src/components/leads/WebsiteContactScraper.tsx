@@ -456,7 +456,7 @@ export function WebsiteContactScraper({
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
-              <p>Hämtar data...</p>
+              <p>{t("leadDetail.ws_fetchingData")}</p>
             </div>
           )}
         </DialogContent>

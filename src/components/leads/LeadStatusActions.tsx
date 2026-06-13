@@ -130,7 +130,7 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
               id="reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="T.ex. har redan leverantör, inte aktuellt just nu..."
+              placeholder={t("leadDetail.lsa_notInterestedPlaceholder")}
               rows={3}
             />
           </div>

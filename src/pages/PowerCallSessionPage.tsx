@@ -703,7 +703,7 @@ export default function PowerCallSessionPage() {
                     <CardContent className="p-5 space-y-4">
                       <div>
                         <h2 className="text-lg font-bold leading-tight mb-0.5">
-                          {currentLead.company_name || "Okänt företag"}
+                          {currentLead.company_name || t("powerCall.session.unknownCompany")}
                         </h2>
                         {currentLead.source_data && typeof currentLead.source_data === 'object' && 'city' in currentLead.source_data && (
                           <p className="text-sm text-muted-foreground flex items-center gap-1">

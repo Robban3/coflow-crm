@@ -497,7 +497,7 @@ export function SingleEmailGenerator({
                           <p className="text-sm font-medium truncate">Telefonidata</p>
                           <p className="text-xs text-muted-foreground truncate">
                             {hasTelephonyData 
-                              ? `${fleetData?.phone_operator || "Okänd operatör"}` 
+                              ? `${fleetData?.phone_operator || t("leadDetail.se2_unknownOperator")}` 
                               : "Ingen data"}
                           </p>
                         </div>

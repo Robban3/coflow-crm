@@ -528,6 +528,12 @@ export const leadDetailDict: FeatureDictionary = {
     "leadDetail.ac2_statusDone": "Klar",
     "leadDetail.ac2_statusQueued": "Köad",
     "leadDetail.ac2_statusFailed": "Misslyckad",
+    "leadDetail.ws_fetchingData": "Hämtar data...",
+    "leadDetail.se2_unknownOperator": "Okänd operatör",
+    "leadDetail.lsa_notInterestedPlaceholder": "T.ex. har redan leverantör, inte aktuellt just nu...",
+    "leadDetail.owner_errorTitle": "Fel",
+    "leadDetail.owner_addError": "Kunde inte lägga till medlem",
+    "leadDetail.et_noSubject": "(Inget ämne)",
   },
   en: {
     // ActivityTimeline
@@ -1056,6 +1062,12 @@ export const leadDetailDict: FeatureDictionary = {
     "leadDetail.ac2_statusDone": "Done",
     "leadDetail.ac2_statusQueued": "Queued",
     "leadDetail.ac2_statusFailed": "Failed",
+    "leadDetail.ws_fetchingData": "Fetching data...",
+    "leadDetail.se2_unknownOperator": "Unknown operator",
+    "leadDetail.lsa_notInterestedPlaceholder": "E.g. already has a supplier, not relevant right now...",
+    "leadDetail.owner_errorTitle": "Error",
+    "leadDetail.owner_addError": "Could not add member",
+    "leadDetail.et_noSubject": "(No subject)",
   },
   es: {
     // ActivityTimeline
@@ -1484,5 +1496,11 @@ export const leadDetailDict: FeatureDictionary = {
     "leadDetail.ac2_statusDone": "Listo",
     "leadDetail.ac2_statusQueued": "En cola",
     "leadDetail.ac2_statusFailed": "Fallido",
+    "leadDetail.ws_fetchingData": "Obteniendo datos...",
+    "leadDetail.se2_unknownOperator": "Operador desconocido",
+    "leadDetail.lsa_notInterestedPlaceholder": "P. ej. ya tiene proveedor, no procede ahora...",
+    "leadDetail.owner_errorTitle": "Error",
+    "leadDetail.owner_addError": "No se pudo añadir el miembro",
+    "leadDetail.et_noSubject": "(Sin asunto)",
   },
 };
