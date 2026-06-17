@@ -3,8 +3,8 @@
 > Komplett CRM- och säljplattform för B2B-säljteam. Specialiserad på webbanalys, GEO/AI-synlighet, prospektering och automatiserad outreach.
 
 **Live-URL:** https://www.coflow.se
-**Plattform:** Lovable (https://lovable.dev) med Lovable Cloud (Supabase)
-**Språk:** Svenska (UI), TypeScript/SQL (kod)
+**Hosting:** Cloudflare Pages (frontend) + Supabase (backend: Postgres, Auth, Storage, Edge Functions)
+**Språk:** Svenska/Engelska/Spanska (UI), TypeScript/SQL (kod)
 
 ---
 
@@ -15,7 +15,7 @@ Coflow är ett full-stack CRM byggt för säljteam som arbetar med digital markn
 ### Kärnvärden
 - **Multi-tenant**: Varje organisation har sina egna data, användare och inställningar (RLS-isolerat).
 - **Modulärt**: Funktioner aktiveras per organisation/användare via `user_modules`.
-- **AI-drivet**: Lovable AI Gateway (Gemini, GPT-5) används för analys, sammanfattningar och mailgenerering — utan API-nycklar.
+- **AI-drivet**: Direkta anrop till Google Gemini och Anthropic Claude (via `supabase/functions/_shared/ai.ts`) för analys, sammanfattningar och mailgenerering.
 - **Realtids-CRM**: React Query + Supabase Realtime för cachning och uppdateringar.
 
 ---
@@ -28,18 +28,19 @@ Coflow är ett full-stack CRM byggt för säljteam som arbetar med digital markn
 | Styling | Tailwind CSS v3 + shadcn/ui (Radix) + semantiska tokens |
 | Routing | react-router-dom v6 (lazy-loaded sidor) |
 | State/Data | @tanstack/react-query v5 (staleTime 2 min, gcTime 10 min) |
-| Backend | Lovable Cloud = Supabase (Postgres + Auth + Storage + Edge Functions) |
+| Backend | Supabase (Postgres + Auth + Storage + Edge Functions) |
 | Edge Functions | Deno + TypeScript (`supabase/functions/`) |
+| Hosting | Cloudflare Pages (auto-deploy via GitHub Actions) |
 | Drag & Drop | @dnd-kit |
 | Rich text | TipTap v3 |
 | Diagram | Recharts |
-| AI | Lovable AI Gateway (Gemini 2.5 Pro/Flash, GPT-5) |
-| Email | Resend (via connector gateway) |
+| AI | Google Gemini 2.5 Flash + Anthropic Claude (direkta API-anrop) |
+| Email | Resend (direkt API) |
 | Externa API:er | Google Places, PageSpeed, Hunter.io, Firecrawl, DataForSEO, Merinfo (fordonsdata) |
 
 ### Kritiska arkitekturregler
 - **`src/integrations/supabase/client.ts` och `types.ts` är auto-genererade** — får aldrig editeras manuellt.
-- **`.env` hanteras automatiskt** av Lovable Cloud (innehåller `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`).
+- **`.env`** innehåller `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID` (publika anon-nycklar, committade — bygget är självförsörjande).
 - **Roller lagras i `user_roles`** (separat tabell) — aldrig på `profiles`. Använd `has_role()` security-definer-funktionen.
 - **All färg är HSL** och definieras som semantiska tokens i `src/index.css` + `tailwind.config.ts`. Inga hårdkodade `text-white`/`bg-black` i komponenter.
 
@@ -189,7 +190,7 @@ Alla moduler registreras i `src/modules/registry.ts`. Aktivering per användare 
 
 ## 7. Edge Functions (`supabase/functions/`)
 
-Cirka 40 funktioner. Deployas automatiskt vid filändring. Standardinställningar i `config.toml` har `verify_jwt = false` för publika endpoints.
+Cirka 40 funktioner. Deployas med Supabase CLI: `supabase functions deploy <namn>` (eller alla på en gång). Standardinställningar i `config.toml` har `verify_jwt = false` för publika endpoints.
 
 ### Lead enrichment & analysis
 - `auto-enrich-lead` — triggas vid lead-insert; hittar kontaktinfo via Hunter, fordon via Merinfo
@@ -239,8 +240,11 @@ Cirka 40 funktioner. Deployas automatiskt vid filändring. Standardinställninga
 - `statistics-overview` — aggregerad statistik
 - `generate-quote-pdf` — PDF-generering
 
-### Secrets (redan konfigurerade)
-`LOVABLE_API_KEY`, `RESEND_API_KEY`, `RESEND_API_KEY_PLATFORM`, `FIRECRAWL_API_KEY`, `GOOGLE_PAGESPEED_API_KEY`, `GOOGLE_PLACES_API_KEY`, `HUNTER_API_KEY`, `DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD`, `KODCO_ORG_ID`, `KODCOGEO_WEBHOOK_SECRET`, `SUPABASE_*`.
+### Secrets (sätts i Supabase: Project Settings → Edge Functions → Secrets)
+**AI (krävs):** `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`
+**Övriga:** `RESEND_API_KEY`, `RESEND_API_KEY_PLATFORM`, `FIRECRAWL_API_KEY`, `GOOGLE_PAGESPEED_API_KEY`, `GOOGLE_PLACES_API_KEY`, `HUNTER_API_KEY`, `DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD`, `KODCO_ORG_ID`, `KODCOGEO_WEBHOOK_SECRET`, `SUPABASE_*`.
+
+> `LOVABLE_API_KEY` används inte längre — all AI går via direkta anrop till Gemini/Claude (se `_shared/ai.ts`). Sätt `GEMINI_API_KEY` och `ANTHROPIC_API_KEY` innan funktionerna deployas.
 
 ---
 
@@ -248,8 +252,9 @@ Cirka 40 funktioner. Deployas automatiskt vid filändring. Standardinställninga
 
 | Tjänst | Användning |
 |---|---|
-| **Resend** | All e-post (via connector gateway `connector-gateway.lovable.dev/resend`) |
-| **Lovable AI Gateway** | Gemini 2.5 Pro/Flash, GPT-5 — utan API-nyckel |
+| **Resend** | All e-post (direkt API, `api.resend.com`) |
+| **Google Gemini** | Gemini 2.5 Flash — bulk-extraktion & analys (`GEMINI_API_KEY`) |
+| **Anthropic Claude** | Copywriting & konversation, AI-agent (`ANTHROPIC_API_KEY`) |
 | **Google Places API** | Företagssök i prospektering |
 | **Google PageSpeed** | Lighthouse-analys |
 | **Hunter.io** | E-postadresser till kontakter |
@@ -270,10 +275,15 @@ bun run build
 bun run test  # vitest
 ```
 
-### Lovable-plattformen
-- Frontend-ändringar → kräver klick på **Publish → Update** för att gå live.
-- Backend-ändringar (edge functions, migrationer) → deployar **automatiskt**.
-- Migrationer hanteras via `supabase--migration`-verktyget (kräver user-godkännande).
+### Deploy
+- **Frontend → Cloudflare Pages.** Push till `main` triggar GitHub Actions-workflowen
+  `.github/workflows/deploy.yml` som kör `npm run build` och `wrangler pages deploy dist`.
+  Kräver repo-secrets `CLOUDFLARE_API_TOKEN` och `CLOUDFLARE_ACCOUNT_ID`.
+  Manuell deploy: `npm run build && npx wrangler pages deploy dist`.
+- **Edge functions → Supabase CLI:** `supabase functions deploy <namn>` (eller alla).
+  Sätt nödvändiga secrets i Supabase först (se §7).
+- **Migrationer → Supabase CLI:** `supabase db push` (eller via Supabase-dashboarden).
+- SPA-routing/headers för Cloudflare ligger i `public/_redirects`, `public/_headers` och `wrangler.toml`.
 
 ### Konventioner
 - **Discussion-first**: Vid breda uppgifter, ställ frågor innan implementation.
@@ -315,7 +325,7 @@ bun run test  # vitest
 5. Edge functions följer alla samma mönster: CORS-headers → validate → call AI/external API → return JSON.
 6. Vid databasarbete: använd ALLTID migrations-verktyget, aldrig direkt SQL i runtime.
 
-**Hjälp finns i:** [Lovable Docs](https://docs.lovable.dev) · [Discord](https://discord.com/channels/1119885301872070706)
+**Hjälp finns i:** [Cloudflare Pages Docs](https://developers.cloudflare.com/pages/) · [Supabase Docs](https://supabase.com/docs)
 
 ---
 

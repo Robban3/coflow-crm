@@ -10,8 +10,8 @@ const ALLOWED_ORIGINS = [
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false;
   if (ALLOWED_ORIGINS.includes(origin)) return true;
-  // Allow lovable preview domains and localhost in dev
-  if (origin.includes(".lovable.app") || origin.includes("localhost") || origin.includes("127.0.0.1")) return true;
+  // Allow localhost in dev
+  if (origin.includes("localhost") || origin.includes("127.0.0.1")) return true;
   return false;
 }
 

@@ -444,7 +444,7 @@ SMART ANALYS:
       }
       if (aiResponse.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Krediter slut, lägg till credits i Lovable." }),
+          JSON.stringify({ error: "AI-tjänstens kvot är slut. Kontrollera saldo/kvot för API-nyckeln." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
