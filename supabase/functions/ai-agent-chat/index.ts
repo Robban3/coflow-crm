@@ -464,7 +464,7 @@ SMART ANALYS:
           
           console.log("Executing tool:", name, args);
           
-          const result = await executeToolCall(name, args, supabase, userId);
+          const result = await executeToolCall(name, args, supabase, supabaseAuth, userId);
           
           return {
             tool_call_id: toolCall.id,
@@ -643,6 +643,7 @@ async function executeToolCall(
   name: string,
   args: any,
   supabase: any,
+  userClient: any,
   userId: string
 ): Promise<any> {
   const { data: userProfile } = await supabase
@@ -654,6 +655,8 @@ async function executeToolCall(
 
   switch (name) {
     case "get_leads": {
+      // RLS-scoped client: the agent only sees leads the caller can access.
+      const supabase = userClient;
       if (!userOrgId) {
         return { success: false, error: "Användaren tillhör ingen organisation" };
       }
@@ -1081,8 +1084,10 @@ async function executeToolCall(
     }
     
     case "get_analysis_summary": {
+      // RLS-scoped client: only analyses the caller can access.
+      const supabase = userClient;
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      
+
       let leadIdsToQuery: string[] = [];
       
       if (args.lead_id && uuidRegex.test(args.lead_id)) {
@@ -1485,6 +1490,7 @@ async function executeToolCall(
     }
     
     case "get_email_stats": {
+      const supabase = userClient;
       const days = args.days || 30;
       const fromDate = new Date();
       fromDate.setDate(fromDate.getDate() - days);
@@ -1515,6 +1521,8 @@ async function executeToolCall(
     }
     
     case "get_leads_opened_emails": {
+      // RLS-scoped client: only the caller's own opened emails (also blocks cross-org).
+      const supabase = userClient;
       const { data, error } = await supabase
         .from("sent_emails")
         .select(`
@@ -1704,6 +1712,8 @@ async function executeToolCall(
     }
     
     case "draft_outreach_email": {
+      // RLS-scoped client: can only draft for leads the caller can access.
+      const supabase = userClient;
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!args.lead_id || !uuidRegex.test(args.lead_id)) {
         return { success: false, error: "Ogiltigt lead-ID" };
