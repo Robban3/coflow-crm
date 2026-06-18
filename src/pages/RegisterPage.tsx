@@ -136,10 +136,22 @@ export default function RegisterPage() {
       }
 
       // Create the user
-      const { error } = await signUp(email, password, fullName);
+      const { error, session } = await signUp(email, password, fullName);
 
       if (error) {
         throw error;
+      }
+
+      // Email confirmation enabled: no session until the user verifies their
+      // address. Tell them to check their inbox instead of proceeding (the app
+      // can't load without a session anyway).
+      if (!session) {
+        toast({
+          title: t("register.verifyEmailTitle"),
+          description: t("register.verifyEmailDesc", { email }),
+        });
+        navigate("/login");
+        return;
       }
 
       // Wait a moment for auth trigger to create profile

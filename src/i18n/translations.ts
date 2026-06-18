@@ -64,6 +64,8 @@ export const translations: Record<Language, Dict> = {
     "register.failedTitle": "Registrering misslyckades",
     "register.unexpectedError": "Ett oväntat fel uppstod",
     "register.inviteInvalidError": "Inbjudningskoden är ogiltig",
+    "register.verifyEmailTitle": "Bekräfta din e-post",
+    "register.verifyEmailDesc": "Vi har skickat en bekräftelselänk till {email}. Klicka på länken för att aktivera kontot innan du loggar in.",
 
     // Navigation (module names)
     "nav.dashboard": "Dashboard",
@@ -397,6 +399,8 @@ export const translations: Record<Language, Dict> = {
     "register.failedTitle": "Registration failed",
     "register.unexpectedError": "An unexpected error occurred",
     "register.inviteInvalidError": "The invite code is invalid",
+    "register.verifyEmailTitle": "Verify your email",
+    "register.verifyEmailDesc": "We've sent a verification link to {email}. Click it to activate your account before signing in.",
 
     // Navigation (module names)
     "nav.dashboard": "Dashboard",
@@ -730,6 +734,8 @@ export const translations: Record<Language, Dict> = {
     "register.failedTitle": "Error en el registro",
     "register.unexpectedError": "Se produjo un error inesperado",
     "register.inviteInvalidError": "El código de invitación no es válido",
+    "register.verifyEmailTitle": "Verifica tu correo",
+    "register.verifyEmailDesc": "Hemos enviado un enlace de verificación a {email}. Haz clic en él para activar tu cuenta antes de iniciar sesión.",
 
     // Navigation (module names)
     "nav.dashboard": "Panel",

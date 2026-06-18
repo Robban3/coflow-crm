@@ -11,7 +11,7 @@ interface AuthContextType {
   isAdmin: boolean;
   userRole: UserRole;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null; session: Session | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName?: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -95,7 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       },
     });
-    return { error };
+    // When email confirmation is required, Supabase returns no session until the
+    // user verifies their address. Callers use this to show a "check your email"
+    // message instead of proceeding into the app.
+    return { error, session: data?.session ?? null };
   };
 
   const signOut = async () => {
