@@ -88,6 +88,7 @@ export const translations: Record<Language, Dict> = {
     "nav.fleet_data": "Fordonsdata & Telefoni",
     "nav.seo_intelligence": "SEO Intelligence",
     "nav.statistics": "Statistik",
+    "nav.training": "Utbildning",
     "nav.settings": "Inställningar",
 
     // Header
@@ -423,6 +424,7 @@ export const translations: Record<Language, Dict> = {
     "nav.fleet_data": "Vehicle data & Telephony",
     "nav.seo_intelligence": "SEO Intelligence",
     "nav.statistics": "Statistics",
+    "nav.training": "Training",
     "nav.settings": "Settings",
 
     // Header
@@ -758,6 +760,7 @@ export const translations: Record<Language, Dict> = {
     "nav.fleet_data": "Datos de vehículos y telefonía",
     "nav.seo_intelligence": "SEO Intelligence",
     "nav.statistics": "Estadísticas",
+    "nav.training": "Formación",
     "nav.settings": "Ajustes",
 
     // Header

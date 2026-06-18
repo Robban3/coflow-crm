@@ -62,6 +62,7 @@ const PowerCallListsPage = lazyRetry(() => import("./pages/PowerCallListsPage"))
 const PowerCallSessionPage = lazyRetry(() => import("./pages/PowerCallSessionPage"));
 const ProspectingPage = lazyRetry(() => import("./pages/ProspectingPage"));
 const TicketsPage = lazyRetry(() => import("./pages/TicketsPage"));
+const TrainingPage = lazyRetry(() => import("./pages/TrainingPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -193,6 +194,12 @@ const App = () => (
                 } />
                 <Route path="/tickets" element={
                   <ProtectedRoute><TicketsPage /></ProtectedRoute>
+                } />
+                <Route path="/utbildning" element={
+                  <ProtectedRoute><TrainingPage /></ProtectedRoute>
+                } />
+                <Route path="/utbildning/:slug" element={
+                  <ProtectedRoute><TrainingPage /></ProtectedRoute>
                 } />
 
                 {/* Catch-all */}

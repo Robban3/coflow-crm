@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { TrainingNavGroup } from "./TrainingNavGroup";
 
 export function MobileSidebar() {
   const location = useLocation();
@@ -66,6 +67,9 @@ export function MobileSidebar() {
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
           <ul className="space-y-1">
             {navigationModules.map((module) => {
+              if (module.id === 'training') {
+                return <TrainingNavGroup key={module.id} variant="mobile" onNavigate={handleNavClick} />;
+              }
               const Icon = module.icon;
               const isActive = location.pathname === module.path ||
                 (module.path !== '/dashboard' && location.pathname.startsWith(module.path));

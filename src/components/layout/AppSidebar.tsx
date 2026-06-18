@@ -6,6 +6,7 @@ import { Settings, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { TrainingNavGroup } from "./TrainingNavGroup";
 
 export function AppSidebar() {
   const location = useLocation();
@@ -89,6 +90,9 @@ export function AppSidebar() {
       <nav className="flex-1 px-3 py-5 overflow-y-auto scrollbar-thin">
         <ul className="space-y-1">
           {navigationModules.map((module, index) => {
+            if (module.id === 'training') {
+              return <TrainingNavGroup key={module.id} variant="desktop" collapsed={isCollapsed} />;
+            }
             const Icon = module.icon;
             const moduleName = t(`nav.${module.id}`);
             const isActive = location.pathname === module.path ||

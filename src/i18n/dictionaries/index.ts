@@ -21,6 +21,7 @@ import { offersDict } from "./offers";
 import { publicPagesDict } from "./publicPages";
 import { templatesDict } from "./templates";
 import { aiDict } from "./ai";
+import { trainingDict } from "./training";
 
 export const featureDictionaries: FeatureDictionary[] = [
   tasksDict,
@@ -41,4 +42,5 @@ export const featureDictionaries: FeatureDictionary[] = [
   publicPagesDict,
   templatesDict,
   aiDict,
+  trainingDict,
 ];

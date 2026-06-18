@@ -16,7 +16,8 @@ import {
   Brain,
   PhoneCall,
   Telescope,
-  type LucideIcon 
+  GraduationCap,
+  type LucideIcon
 } from "lucide-react";
 
 export type ModuleId = 
@@ -41,6 +42,7 @@ export type ModuleId =
   | 'fleet_data'
   | 'seo_intelligence'
   | 'statistics'
+  | 'training'
   | 'settings';
 
 export interface ModuleDefinition {
@@ -240,6 +242,14 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     enabled: false,
     dbModuleKey: 'statistics',
     requiresAdmin: true,
+  },
+  {
+    id: 'training',
+    name: 'Utbildning',
+    description: 'Utbildning och resurser för säljteamet',
+    icon: GraduationCap,
+    path: '/utbildning',
+    enabled: true, // Sidebar visibility is gated per-organization (training_enabled), not per-user
   },
   {
     id: 'settings',
