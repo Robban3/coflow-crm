@@ -1,0 +1,48 @@
+// Static sample data for the sandbox. Purely illustrative — never persisted.
+
+export const sampleLeads = [
+  { company: "Bygg & Co AB", contact: "Anna Lind", email: "anna@byggco.se", status: "Kontaktad", analyzed: true },
+  { company: "Nordic Dental", contact: "Erik Holm", email: "erik@nordicdental.se", status: "Ej kontaktad", analyzed: true },
+  { company: "Café Solsidan", contact: "Maria Ek", email: "maria@solsidan.se", status: "Möte bokat", analyzed: false },
+  { company: "VVS-Experten", contact: "Johan Berg", email: "johan@vvsexperten.se", status: "Offert skickad", analyzed: true },
+  { company: "Salong Lux", contact: "Sara Nyström", email: "sara@salonglux.se", status: "Ej kontaktad", analyzed: false },
+];
+
+export const statusTone: Record<string, string> = {
+  "Ej kontaktad": "bg-muted text-muted-foreground",
+  Kontaktad: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+  "Möte bokat": "bg-violet-500/15 text-violet-600 dark:text-violet-400",
+  "Offert skickad": "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  Vunnen: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+};
+
+export const pipelineStages = [
+  { name: "Aktiv", deals: [{ company: "Salong Lux", value: "12 000 kr" }, { company: "Café Solsidan", value: "8 500 kr" }] },
+  { name: "Kontaktad", deals: [{ company: "Bygg & Co AB", value: "24 000 kr" }] },
+  { name: "Möte bokat", deals: [{ company: "Nordic Dental", value: "35 000 kr" }] },
+  { name: "Offert skickad", deals: [{ company: "VVS-Experten", value: "18 000 kr" }] },
+  { name: "Vunnen", deals: [{ company: "Frisör Klipp", value: "21 000 kr" }] },
+];
+
+export const sampleEmails = [
+  { from: "Anna Lind", subject: "Re: Förslag på ny hemsida", preview: "Tack för förslaget, det ser intressant ut...", time: "09:24", unread: true },
+  { from: "Erik Holm", subject: "Offert tandklinik", preview: "Kan vi boka ett möte nästa vecka?", time: "Igår", unread: true },
+  { from: "Maria Ek", subject: "Re: SEO-analys", preview: "Vilka konkreta steg rekommenderar ni?", time: "Igår", unread: false },
+  { from: "Johan Berg", subject: "Tack för mötet", preview: "Trevligt att ses idag. Vi återkommer...", time: "Mån", unread: false },
+];
+
+export const sampleStats = [
+  { label: "Mail idag", value: "12", sub: "+3 denna vecka" },
+  { label: "Öppna tasks", value: "5", sub: "2 förfallna" },
+  { label: "Leads", value: "148", sub: "+9 denna vecka" },
+  { label: "Analyser", value: "37", sub: "den här månaden" },
+];
+
+export const powerCallLead = {
+  company: "Nordic Dental",
+  contact: "Erik Holm",
+  phone: "+46 70 123 45 67",
+  note: "Saknar bokningssystem på hemsidan. Visat intresse för SEO.",
+  queue: 14,
+  done: 6,
+};

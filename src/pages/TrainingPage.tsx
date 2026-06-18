@@ -12,7 +12,7 @@ import { useTrainingItems, type TrainingItem } from "@/hooks/useTrainingItems";
 import { TrainingRichText } from "@/components/training/TrainingRichText";
 import { TrainingItemEditor } from "@/components/training/TrainingItemEditor";
 import { TrainingCategoryManager } from "@/components/training/TrainingCategoryManager";
-import { TrainingSandboxPlaceholder } from "@/components/training/TrainingSandboxPlaceholder";
+import { SandboxApp } from "@/components/training/sandbox/SandboxApp";
 
 /** Convert common video URLs to an embeddable URL; null if not embeddable. */
 function toEmbedUrl(url: string): string | null {
@@ -112,7 +112,7 @@ export default function TrainingPage() {
         ) : categories.length === 0 ? (
           <EmptyState text={t("training.empty")} />
         ) : activeCategory?.kind === "sandbox" ? (
-          <TrainingSandboxPlaceholder />
+          <SandboxApp />
         ) : (
           <CategoryContent
             categoryId={activeCategory!.id}
