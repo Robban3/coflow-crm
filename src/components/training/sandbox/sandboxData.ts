@@ -86,3 +86,43 @@ export const leaderboard = [
   { name: "Sara", points: 980 },
   { name: "Johan", points: 870 },
 ];
+
+export const sampleCustomers = [
+  { company: "Frisör Klipp", contact: "Lena Ström", status: "Aktiv" },
+  { company: "Bygg & Co AB", contact: "Anna Lind", status: "Aktiv" },
+  { company: "Pizzeria Roma", contact: "Marco Rossi", status: "Aktiv" },
+  { company: "Gamla Bilverkstan", contact: "Per Sand", status: "Avslutad" },
+];
+
+export const prospectingResults = [
+  { company: "Thai Orchid", city: "Göteborg", hasWebsite: false },
+  { company: "Optiker Syn", city: "Göteborg", hasWebsite: true },
+  { company: "Blomsterboden", city: "Mölndal", hasWebsite: false },
+  { company: "PT-Studion", city: "Göteborg", hasWebsite: true },
+];
+
+export const sampleTasks = [
+  { title: "Ring upp Nordic Dental", due: "Idag 14:00", priority: "Hög", done: false },
+  { title: "Skicka offert till Bygg & Co", due: "Idag 16:30", priority: "Brådskande", done: false },
+  { title: "Följ upp mail – Café Solsidan", due: "Imorgon", priority: "Normal", done: false },
+  { title: "Boka demo med Salong Lux", due: "Fre", priority: "Normal", done: true },
+];
+
+export const sampleTickets = [
+  { title: "Hjälp med inloggning", type: "Support", status: "Öppen", priority: "Hög" },
+  { title: "Förfrågan om prisplan", type: "Sälj", status: "Pågående", priority: "Normal" },
+  { title: "Onboarding ny kund", type: "Onboarding", status: "Öppen", priority: "Normal" },
+  { title: "Bugg i rapportvy", type: "Support", status: "Löst", priority: "Låg" },
+];
+
+export const sampleReports = [
+  { title: "Webb & SEO-rapport – Bygg & Co", type: "GEO", date: "12 jun" },
+  { title: "Tillväxtrapport Q2 – Nordic Dental", type: "Growth", date: "8 jun" },
+  { title: "AI-synlighet – Café Solsidan", type: "GEO", date: "2 jun" },
+];
+
+export const sampleMeetings = [
+  { title: "Demo av CRM", withWhom: "Erik Holm, Nordic Dental", time: "10:00", date: "Idag" },
+  { title: "Uppföljning offert", withWhom: "Anna Lind, Bygg & Co", time: "13:30", date: "Idag" },
+  { title: "Första möte", withWhom: "Maria Ek, Café Solsidan", time: "09:00", date: "Imorgon" },
+];

@@ -1,12 +1,18 @@
 import { useState } from "react";
 import {
   LayoutDashboard,
+  Users,
+  Telescope,
   Search,
   GitBranch,
+  CheckSquare,
+  Ticket,
   Inbox,
   PhoneCall,
   BarChart3,
   FileText,
+  FileBarChart,
+  Calendar,
   LineChart,
   FlaskConical,
   type LucideIcon,
@@ -21,6 +27,12 @@ import { SandboxPowerCall } from "./tabs/SandboxPowerCall";
 import { SandboxWebAnalysis } from "./tabs/SandboxWebAnalysis";
 import { SandboxQuotes } from "./tabs/SandboxQuotes";
 import { SandboxStatistics } from "./tabs/SandboxStatistics";
+import { SandboxCustomers } from "./tabs/SandboxCustomers";
+import { SandboxProspecting } from "./tabs/SandboxProspecting";
+import { SandboxTasks } from "./tabs/SandboxTasks";
+import { SandboxTickets } from "./tabs/SandboxTickets";
+import { SandboxReports } from "./tabs/SandboxReports";
+import { SandboxMeetings } from "./tabs/SandboxMeetings";
 
 interface Tab {
   id: string;
@@ -31,12 +43,18 @@ interface Tab {
 
 const TABS: Tab[] = [
   { id: "dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard, Component: SandboxDashboard },
-  { id: "leads", labelKey: "nav.leads", icon: Search, Component: SandboxLeads },
+  { id: "customers", labelKey: "nav.customers", icon: Users, Component: SandboxCustomers },
   { id: "pipeline", labelKey: "nav.pipeline", icon: GitBranch, Component: SandboxPipeline },
+  { id: "leads", labelKey: "nav.leads", icon: Search, Component: SandboxLeads },
+  { id: "prospecting", labelKey: "nav.prospecting", icon: Telescope, Component: SandboxProspecting },
+  { id: "tasks", labelKey: "nav.tasks", icon: CheckSquare, Component: SandboxTasks },
+  { id: "tickets", labelKey: "nav.tickets", icon: Ticket, Component: SandboxTickets },
+  { id: "webanalysis", labelKey: "nav.web_analysis", icon: BarChart3, Component: SandboxWebAnalysis },
   { id: "mail", labelKey: "nav.mail", icon: Inbox, Component: SandboxMail },
   { id: "powercall", labelKey: "nav.outreach_pro", icon: PhoneCall, Component: SandboxPowerCall },
-  { id: "webanalysis", labelKey: "nav.web_analysis", icon: BarChart3, Component: SandboxWebAnalysis },
   { id: "quotes", labelKey: "nav.quotes", icon: FileText, Component: SandboxQuotes },
+  { id: "reports", labelKey: "nav.reports", icon: FileBarChart, Component: SandboxReports },
+  { id: "meetings", labelKey: "nav.meetings", icon: Calendar, Component: SandboxMeetings },
   { id: "statistics", labelKey: "nav.statistics", icon: LineChart, Component: SandboxStatistics },
 ];
 
