@@ -3,6 +3,8 @@
 -- 1) Scope admin role/module management to caller organization
 DROP POLICY IF EXISTS "Admins can view all roles" ON public.user_roles;
 DROP POLICY IF EXISTS "Admins can manage roles" ON public.user_roles;
+DROP POLICY IF EXISTS "Admins can view roles in own org" ON public.user_roles;
+DROP POLICY IF EXISTS "Admins can manage roles in own org" ON public.user_roles;
 
 CREATE POLICY "Admins can view roles in own org"
 ON public.user_roles FOR SELECT TO authenticated
@@ -42,6 +44,8 @@ WITH CHECK (
 
 DROP POLICY IF EXISTS "Admins can view all modules" ON public.user_modules;
 DROP POLICY IF EXISTS "Admins can manage modules" ON public.user_modules;
+DROP POLICY IF EXISTS "Admins can view modules in own org" ON public.user_modules;
+DROP POLICY IF EXISTS "Admins can manage modules in own org" ON public.user_modules;
 
 CREATE POLICY "Admins can view modules in own org"
 ON public.user_modules FOR SELECT TO authenticated

@@ -2,10 +2,12 @@
 -- 1) geo_quick_scans: split insert by role so authenticated users cannot insert with NULL org or another org
 DROP POLICY IF EXISTS "Org members can insert scans" ON public.geo_quick_scans;
 
+DROP POLICY IF EXISTS "Anon can insert public scans" ON public.geo_quick_scans;
 CREATE POLICY "Anon can insert public scans"
 ON public.geo_quick_scans FOR INSERT TO anon
 WITH CHECK (organization_id IS NULL);
 
+DROP POLICY IF EXISTS "Authenticated insert scans in own org" ON public.geo_quick_scans;
 CREATE POLICY "Authenticated insert scans in own org"
 ON public.geo_quick_scans FOR INSERT TO authenticated
 WITH CHECK (
@@ -15,18 +17,21 @@ WITH CHECK (
 
 -- 2) analysis_trigger_logs: remove NULL-org leak
 DROP POLICY IF EXISTS "Users can view trigger logs in their org" ON public.analysis_trigger_logs;
+DROP POLICY IF EXISTS "Users can view trigger logs in their org" ON public.analysis_trigger_logs;
 CREATE POLICY "Users can view trigger logs in their org"
 ON public.analysis_trigger_logs FOR SELECT TO authenticated
 USING (organization_id = public.get_user_organization_id(auth.uid()));
 
 -- 3) organization_pricing: restrict to org members
 DROP POLICY IF EXISTS "Anyone can read pricing" ON public.organization_pricing;
+DROP POLICY IF EXISTS "Org members can read pricing" ON public.organization_pricing;
 CREATE POLICY "Org members can read pricing"
 ON public.organization_pricing FOR SELECT TO authenticated
 USING (organization_id = public.get_user_organization_id(auth.uid()));
 
 -- 4) notifications: restrict insert to self (service_role bypasses RLS for system inserts)
 DROP POLICY IF EXISTS "Authenticated users can insert notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Users can insert own notifications" ON public.notifications;
 CREATE POLICY "Users can insert own notifications"
 ON public.notifications FOR INSERT TO authenticated
 WITH CHECK (user_id = auth.uid());
@@ -34,6 +39,7 @@ WITH CHECK (user_id = auth.uid());
 -- 5) user_availability: drop blanket public read; keep org-member read
 DROP POLICY IF EXISTS "Anyone can view user availability for booking" ON public.user_availability;
 DROP POLICY IF EXISTS "Users can view availability in their organization" ON public.user_availability;
+DROP POLICY IF EXISTS "Org members can view availability" ON public.user_availability;
 CREATE POLICY "Org members can view availability"
 ON public.user_availability FOR SELECT TO authenticated
 USING (organization_id = public.get_user_organization_id(auth.uid()) OR user_id = auth.uid());

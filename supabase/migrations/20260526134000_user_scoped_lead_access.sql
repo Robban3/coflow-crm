@@ -42,6 +42,7 @@ DROP POLICY IF EXISTS "Users can insert leads in their organization" ON public.l
 DROP POLICY IF EXISTS "Users can update leads in their organization" ON public.leads;
 DROP POLICY IF EXISTS "Admins can delete leads in their organization" ON public.leads;
 
+DROP POLICY IF EXISTS "Users can view own leads" ON public.leads;
 CREATE POLICY "Users can view own leads"
 ON public.leads FOR SELECT TO authenticated
 USING (
@@ -53,6 +54,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Users can insert own leads" ON public.leads;
 CREATE POLICY "Users can insert own leads"
 ON public.leads FOR INSERT TO authenticated
 WITH CHECK (
@@ -60,6 +62,7 @@ WITH CHECK (
   AND created_by = auth.uid()
 );
 
+DROP POLICY IF EXISTS "Users can update own leads" ON public.leads;
 CREATE POLICY "Users can update own leads"
 ON public.leads FOR UPDATE TO authenticated
 USING (public.can_access_lead(id, auth.uid()))
@@ -72,12 +75,14 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "Users can delete own leads" ON public.leads;
 CREATE POLICY "Users can delete own leads"
 ON public.leads FOR DELETE TO authenticated
 USING (public.can_access_lead(id, auth.uid()));
 
 -- LEAD MEMBERS should also be scoped to leads the caller can access.
 DROP POLICY IF EXISTS "Users can view lead members in their org" ON public.lead_members;
+DROP POLICY IF EXISTS "Users can view lead members they can access" ON public.lead_members;
 CREATE POLICY "Users can view lead members they can access"
 ON public.lead_members FOR SELECT TO authenticated
 USING (public.can_access_lead(lead_id, auth.uid()));
@@ -85,6 +90,7 @@ USING (public.can_access_lead(lead_id, auth.uid()));
 -- PROSPECTING DRAFTS
 DROP POLICY IF EXISTS "org_isolation" ON public.prospecting_drafts;
 
+DROP POLICY IF EXISTS "Users can view drafts for own leads" ON public.prospecting_drafts;
 CREATE POLICY "Users can view drafts for own leads"
 ON public.prospecting_drafts FOR SELECT TO authenticated
 USING (
@@ -92,6 +98,7 @@ USING (
   AND public.can_access_lead(lead_id, auth.uid())
 );
 
+DROP POLICY IF EXISTS "Users can insert drafts for own leads" ON public.prospecting_drafts;
 CREATE POLICY "Users can insert drafts for own leads"
 ON public.prospecting_drafts FOR INSERT TO authenticated
 WITH CHECK (
@@ -99,6 +106,7 @@ WITH CHECK (
   AND public.can_access_lead(lead_id, auth.uid())
 );
 
+DROP POLICY IF EXISTS "Users can update drafts for own leads" ON public.prospecting_drafts;
 CREATE POLICY "Users can update drafts for own leads"
 ON public.prospecting_drafts FOR UPDATE TO authenticated
 USING (
@@ -110,6 +118,7 @@ WITH CHECK (
   AND public.can_access_lead(lead_id, auth.uid())
 );
 
+DROP POLICY IF EXISTS "Users can delete drafts for own leads" ON public.prospecting_drafts;
 CREATE POLICY "Users can delete drafts for own leads"
 ON public.prospecting_drafts FOR DELETE TO authenticated
 USING (
@@ -121,6 +130,7 @@ USING (
 DROP POLICY IF EXISTS "Users can view analyses in their organization" ON public.web_analyses;
 DROP POLICY IF EXISTS "Users can insert analyses in their organization" ON public.web_analyses;
 
+DROP POLICY IF EXISTS "Users can view analyses for own leads" ON public.web_analyses;
 CREATE POLICY "Users can view analyses for own leads"
 ON public.web_analyses FOR SELECT TO authenticated
 USING (
@@ -131,6 +141,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Users can insert analyses for own leads" ON public.web_analyses;
 CREATE POLICY "Users can insert analyses for own leads"
 ON public.web_analyses FOR INSERT TO authenticated
 WITH CHECK (
@@ -147,6 +158,7 @@ DROP POLICY IF EXISTS "Users can insert sent emails in their organization" ON pu
 DROP POLICY IF EXISTS "Users can update sent emails in their organization" ON public.sent_emails;
 DROP POLICY IF EXISTS "Users see own org emails" ON public.sent_emails;
 
+DROP POLICY IF EXISTS "Users can view sent emails for own leads" ON public.sent_emails;
 CREATE POLICY "Users can view sent emails for own leads"
 ON public.sent_emails FOR SELECT TO authenticated
 USING (
@@ -157,6 +169,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Users can insert sent emails for own leads" ON public.sent_emails;
 CREATE POLICY "Users can insert sent emails for own leads"
 ON public.sent_emails FOR INSERT TO authenticated
 WITH CHECK (
@@ -165,6 +178,7 @@ WITH CHECK (
   AND (lead_id IS NULL OR public.can_access_lead(lead_id, auth.uid()))
 );
 
+DROP POLICY IF EXISTS "Users can update own sent emails" ON public.sent_emails;
 CREATE POLICY "Users can update own sent emails"
 ON public.sent_emails FOR UPDATE TO authenticated
 USING (
@@ -177,6 +191,7 @@ DROP POLICY IF EXISTS "Users can view activities in their organization" ON publi
 DROP POLICY IF EXISTS "Users can insert activities in their organization" ON public.activities;
 DROP POLICY IF EXISTS "Users can update activities in their organization" ON public.activities;
 
+DROP POLICY IF EXISTS "Users can view activities for own leads" ON public.activities;
 CREATE POLICY "Users can view activities for own leads"
 ON public.activities FOR SELECT TO authenticated
 USING (
@@ -187,6 +202,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Users can insert activities for own leads" ON public.activities;
 CREATE POLICY "Users can insert activities for own leads"
 ON public.activities FOR INSERT TO authenticated
 WITH CHECK (
@@ -195,6 +211,7 @@ WITH CHECK (
   AND (lead_id IS NULL OR public.can_access_lead(lead_id, auth.uid()))
 );
 
+DROP POLICY IF EXISTS "Users can update own activities" ON public.activities;
 CREATE POLICY "Users can update own activities"
 ON public.activities FOR UPDATE TO authenticated
 USING (
@@ -210,6 +227,7 @@ DROP POLICY IF EXISTS "Admins can delete tasks in their organization" ON public.
 DROP POLICY IF EXISTS "Users can view tasks in their organization" ON public.tasks;
 DROP POLICY IF EXISTS "Users can update tasks in their organization" ON public.tasks;
 
+DROP POLICY IF EXISTS "Users can view own tasks" ON public.tasks;
 CREATE POLICY "Users can view own tasks"
 ON public.tasks FOR SELECT TO authenticated
 USING (
@@ -221,6 +239,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Users can insert own tasks" ON public.tasks;
 CREATE POLICY "Users can insert own tasks"
 ON public.tasks FOR INSERT TO authenticated
 WITH CHECK (
@@ -232,6 +251,7 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "Users can update own tasks" ON public.tasks;
 CREATE POLICY "Users can update own tasks"
 ON public.tasks FOR UPDATE TO authenticated
 USING (
@@ -245,6 +265,7 @@ WITH CHECK (
   organization_id = public.get_user_organization_id(auth.uid())
 );
 
+DROP POLICY IF EXISTS "Users can delete own tasks" ON public.tasks;
 CREATE POLICY "Users can delete own tasks"
 ON public.tasks FOR DELETE TO authenticated
 USING (
