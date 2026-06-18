@@ -105,9 +105,6 @@ verify_jwt = false
 [functions.enrich-lead-contact]
 verify_jwt = true
 
-[functions.find-competitors]
-verify_jwt = false
-
 [functions.upload-company-registry]
 verify_jwt = false
 
