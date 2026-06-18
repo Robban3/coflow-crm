@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Supabase CLI link state + local edge-function secrets (never commit)
+supabase/.temp/
+supabase/.branches/
+supabase/functions/.env
+
 # Claude Code local config
 .claude/
 

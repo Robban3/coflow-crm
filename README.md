@@ -285,6 +285,25 @@ bun run test  # vitest
 - **Migrationer → Supabase CLI:** `supabase db push` (eller via Supabase-dashboarden).
 - SPA-routing/headers för Cloudflare ligger i `public/_redirects`, `public/_headers` och `wrangler.toml`.
 
+### Byta till ett eget Supabase-projekt
+Schemat är versionshanterat (93 migrationer i `supabase/migrations/`), så hela backenden kan
+återskapas i ett nytt projekt. Frontend läser allt från `import.meta.env.VITE_*` — inget är
+hårdkodat — så bytet är bara nya env-värden + en backend-deploy.
+
+1. Skapa projektet på https://supabase.com/dashboard och notera **project ref**.
+2. **Backend** (schema + funktioner):
+   ```bash
+   cp supabase/functions/.env.example supabase/functions/.env   # fyll i secrets
+   export SUPABASE_ACCESS_TOKEN=sbp_xxx        # account/tokens
+   export SUPABASE_PROJECT_REF=<nytt-ref>
+   ./scripts/deploy-backend.sh                 # link + secrets + db push + functions deploy
+   ```
+3. **Frontend** — peka om de tre `VITE_SUPABASE_*`-värdena till det nya projektet:
+   - Lokalt: uppdatera `.env` (se `.env.example`).
+   - Produktion: sätt dem som **repo-Variables** i GitHub (workflowen skriver då
+     `.env.production.local` vid bygget; tomma Variables rör inte committad `.env`).
+4. Aktivera **Auth** i nya projektet: e-post/lösenord + ev. Google OAuth + redirect-URL:er.
+
 ### Konventioner
 - **Discussion-first**: Vid breda uppgifter, ställ frågor innan implementation.
 - **Parallella tool calls**: Batcha läs/sökningar.
