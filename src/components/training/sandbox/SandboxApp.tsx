@@ -5,6 +5,9 @@ import {
   GitBranch,
   Inbox,
   PhoneCall,
+  BarChart3,
+  FileText,
+  LineChart,
   FlaskConical,
   type LucideIcon,
 } from "lucide-react";
@@ -15,6 +18,9 @@ import { SandboxLeads } from "./tabs/SandboxLeads";
 import { SandboxPipeline } from "./tabs/SandboxPipeline";
 import { SandboxMail } from "./tabs/SandboxMail";
 import { SandboxPowerCall } from "./tabs/SandboxPowerCall";
+import { SandboxWebAnalysis } from "./tabs/SandboxWebAnalysis";
+import { SandboxQuotes } from "./tabs/SandboxQuotes";
+import { SandboxStatistics } from "./tabs/SandboxStatistics";
 
 interface Tab {
   id: string;
@@ -29,6 +35,9 @@ const TABS: Tab[] = [
   { id: "pipeline", labelKey: "nav.pipeline", icon: GitBranch, Component: SandboxPipeline },
   { id: "mail", labelKey: "nav.mail", icon: Inbox, Component: SandboxMail },
   { id: "powercall", labelKey: "nav.outreach_pro", icon: PhoneCall, Component: SandboxPowerCall },
+  { id: "webanalysis", labelKey: "nav.web_analysis", icon: BarChart3, Component: SandboxWebAnalysis },
+  { id: "quotes", labelKey: "nav.quotes", icon: FileText, Component: SandboxQuotes },
+  { id: "statistics", labelKey: "nav.statistics", icon: LineChart, Component: SandboxStatistics },
 ];
 
 /**

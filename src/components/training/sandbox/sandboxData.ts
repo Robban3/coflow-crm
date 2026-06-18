@@ -46,3 +46,43 @@ export const powerCallLead = {
   queue: 14,
   done: 6,
 };
+
+export const webAnalysisSite = "byggco.se";
+
+export const webAnalysisScores = [
+  { label: "SEO", value: 72 },
+  { label: "Prestanda", value: 48 },
+  { label: "Tillgänglighet", value: 85 },
+  { label: "Bästa praxis", value: 64 },
+];
+
+export const webAnalysisFindings = [
+  "Saknar metabeskrivningar på 4 sidor",
+  "Bilder utan alt-text (12 st)",
+  "Långsam laddningstid på mobil (4,2 s)",
+  "Ingen HTTPS-omdirigering",
+];
+
+export const quoteSample = {
+  number: "OFF-2026-014",
+  customer: "Bygg & Co AB",
+  lines: [
+    { description: "Ny responsiv hemsida", qty: 1, price: 28000 },
+    { description: "SEO-optimering (startpaket)", qty: 1, price: 9500 },
+    { description: "Löpande drift & support / mån", qty: 12, price: 990 },
+  ],
+};
+
+export const statsKpis = [
+  { label: "Samtal denna vecka", value: "326" },
+  { label: "Möten bokade", value: "18" },
+  { label: "Vunna affärer", value: "7" },
+  { label: "Omsättning", value: "214 000 kr" },
+];
+
+export const leaderboard = [
+  { name: "Oliver", points: 1240 },
+  { name: "Robert", points: 1115 },
+  { name: "Sara", points: 980 },
+  { name: "Johan", points: 870 },
+];
