@@ -7,7 +7,11 @@ export interface TrainingItem {
   id: string;
   category_id: string;
   title: string;
+  title_en?: string | null;
+  title_es?: string | null;
   body: unknown | null; // TipTap document JSON
+  body_en?: unknown | null;
+  body_es?: unknown | null;
   video_url: string | null;
   sort_order: number;
   is_published: boolean;

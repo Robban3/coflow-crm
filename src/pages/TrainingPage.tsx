@@ -14,6 +14,13 @@ import { TrainingItemEditor } from "@/components/training/TrainingItemEditor";
 import { TrainingCategoryManager } from "@/components/training/TrainingCategoryManager";
 import { SandboxApp } from "@/components/training/sandbox/SandboxApp";
 
+/** Pick the localized variant for the active language, falling back to Swedish. */
+function pickLocalized<T>(language: string, base: T, en?: T | null, es?: T | null): T {
+  if (language === "en" && en != null) return en;
+  if (language === "es" && es != null) return es;
+  return base;
+}
+
 /** Convert common video URLs to an embeddable URL; null if not embeddable. */
 function toEmbedUrl(url: string): string | null {
   try {
@@ -35,7 +42,7 @@ function toEmbedUrl(url: string): string | null {
 }
 
 export default function TrainingPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { slug } = useParams();
   const { canView, canEdit } = useTrainingAccess();
   const { categories, isLoading: catLoading } = useTrainingCategories();
@@ -59,7 +66,9 @@ export default function TrainingPage() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <GraduationCap className="h-6 w-6" />
-              {activeCategory?.name ?? t("nav.training")}
+              {activeCategory
+                ? pickLocalized(language, activeCategory.name, activeCategory.name_en, activeCategory.name_es)
+                : t("nav.training")}
             </h1>
             <p className="text-sm text-muted-foreground">{t("training.subtitle")}</p>
           </div>
@@ -99,7 +108,7 @@ export default function TrainingPage() {
                     : "bg-background border-border hover:bg-accent"
                 )}
               >
-                {c.name}
+                {pickLocalized(language, c.name, c.name_en, c.name_es)}
               </Link>
             ))}
           </div>
@@ -147,7 +156,7 @@ function CategoryContent({
   canEdit: boolean;
   onEdit: (item: TrainingItem) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { toast } = useToast();
   const { items, isLoading, deleteItem } = useTrainingItems(categoryId);
 
@@ -179,10 +188,12 @@ function CategoryContent({
     <div className="space-y-4">
       {items.map((item) => {
         const embed = item.video_url ? toEmbedUrl(item.video_url) : null;
+        const title = pickLocalized(language, item.title, item.title_en, item.title_es);
+        const body = pickLocalized(language, item.body, item.body_en, item.body_es);
         return (
           <article key={item.id} className="rounded-xl border border-border bg-card p-5 space-y-3">
             <div className="flex items-start justify-between gap-3">
-              <h2 className="text-lg font-semibold">{item.title}</h2>
+              <h2 className="text-lg font-semibold">{title}</h2>
               {canEdit && (
                 <div className="flex items-center gap-1 shrink-0">
                   <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onEdit(item)}>
@@ -205,7 +216,7 @@ function CategoryContent({
                 <div className="aspect-video w-full max-w-2xl">
                   <iframe
                     src={embed}
-                    title={item.title}
+                    title={title}
                     className="w-full h-full rounded-lg border border-border"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -222,7 +233,7 @@ function CategoryContent({
                 </a>
               ))}
 
-            {item.body != null && <TrainingRichText content={item.body} readOnly />}
+            {body != null && <TrainingRichText content={body} readOnly key={language} />}
           </article>
         );
       })}

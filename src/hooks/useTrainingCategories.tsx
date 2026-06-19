@@ -8,6 +8,8 @@ export type TrainingCategoryKind = "content" | "sandbox";
 export interface TrainingCategory {
   id: string;
   name: string;
+  name_en?: string | null;
+  name_es?: string | null;
   slug: string;
   kind: TrainingCategoryKind;
   sort_order: number;
