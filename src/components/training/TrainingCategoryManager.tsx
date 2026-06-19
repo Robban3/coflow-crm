@@ -27,6 +27,8 @@ export function TrainingCategoryManager({ open, onOpenChange }: Props) {
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingNameEn, setEditingNameEn] = useState("");
+  const [editingNameEs, setEditingNameEs] = useState("");
 
   const onError = (e: any) =>
     toast({
@@ -48,7 +50,12 @@ export function TrainingCategoryManager({ open, onOpenChange }: Props) {
   const handleRename = async (id: string) => {
     if (!editingName.trim()) return;
     try {
-      await updateCategory.mutateAsync({ id, name: editingName.trim() });
+      await updateCategory.mutateAsync({
+        id,
+        name: editingName.trim(),
+        name_en: editingNameEn.trim() || null,
+        name_es: editingNameEs.trim() || null,
+      });
       setEditingId(null);
     } catch (e) {
       onError(e);
@@ -73,47 +80,68 @@ export function TrainingCategoryManager({ open, onOpenChange }: Props) {
         </DialogHeader>
 
         <div className="space-y-2 max-h-80 overflow-y-auto">
-          {categories.map((c) => (
-            <div key={c.id} className="flex items-center gap-2">
-              {editingId === c.id ? (
-                <>
-                  <Input
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleRename(c.id)}
-                    autoFocus
-                    className="h-9"
-                  />
-                  <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => handleRename(c.id)}>
-                    <Check className="h-4 w-4" />
+          {categories.map((c) =>
+            editingId === c.id ? (
+              <div key={c.id} className="space-y-2 rounded-md border border-border p-2">
+                <Input
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleRename(c.id)}
+                  autoFocus
+                  className="h-9"
+                  placeholder="Svenska"
+                />
+                <Input
+                  value={editingNameEn}
+                  onChange={(e) => setEditingNameEn(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleRename(c.id)}
+                  className="h-9"
+                  placeholder="English"
+                />
+                <Input
+                  value={editingNameEs}
+                  onChange={(e) => setEditingNameEs(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleRename(c.id)}
+                  className="h-9"
+                  placeholder="Español"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+                    {t("common.cancel")}
                   </Button>
-                </>
-              ) : (
-                <>
-                  <span className="flex-1 text-sm truncate">{c.name}</span>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-9 w-9"
-                    onClick={() => {
-                      setEditingId(c.id);
-                      setEditingName(c.name);
-                    }}
-                  >
-                    <Pencil className="h-4 w-4" />
+                  <Button size="sm" onClick={() => handleRename(c.id)}>
+                    <Check className="h-4 w-4 mr-1.5" />
+                    {t("training.editor.save")}
                   </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-9 w-9 text-destructive"
-                    onClick={() => handleDelete(c.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
-          ))}
+                </div>
+              </div>
+            ) : (
+              <div key={c.id} className="flex items-center gap-2">
+                <span className="flex-1 text-sm truncate">{c.name}</span>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-9 w-9"
+                  onClick={() => {
+                    setEditingId(c.id);
+                    setEditingName(c.name);
+                    setEditingNameEn(c.name_en ?? "");
+                    setEditingNameEs(c.name_es ?? "");
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-9 w-9 text-destructive"
+                  onClick={() => handleDelete(c.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )
+          )}
         </div>
 
         <div className="flex items-center gap-2 pt-2 border-t border-border">

@@ -70,9 +70,19 @@ export function useTrainingCategories() {
   });
 
   const updateCategory = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+    mutationFn: async ({
+      id,
+      name,
+      name_en,
+      name_es,
+    }: {
+      id: string;
+      name: string;
+      name_en?: string | null;
+      name_es?: string | null;
+    }) => {
       const { error } = await fromTable("training_categories")
-        .update({ name })
+        .update({ name, name_en: name_en ?? null, name_es: name_es ?? null })
         .eq("id", id);
       if (error) throw error;
     },
