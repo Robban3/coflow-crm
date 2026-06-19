@@ -17,6 +17,7 @@ import {
   PhoneCall,
   Telescope,
   GraduationCap,
+  Tag,
   type LucideIcon
 } from "lucide-react";
 
@@ -42,6 +43,7 @@ export type ModuleId =
   | 'fleet_data'
   | 'seo_intelligence'
   | 'statistics'
+  | 'pricing'
   | 'training'
   | 'settings';
 
@@ -242,6 +244,14 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     enabled: false,
     dbModuleKey: 'statistics',
     requiresAdmin: true,
+  },
+  {
+    id: 'pricing',
+    name: 'Priser & paket',
+    description: 'Tjänstepaket och priser för säljteamet',
+    icon: Tag,
+    path: '/priser',
+    enabled: true, // org-scoped data; visible to all org members
   },
   {
     id: 'training',

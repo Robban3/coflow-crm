@@ -88,6 +88,7 @@ export const translations: Record<Language, Dict> = {
     "nav.fleet_data": "Fordonsdata & Telefoni",
     "nav.seo_intelligence": "SEO Intelligence",
     "nav.statistics": "Statistik",
+    "nav.pricing": "Priser & paket",
     "nav.training": "Utbildning",
     "nav.settings": "Inställningar",
 
@@ -424,6 +425,7 @@ export const translations: Record<Language, Dict> = {
     "nav.fleet_data": "Vehicle data & Telephony",
     "nav.seo_intelligence": "SEO Intelligence",
     "nav.statistics": "Statistics",
+    "nav.pricing": "Prices & packages",
     "nav.training": "Training",
     "nav.settings": "Settings",
 
@@ -760,6 +762,7 @@ export const translations: Record<Language, Dict> = {
     "nav.fleet_data": "Datos de vehículos y telefonía",
     "nav.seo_intelligence": "SEO Intelligence",
     "nav.statistics": "Estadísticas",
+    "nav.pricing": "Precios y paquetes",
     "nav.training": "Formación",
     "nav.settings": "Ajustes",
 

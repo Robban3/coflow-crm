@@ -22,6 +22,7 @@ import { publicPagesDict } from "./publicPages";
 import { templatesDict } from "./templates";
 import { aiDict } from "./ai";
 import { trainingDict } from "./training";
+import { pricingDict } from "./pricing";
 
 export const featureDictionaries: FeatureDictionary[] = [
   tasksDict,
@@ -43,4 +44,5 @@ export const featureDictionaries: FeatureDictionary[] = [
   templatesDict,
   aiDict,
   trainingDict,
+  pricingDict,
 ];
