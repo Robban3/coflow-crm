@@ -35,7 +35,9 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Pin a concrete version: resolving "latest" hits Supabase's API, which
+          # intermittently returns a Gateway Time-out and fails the whole deploy.
+          version: 2.107.0
 
       - name: Link project
         run: supabase link --project-ref "$PROJECT_REF"
