@@ -87,7 +87,7 @@ export function AppSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-5 overflow-y-auto scrollbar-thin">
+      <nav className="flex-1 min-h-0 px-3 py-5 overflow-y-auto scrollbar-thin">
         <ul className="space-y-1">
           {navigationModules.map((module, index) => {
             if (module.id === 'training') {

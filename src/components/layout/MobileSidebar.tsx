@@ -64,7 +64,7 @@ export function MobileSidebar() {
         </SheetHeader>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        <nav className="flex-1 min-h-0 px-3 py-4 overflow-y-auto">
           <ul className="space-y-1">
             {navigationModules.map((module) => {
               if (module.id === 'training') {
