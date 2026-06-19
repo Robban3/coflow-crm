@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,17 @@ export function TrainingItemEditor({ open, onOpenChange, categoryId, item }: Pro
   const [title, setTitle] = useState(item?.title ?? "");
   const [videoUrl, setVideoUrl] = useState(item?.video_url ?? "");
   const [body, setBody] = useState<unknown>(item?.body ?? null);
+
+  // The dialog stays mounted, so sync the form from the chosen item each time it
+  // opens (or the item changes) — otherwise the initial useState values stick
+  // and the editor shows up empty when editing an existing item.
+  useEffect(() => {
+    if (open) {
+      setTitle(item?.title ?? "");
+      setVideoUrl(item?.video_url ?? "");
+      setBody(item?.body ?? null);
+    }
+  }, [open, item]);
 
   const isEditing = !!item;
   const isSaving = createItem.isPending || updateItem.isPending;
@@ -93,7 +104,13 @@ export function TrainingItemEditor({ open, onOpenChange, categoryId, item }: Pro
           <div className="space-y-2">
             <Label>{t("training.editor.fieldBody")}</Label>
             <div className="rounded-md border border-input p-3">
-              <TrainingRichText content={body} onChange={setBody} />
+              {/* Key by item so the editor remounts with the right initial
+                  content; TipTap only reads `content` once at mount. */}
+              <TrainingRichText
+                key={`${item?.id ?? "new"}:${open}`}
+                content={item?.body ?? null}
+                onChange={setBody}
+              />
             </div>
           </div>
         </div>
