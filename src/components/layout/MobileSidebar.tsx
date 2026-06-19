@@ -43,7 +43,7 @@ export function MobileSidebar() {
           <span className="sr-only">{t("sidebar.openMenu")}</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0">
+      <SheetContent side="left" className="w-72 p-0 flex flex-col">
         <SheetHeader className="px-4 py-4 border-b border-border">
           <SheetTitle className="flex items-center gap-3">
             {settings.company_logo_url ? (
