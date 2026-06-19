@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,43 +25,82 @@ interface Props {
   item?: TrainingItem | null;
 }
 
+/**
+ * The dialog stays mounted, so the form lives in an inner component that is only
+ * rendered while open and keyed by item id. That way its useState initializers
+ * read the chosen item's values directly (no stale-empty fields), and switching
+ * items remounts it cleanly.
+ */
 export function TrainingItemEditor({ open, onOpenChange, categoryId, item }: Props) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        {open && (
+          <EditorForm
+            key={item?.id ?? "new"}
+            item={item}
+            categoryId={categoryId}
+            onClose={() => onOpenChange(false)}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditorForm({
+  item,
+  categoryId,
+  onClose,
+}: {
+  item?: TrainingItem | null;
+  categoryId: string;
+  onClose: () => void;
+}) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { createItem, updateItem } = useTrainingItems(categoryId);
 
-  const [title, setTitle] = useState(item?.title ?? "");
   const [videoUrl, setVideoUrl] = useState(item?.video_url ?? "");
-  const [body, setBody] = useState<unknown>(item?.body ?? null);
-
-  // The dialog stays mounted, so sync the form from the chosen item each time it
-  // opens (or the item changes) — otherwise the initial useState values stick
-  // and the editor shows up empty when editing an existing item.
-  useEffect(() => {
-    if (open) {
-      setTitle(item?.title ?? "");
-      setVideoUrl(item?.video_url ?? "");
-      setBody(item?.body ?? null);
-    }
-  }, [open, item]);
+  const [titleSv, setTitleSv] = useState(item?.title ?? "");
+  const [titleEn, setTitleEn] = useState(item?.title_en ?? "");
+  const [titleEs, setTitleEs] = useState(item?.title_es ?? "");
+  const [bodySv, setBodySv] = useState<unknown>(item?.body ?? null);
+  const [bodyEn, setBodyEn] = useState<unknown>(item?.body_en ?? null);
+  const [bodyEs, setBodyEs] = useState<unknown>(item?.body_es ?? null);
 
   const isEditing = !!item;
   const isSaving = createItem.isPending || updateItem.isPending;
 
+  // Swedish is the base language; en/es fall back to it when left empty.
+  const langs = [
+    { code: "sv", label: "Svenska", title: titleSv, setTitle: setTitleSv, body: bodySv, setBody: setBodySv },
+    { code: "en", label: "English", title: titleEn, setTitle: setTitleEn, body: bodyEn, setBody: setBodyEn },
+    { code: "es", label: "Español", title: titleEs, setTitle: setTitleEs, body: bodyEs, setBody: setBodyEs },
+  ] as const;
+
   const handleSave = async () => {
-    if (!title.trim()) {
+    if (!titleSv.trim()) {
       toast({ title: t("training.editor.titleRequired"), variant: "destructive" });
       return;
     }
     try {
-      const payload = { title: title.trim(), body, video_url: videoUrl.trim() || null };
+      const payload = {
+        title: titleSv.trim(),
+        title_en: titleEn.trim() || null,
+        title_es: titleEs.trim() || null,
+        body: bodySv,
+        body_en: bodyEn,
+        body_es: bodyEs,
+        video_url: videoUrl.trim() || null,
+      };
       if (isEditing) {
         await updateItem.mutateAsync({ id: item!.id, ...payload });
       } else {
         await createItem.mutateAsync(payload);
       }
       toast({ title: t("training.editor.saved") });
-      onOpenChange(false);
+      onClose();
     } catch (e: any) {
       toast({
         title: t("common.error"),
@@ -71,60 +111,74 @@ export function TrainingItemEditor({ open, onOpenChange, categoryId, item }: Pro
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t("training.editor.editTitle") : t("training.editor.newTitle")}
-          </DialogTitle>
-          <DialogDescription>{t("training.editor.description")}</DialogDescription>
-        </DialogHeader>
+    <>
+      <DialogHeader>
+        <DialogTitle>
+          {isEditing ? t("training.editor.editTitle") : t("training.editor.newTitle")}
+        </DialogTitle>
+        <DialogDescription>{t("training.editor.description")}</DialogDescription>
+      </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="training-item-title">{t("training.editor.fieldTitle")}</Label>
-            <Input
-              id="training-item-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={t("training.editor.titlePlaceholder")}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="training-item-video">{t("training.editor.fieldVideo")}</Label>
-            <Input
-              id="training-item-video"
-              value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="https://youtube.com/..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>{t("training.editor.fieldBody")}</Label>
-            <div className="rounded-md border border-input p-3">
-              {/* Key by item so the editor remounts with the right initial
-                  content; TipTap only reads `content` once at mount. */}
-              <TrainingRichText
-                key={`${item?.id ?? "new"}:${open}`}
-                content={item?.body ?? null}
-                onChange={setBody}
-              />
-            </div>
-          </div>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="training-item-video">{t("training.editor.fieldVideo")}</Label>
+          <Input
+            id="training-item-video"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="https://youtube.com/..."
+          />
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
-            {t("common.cancel")}
-          </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {t("training.editor.save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <Tabs defaultValue="sv">
+          <TabsList className="grid w-full grid-cols-3">
+            {langs.map((l) => (
+              <TabsTrigger key={l.code} value={l.code}>
+                {l.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {langs.map((l) => (
+            <TabsContent key={l.code} value={l.code} className="space-y-4 mt-4">
+              {l.code !== "sv" && (
+                <p className="text-xs text-muted-foreground">
+                  {t("training.editor.fallbackHint")}
+                </p>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor={`training-item-title-${l.code}`}>
+                  {t("training.editor.fieldTitle")}
+                </Label>
+                <Input
+                  id={`training-item-title-${l.code}`}
+                  value={l.title}
+                  onChange={(e) => l.setTitle(e.target.value)}
+                  placeholder={t("training.editor.titlePlaceholder")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("training.editor.fieldBody")}</Label>
+                <div className="rounded-md border border-input p-3">
+                  {/* Keyed per language; content comes from state so edits
+                      survive switching tabs (Radix remounts inactive tabs). */}
+                  <TrainingRichText key={l.code} content={l.body} onChange={l.setBody} />
+                </div>
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose} disabled={isSaving}>
+          {t("common.cancel")}
+        </Button>
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {t("training.editor.save")}
+        </Button>
+      </DialogFooter>
+    </>
   );
 }

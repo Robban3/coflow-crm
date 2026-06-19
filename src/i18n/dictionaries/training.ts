@@ -17,6 +17,7 @@ export const trainingDict: FeatureDictionary = {
     "training.editor.fieldVideo": "Videolänk (valfri)",
     "training.editor.fieldBody": "Innehåll",
     "training.editor.titleRequired": "Titel krävs",
+    "training.editor.fallbackHint": "Lämna tomt för att falla tillbaka på svenska.",
     "training.editor.saved": "Sparat",
     "training.editor.save": "Spara",
     // Category manager
@@ -93,6 +94,7 @@ export const trainingDict: FeatureDictionary = {
     "training.editor.fieldVideo": "Video link (optional)",
     "training.editor.fieldBody": "Content",
     "training.editor.titleRequired": "Title is required",
+    "training.editor.fallbackHint": "Leave empty to fall back to Swedish.",
     "training.editor.saved": "Saved",
     "training.editor.save": "Save",
     "training.categories.title": "Manage categories",
@@ -167,6 +169,7 @@ export const trainingDict: FeatureDictionary = {
     "training.editor.fieldVideo": "Enlace de vídeo (opcional)",
     "training.editor.fieldBody": "Contenido",
     "training.editor.titleRequired": "El título es obligatorio",
+    "training.editor.fallbackHint": "Déjalo vacío para usar el sueco por defecto.",
     "training.editor.saved": "Guardado",
     "training.editor.save": "Guardar",
     "training.categories.title": "Gestionar categorías",

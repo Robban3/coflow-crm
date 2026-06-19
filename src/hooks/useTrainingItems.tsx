@@ -19,7 +19,11 @@ export interface TrainingItem {
 
 export interface TrainingItemInput {
   title: string;
+  title_en?: string | null;
+  title_es?: string | null;
   body?: unknown | null;
+  body_en?: unknown | null;
+  body_es?: unknown | null;
   video_url?: string | null;
 }
 
@@ -56,7 +60,11 @@ export function useTrainingItems(categoryId: string | null) {
       const { error } = await fromTable("training_items").insert({
         category_id: categoryId,
         title: input.title,
+        title_en: input.title_en ?? null,
+        title_es: input.title_es ?? null,
         body: input.body ?? null,
+        body_en: input.body_en ?? null,
+        body_es: input.body_es ?? null,
         video_url: input.video_url ?? null,
         sort_order,
         created_by: user?.id ?? null,
@@ -71,7 +79,11 @@ export function useTrainingItems(categoryId: string | null) {
       const { error } = await fromTable("training_items")
         .update({
           title: input.title,
+          title_en: input.title_en ?? null,
+          title_es: input.title_es ?? null,
           body: input.body ?? null,
+          body_en: input.body_en ?? null,
+          body_es: input.body_es ?? null,
           video_url: input.video_url ?? null,
         })
         .eq("id", id);
