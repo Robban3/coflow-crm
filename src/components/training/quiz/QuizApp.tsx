@@ -55,6 +55,9 @@ export function QuizApp() {
         key={activeQuizId}
         quizId={activeQuizId}
         title={active ? pickLocalized(language, active.title, active.title_en, active.title_es) : undefined}
+        description={
+          active ? pickLocalized(language, active.description, active.description_en, active.description_es) : undefined
+        }
         onExit={() => setActiveQuizId(null)}
         onNext={next ? () => setActiveQuizId(next.id) : undefined}
       />

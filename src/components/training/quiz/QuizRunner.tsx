@@ -61,12 +61,15 @@ const LETTERS = ["A", "B", "C", "D", "E", "F"];
 export function QuizRunner({
   quizId,
   title,
+  description,
   onExit,
   onNext,
 }: {
   quizId: string;
   /** Localized quiz/course title shown at the top. */
   title?: string;
+  /** Localized short description shown under the title. */
+  description?: string | null;
   onExit: () => void;
   /** When set, show a "Nästa quiz" button after grading. */
   onNext?: () => void;
@@ -139,10 +142,13 @@ export function QuizRunner({
       </div>
 
       {title && (
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <HelpCircle className="h-5 w-5 text-muted-foreground" />
-          {title}
-        </h2>
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <HelpCircle className="h-5 w-5 text-muted-foreground" />
+            {title}
+          </h2>
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        </div>
       )}
 
       {submitted && (
