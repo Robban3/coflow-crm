@@ -13,6 +13,7 @@ import { TrainingRichText } from "@/components/training/TrainingRichText";
 import { TrainingItemEditor } from "@/components/training/TrainingItemEditor";
 import { TrainingCategoryManager } from "@/components/training/TrainingCategoryManager";
 import { SandboxApp } from "@/components/training/sandbox/SandboxApp";
+import { QuizApp } from "@/components/training/quiz/QuizApp";
 
 /** Pick the localized variant for the active language, falling back to Swedish. */
 function pickLocalized<T>(language: string, base: T, en?: T | null, es?: T | null): T {
@@ -78,7 +79,7 @@ export default function TrainingPage() {
                 <Settings2 className="h-4 w-4 mr-1.5" />
                 {t("training.manageCategories")}
               </Button>
-              {activeCategory && activeCategory.kind !== "sandbox" && (
+              {activeCategory && activeCategory.kind !== "sandbox" && activeCategory.kind !== "quiz" && (
                 <Button
                   size="sm"
                   onClick={() => {
@@ -122,6 +123,8 @@ export default function TrainingPage() {
           <EmptyState text={t("training.empty")} />
         ) : activeCategory?.kind === "sandbox" ? (
           <SandboxApp />
+        ) : activeCategory?.kind === "quiz" ? (
+          <QuizApp />
         ) : (
           <CategoryContent
             categoryId={activeCategory!.id}
