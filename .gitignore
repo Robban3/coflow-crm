@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Generated course-video artifacts (built locally via scripts/gen_course_videos.py)
+output/
+
 # Supabase CLI link state + local edge-function secrets (never commit)
 supabase/.temp/
 supabase/.branches/
