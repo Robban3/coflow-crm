@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Loader2, RotateCcw, CheckCircle2, XCircle } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, Loader2, RotateCcw, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -58,13 +58,30 @@ function buildAttempt(bank: QuizQuestion[], language: string): AttemptQuestion[]
 
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
 
-export function QuizRunner({ quizId, onExit }: { quizId: string; onExit: () => void }) {
+export function QuizRunner({
+  quizId,
+  onExit,
+  onNext,
+}: {
+  quizId: string;
+  onExit: () => void;
+  /** When set, show a "Nästa quiz" button after grading. */
+  onNext?: () => void;
+}) {
   const { t, language } = useTranslation();
   const { questions, isLoading } = useQuizQuestions(quizId);
 
   const [attemptSeed, setAttemptSeed] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  // After grading, scroll the result into view so it's seen without scrolling.
+  useEffect(() => {
+    if (submitted) {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [submitted]);
 
   // Rebuild the attempt whenever the bank, language or attempt counter changes.
   const attempt = useMemo(
@@ -119,11 +136,29 @@ export function QuizRunner({ quizId, onExit }: { quizId: string; onExit: () => v
       </div>
 
       {submitted && (
-        <div className="rounded-xl border border-border bg-card p-5">
-          <p className="text-sm text-muted-foreground">{t("quiz.result")}</p>
-          <p className="text-2xl font-bold">
-            {t("quiz.scoreLine", { n: score, total: attempt.length })}
-          </p>
+        <div ref={resultRef} className="rounded-xl border border-border bg-card p-5 space-y-3 scroll-mt-4">
+          <div>
+            <p className="text-sm text-muted-foreground">{t("quiz.result")}</p>
+            <p className="text-2xl font-bold">
+              {t("quiz.scoreLine", { n: score, total: attempt.length })}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button onClick={restart}>
+              <RotateCcw className="h-4 w-4 mr-1.5" />
+              {t("quiz.tryAgain")}
+            </Button>
+            {onNext ? (
+              <Button variant="outline" onClick={onNext}>
+                {t("quiz.nextQuiz")}
+                <ArrowRight className="h-4 w-4 ml-1.5" />
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={onExit}>
+                {t("quiz.backToList")}
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
@@ -193,18 +228,13 @@ export function QuizRunner({ quizId, onExit }: { quizId: string; onExit: () => v
         })}
       </div>
 
-      <div className="flex items-center gap-2">
-        {!submitted ? (
+      {!submitted && (
+        <div className="flex items-center gap-2">
           <Button onClick={() => setSubmitted(true)} disabled={!allAnswered}>
             {t("quiz.submit")}
           </Button>
-        ) : (
-          <Button onClick={restart}>
-            <RotateCcw className="h-4 w-4 mr-1.5" />
-            {t("quiz.tryAgain")}
-          </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

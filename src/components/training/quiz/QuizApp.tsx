@@ -47,7 +47,16 @@ export function QuizApp() {
   }
 
   if (activeQuizId) {
-    return <QuizRunner quizId={activeQuizId} onExit={() => setActiveQuizId(null)} />;
+    const idx = quizzes.findIndex((q) => q.id === activeQuizId);
+    const next = idx >= 0 ? quizzes[idx + 1] : undefined;
+    return (
+      <QuizRunner
+        key={activeQuizId}
+        quizId={activeQuizId}
+        onExit={() => setActiveQuizId(null)}
+        onNext={next ? () => setActiveQuizId(next.id) : undefined}
+      />
+    );
   }
 
   if (quizzes.length === 0) {
