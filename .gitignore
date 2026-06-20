@@ -14,6 +14,8 @@ dist-ssr
 
 # Generated course-video artifacts (built locally via scripts/gen_course_videos.py)
 output/
+# Piper TTS voice models (large binaries, fetched on demand from rhasspy/piper v0.0.2)
+models/
 
 # Supabase CLI link state + local edge-function secrets (never commit)
 supabase/.temp/

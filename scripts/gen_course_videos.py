@@ -45,8 +45,44 @@ F_BULLETB = _font("DejaVuSans-Bold.ttf", 46)
 F_QUOTE   = _font("DejaVuSans.ttf", 44)
 F_BRAND   = _font("DejaVuSans-Bold.ttf", 30)
 
-# espeak-ng röster + uppläsningstakt (lägre = tydligare)
-VOICES = {"sv": ("sv", 150), "en": ("en-us", 155), "es": ("es", 155)}
+# Piper neurala röster (gratis, körs lokalt). Hämtade från rhasspy/piper v0.0.2.
+PIPER_MODELS = {
+    "sv": "models/piper/sv-se-nst-medium.onnx",
+    "en": "models/piper/en-us-lessac-medium.onnx",
+    "es": "models/piper/es-mls_10246-low.onnx",
+}
+# Release-assets för auto-nedladdning om modellerna saknas (models/ är gitignorerad)
+PIPER_RELEASE = "https://github.com/rhasspy/piper/releases/download/v0.0.2/"
+PIPER_ASSETS = {
+    "sv": "voice-sv-se-nst-medium.tar.gz",
+    "en": "voice-en-us-lessac-medium.tar.gz",
+    "es": "voice-es-mls_10246-low.tar.gz",
+}
+
+
+def ensure_voice(lang):
+    """Ladda ner + packa upp Piper-rösten om den inte redan finns lokalt."""
+    model = os.path.join(ROOT, PIPER_MODELS[lang])
+    if os.path.exists(model):
+        return True
+    import io
+    import tarfile
+    import urllib.request
+    dest = os.path.join(ROOT, "models", "piper")
+    os.makedirs(dest, exist_ok=True)
+    url = PIPER_RELEASE + PIPER_ASSETS[lang]
+    try:
+        print(f"  hämtar röst ({lang}) från {PIPER_ASSETS[lang]} ...")
+        req = urllib.request.Request(url, headers={"User-Agent": "curl/8"})
+        data = urllib.request.urlopen(req, timeout=180).read()
+        with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as t:
+            t.extractall(dest)
+        return os.path.exists(model)
+    except Exception as e:
+        print(f"  kunde inte hämta Piper-röst ({lang}): {type(e).__name__}: {e}")
+        return False
+# espeak-ng röster (nödfallback om Piper-modell saknas)
+ESPEAK_VOICES = {"sv": ("sv", 150), "en": ("en-us", 155), "es": ("es", 155)}
 LANG_COL = {"sv": "body", "en": "body_en", "es": "body_es"}
 
 # Snygga kurstitlar för intro-sliden (modulrubrikerna är redan översatta i texten)
@@ -255,9 +291,20 @@ def draw_slide(slide, path):
     img.save(path)
 
 
-# ── TTS ──────────────────────────────────────────────────────────────────────
-def synth(text, lang, path):
-    voice, speed = VOICES[lang]
+# ── TTS (Piper neural, espeak-ng som fallback) ───────────────────────────────
+_piper_cache = {}
+
+
+def _piper(lang):
+    if lang not in _piper_cache:
+        from piper import PiperVoice
+        m = os.path.join(ROOT, PIPER_MODELS[lang])
+        _piper_cache[lang] = PiperVoice.load(m, config_path=m + ".json")
+    return _piper_cache[lang]
+
+
+def _espeak(text, lang, path):
+    voice, speed = ESPEAK_VOICES[lang]
     with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False,
                                      encoding="utf-8") as tf:
         tf.write(text)
@@ -266,6 +313,15 @@ def synth(text, lang, path):
                     "-w", path, "-f", tfp], check=True,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     os.unlink(tfp)
+
+
+def synth(text, lang, path):
+    """Skriv uppläsning till WAV och returnera längden i sekunder."""
+    if lang in PIPER_MODELS and ensure_voice(lang):
+        with wave.open(path, "wb") as wf:
+            _piper(lang).synthesize_wav(text, wf)
+    else:
+        _espeak(text, lang, path)
     with wave.open(path) as wf:
         return wf.getnframes() / float(wf.getframerate())
 
