@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Loader2, RotateCcw, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, RotateCcw, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -60,10 +60,13 @@ const LETTERS = ["A", "B", "C", "D", "E", "F"];
 
 export function QuizRunner({
   quizId,
+  title,
   onExit,
   onNext,
 }: {
   quizId: string;
+  /** Localized quiz/course title shown at the top. */
+  title?: string;
   onExit: () => void;
   /** When set, show a "Nästa quiz" button after grading. */
   onNext?: () => void;
@@ -134,6 +137,13 @@ export function QuizRunner({
           </span>
         )}
       </div>
+
+      {title && (
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <HelpCircle className="h-5 w-5 text-muted-foreground" />
+          {title}
+        </h2>
+      )}
 
       {submitted && (
         <div ref={resultRef} className="rounded-xl border border-border bg-card p-5 space-y-3 scroll-mt-4">

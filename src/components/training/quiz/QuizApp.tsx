@@ -48,11 +48,13 @@ export function QuizApp() {
 
   if (activeQuizId) {
     const idx = quizzes.findIndex((q) => q.id === activeQuizId);
+    const active = idx >= 0 ? quizzes[idx] : undefined;
     const next = idx >= 0 ? quizzes[idx + 1] : undefined;
     return (
       <QuizRunner
         key={activeQuizId}
         quizId={activeQuizId}
+        title={active ? pickLocalized(language, active.title, active.title_en, active.title_es) : undefined}
         onExit={() => setActiveQuizId(null)}
         onNext={next ? () => setActiveQuizId(next.id) : undefined}
       />
