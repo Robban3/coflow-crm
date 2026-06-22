@@ -36,7 +36,6 @@ import {
   Search,
   FileText,
   Users,
-  Zap,
   UserPlus,
   Link2,
   Mail,
@@ -72,7 +71,7 @@ interface Analysis {
 
 export default function WebAnalysisPage() {
   const [url, setUrl] = useState("");
-  const [strategy, setStrategy] = useState<"mobile" | "desktop">("mobile");
+  const [strategy, setStrategy] = useState<"mobile" | "desktop">("desktop");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentResult, setCurrentResult] = useState<PageSpeedResult | null>(null);
   const [currentUrl, setCurrentUrl] = useState("");
@@ -464,7 +463,7 @@ export default function WebAnalysisPage() {
             )}
 
             {/* Score Cards */}
-            <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
               <ScoreCard
                 label={t("webAnalysis.colPerformance")}
                 score={currentResult.performance_score}
@@ -475,21 +474,15 @@ export default function WebAnalysisPage() {
                 score={currentResult.accessibility_score}
                 icon={Accessibility}
               />
-              <ScoreCard 
-                label="Best Practices" 
-                score={currentResult.best_practices_score} 
+              <ScoreCard
+                label="Best Practices"
+                score={currentResult.best_practices_score}
                 icon={Shield}
               />
               <ScoreCard
                 label={t("webAnalysis.colSeo")}
                 score={currentResult.seo_score}
                 icon={Search}
-              />
-              <ScoreCard 
-                label="PWA" 
-                score={currentResult.pwa_score || 0} 
-                icon={Zap}
-                description="Progressive Web App"
               />
             </div>
 

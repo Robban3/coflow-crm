@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { url, strategy = 'mobile' } = await req.json();
+    const { url, strategy = 'desktop' } = await req.json();
 
     if (!url) {
       return new Response(
@@ -179,9 +179,11 @@ Deno.serve(async (req) => {
     // Get API key from environment
     const apiKey = Deno.env.get('GOOGLE_PAGESPEED_API_KEY');
     
-    // Call PageSpeed Insights API with ALL categories including PWA
+    // Call PageSpeed Insights API. PWA was removed in Lighthouse 12, and
+    // requesting the now-invalid `category=pwa` can make PSI reject the whole
+    // request (400), so we only request the four supported categories.
     // Use the ASCII/punycode URL for the API call
-    let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(asciiUrl)}&strategy=${strategy}&category=performance&category=accessibility&category=best-practices&category=seo&category=pwa`;
+    let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(asciiUrl)}&strategy=${strategy}&category=performance&category=accessibility&category=best-practices&category=seo`;
     
     // Add API key if available (increases quota significantly)
     if (apiKey) {

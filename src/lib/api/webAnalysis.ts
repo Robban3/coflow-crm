@@ -209,7 +209,7 @@ export const webAnalysisApi = {
     })) as Analysis[];
   },
 
-  async analyzeUrl(url: string, strategy: 'mobile' | 'desktop' = 'mobile'): Promise<AnalysisResponse> {
+  async analyzeUrl(url: string, strategy: 'mobile' | 'desktop' = 'desktop'): Promise<AnalysisResponse> {
     const { data, error } = await supabase.functions.invoke('pagespeed-analyze', {
       body: { url, strategy },
     });
