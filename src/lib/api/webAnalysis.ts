@@ -41,6 +41,9 @@ export interface PageSpeedResult {
   best_practices_score: number;
   seo_score: number;
   pwa_score?: number;
+  /** Which PageSpeed strategy produced this result. Stored so mobile and
+   *  desktop analyses of the same URL are tracked (and deduped) separately. */
+  strategy?: 'mobile' | 'desktop';
   metrics: PageSpeedMetrics;
   opportunities: AuditDetail[];
   diagnostics: AuditDetail[];
@@ -79,10 +82,14 @@ export function normalizeUrl(url: string): string {
 }
 
 export const webAnalysisApi = {
-  // Check for recent analysis of same URL (within 3 days)
-  async findRecentAnalysis(url: string): Promise<{ found: boolean; analysis?: Analysis; error?: string }> {
+  // Check for recent analysis of same URL (within 3 days). When a strategy is
+  // given, only a same-strategy analysis counts as a match, so switching
+  // between mobile and desktop always runs a fresh analysis.
+  async findRecentAnalysis(url: string, strategy?: 'mobile' | 'desktop'): Promise<{ found: boolean; analysis?: Analysis; error?: string }> {
     const normalizedUrl = normalizeUrl(url);
-    
+    const sameStrategy = (a: any) =>
+      !strategy || ((a.raw_data as any)?.strategy ?? undefined) === strategy;
+
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
@@ -101,7 +108,7 @@ export const webAnalysisApi = {
     }
 
     // First try exact match
-    let match = data?.find(a => normalizeUrl(a.url) === normalizedUrl);
+    let match = data?.find(a => normalizeUrl(a.url) === normalizedUrl && sameStrategy(a));
 
     // If no exact match, do a broader search with normalized URL variants
     if (!match) {
@@ -120,7 +127,7 @@ export const webAnalysisApi = {
         .gte('created_at', threeDaysAgo.toISOString())
         .order('created_at', { ascending: false })
         .limit(5);
-      match = data2?.find(a => normalizeUrl(a.url) === normalizedUrl);
+      match = data2?.find(a => normalizeUrl(a.url) === normalizedUrl && sameStrategy(a));
     }
 
     if (match) {

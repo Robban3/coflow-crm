@@ -183,8 +183,8 @@ export default function WebAnalysisPage() {
     setRunSeoAnalysis(false);
 
     try {
-      // Check for recent analysis of same URL (within 3 days)
-      const recentCheck = await webAnalysisApi.findRecentAnalysis(url);
+      // Check for recent analysis of same URL + strategy (within 3 days)
+      const recentCheck = await webAnalysisApi.findRecentAnalysis(url, strategy);
       
       if (recentCheck.found && recentCheck.analysis) {
         // Use existing analysis instead of running a new one
@@ -214,8 +214,8 @@ export default function WebAnalysisPage() {
         setCurrentResult(response.data);
         setCurrentUrl(url);
         
-        // Auto-save the analysis
-        const saveResponse = await webAnalysisApi.saveAnalysis(url, response.data);
+        // Auto-save the analysis (tagged with strategy for dedup/history)
+        const saveResponse = await webAnalysisApi.saveAnalysis(url, { ...response.data, strategy });
         if (saveResponse.success && saveResponse.id) {
           setSavedAnalysisId(saveResponse.id);
           fetchAnalyses(); // Refresh the list
@@ -265,8 +265,8 @@ export default function WebAnalysisPage() {
       if (response.success && response.data) {
         setCurrentResult(response.data);
         
-        // Auto-save the new analysis
-        const saveResponse = await webAnalysisApi.saveAnalysis(currentUrl, response.data);
+        // Auto-save the new analysis (tagged with strategy)
+        const saveResponse = await webAnalysisApi.saveAnalysis(currentUrl, { ...response.data, strategy });
         if (saveResponse.success && saveResponse.id) {
           setSavedAnalysisId(saveResponse.id);
           fetchAnalyses();
