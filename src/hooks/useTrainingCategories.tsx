@@ -3,7 +3,7 @@ import { fromTable } from "@/components/documents/supabaseHelper";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrainingAccess } from "@/hooks/useTrainingAccess";
 
-export type TrainingCategoryKind = "content" | "sandbox";
+export type TrainingCategoryKind = "content" | "sandbox" | "quiz";
 
 export interface TrainingCategory {
   id: string;

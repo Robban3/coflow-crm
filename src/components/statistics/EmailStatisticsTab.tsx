@@ -228,7 +228,7 @@ export function EmailStatisticsTab() {
           </SelectTrigger>
           <SelectContent>
             {PERIOD_OPTIONS.map(o => (
-              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              <SelectItem key={o.value} value={o.value}>{t(o.labelKey)}</SelectItem>
             ))}
           </SelectContent>
         </Select>

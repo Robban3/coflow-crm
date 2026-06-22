@@ -342,12 +342,9 @@ Vi hjälper företag att fokusera på sin kärnverksamhet medan vi tar hand om I
     "settings.automationDesc": "Styr hur leads analyseras och berikas automatiskt",
     "settings.autoAnalyzeLabel": "Analysera nya leads automatiskt",
     "settings.autoAnalyzeDesc": "Kör webbanalys och skapa utskicksutkast för nya leads automatiskt. Stäng av för att spara API-anrop.",
-    "settings.notLoggedIn": "Ej inloggad",
     "settings.userAddedToTeam": "{email} har lagts till i teamet",
     "settings.autoAnalyzeEnabled": "Automatisk analys aktiverad",
     "settings.autoAnalyzeDisabled": "Automatisk analys inaktiverad",
-    "settings.moduleEnabled": "Modul aktiverad",
-    "settings.moduleDisabled": "Modul inaktiverad",
   },
   en: {
     // Settings page — layout & tabs
@@ -690,12 +687,9 @@ We help companies focus on their core business while we take care of the IT.`,
     "settings.automationDesc": "Control how leads are analyzed and enriched automatically",
     "settings.autoAnalyzeLabel": "Analyze new leads automatically",
     "settings.autoAnalyzeDesc": "Run web analysis and create email drafts for new leads automatically. Turn off to save API calls.",
-    "settings.notLoggedIn": "Not logged in",
     "settings.userAddedToTeam": "{email} has been added to the team",
     "settings.autoAnalyzeEnabled": "Automatic analysis enabled",
     "settings.autoAnalyzeDisabled": "Automatic analysis disabled",
-    "settings.moduleEnabled": "Module enabled",
-    "settings.moduleDisabled": "Module disabled",
   },
   es: {
     // Settings page — layout & tabs
@@ -1038,11 +1032,8 @@ Ayudamos a las empresas a centrarse en su actividad principal mientras nosotros 
     "settings.automationDesc": "Controla cómo se analizan y enriquecen los leads automáticamente",
     "settings.autoAnalyzeLabel": "Analizar nuevos leads automáticamente",
     "settings.autoAnalyzeDesc": "Ejecuta el análisis web y crea borradores de correo para nuevos leads automáticamente. Desactívalo para ahorrar llamadas a la API.",
-    "settings.notLoggedIn": "No has iniciado sesión",
     "settings.userAddedToTeam": "{email} se ha añadido al equipo",
     "settings.autoAnalyzeEnabled": "Análisis automático activado",
     "settings.autoAnalyzeDisabled": "Análisis automático desactivado",
-    "settings.moduleEnabled": "Módulo activado",
-    "settings.moduleDisabled": "Módulo desactivado",
   },
 };

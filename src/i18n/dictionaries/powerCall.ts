@@ -148,8 +148,6 @@ export const powerCallDict: FeatureDictionary = {
     "powerCall.leaderboard.toastError": "Fel",
     "powerCall.leaderboard.toastFailed": "Kunde inte generera snapshot",
     "powerCall.session.summaryPlaceholder": "Kort sammanfattning av samtalet",
-    "powerCall.session.generatingAnalysis": "Genererar analys…",
-    "powerCall.session.generateAnalysis": "Generera analys",
   },
   en: {
     // Lists page
@@ -298,8 +296,6 @@ export const powerCallDict: FeatureDictionary = {
     "powerCall.leaderboard.toastError": "Error",
     "powerCall.leaderboard.toastFailed": "Could not generate snapshot",
     "powerCall.session.summaryPlaceholder": "Short summary of the call",
-    "powerCall.session.generatingAnalysis": "Generating analysis…",
-    "powerCall.session.generateAnalysis": "Generate analysis",
   },
   es: {
     // Lists page
@@ -448,7 +444,5 @@ export const powerCallDict: FeatureDictionary = {
     "powerCall.leaderboard.toastError": "Error",
     "powerCall.leaderboard.toastFailed": "No se pudo generar el snapshot",
     "powerCall.session.summaryPlaceholder": "Resumen breve de la llamada",
-    "powerCall.session.generatingAnalysis": "Generando análisis…",
-    "powerCall.session.generateAnalysis": "Generar análisis",
   },
 };

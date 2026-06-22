@@ -143,4 +143,18 @@ declare module 'lucide-react' {
   export const Coins: any;
   export const DollarSign: any;
   export const Cpu: any;
+  export const CalendarPlus: any;
+  export const CalendarRange: any;
+  export const FileBarChart: any;
+  export const FilePlus: any;
+  export const FlaskConical: any;
+  export const HelpCircle: any;
+  export const LineChart: any;
+  export const PenSquare: any;
+  export const PhoneForwarded: any;
+  export const ScanSearch: any;
+  export const Settings2: any;
+  export const Tag: any;
+  export const Ticket: any;
+  export const Trophy: any;
 }
