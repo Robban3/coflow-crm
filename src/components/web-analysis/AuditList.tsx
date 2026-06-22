@@ -33,7 +33,7 @@ export function AuditList({ audits, title, emptyMessage, showScore = true, defau
     return "bg-red-50 dark:bg-red-900/20";
   };
 
-  if (audits.length === 0) {
+  if (!audits || audits.length === 0) {
     return (
       <div className="p-4 rounded-lg bg-muted/30 text-center">
         <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />

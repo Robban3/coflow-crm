@@ -26,20 +26,22 @@ export function TechnicalReport({ result, url }: TechnicalReportProps) {
       <TechnicalAISummary result={result} url={url} />
 
       {/* Core Web Vitals */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Gauge className="h-5 w-5" />
-            Core Web Vitals
-          </CardTitle>
-          <CardDescription>
-            {t("webAnalysis.coreWebVitalsDesc")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <MetricsGrid metrics={result.metrics} />
-        </CardContent>
-      </Card>
+      {result.metrics && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Gauge className="h-5 w-5" />
+              Core Web Vitals
+            </CardTitle>
+            <CardDescription>
+              {t("webAnalysis.coreWebVitalsDesc")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MetricsGrid metrics={result.metrics} />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Category Audits */}
       <Card>
@@ -75,18 +77,18 @@ export function TechnicalReport({ result, url }: TechnicalReportProps) {
             </TabsList>
 
             <TabsContent value="opportunities" className="mt-4 space-y-4">
-              <AuditList 
-                audits={result.opportunities} 
-                title={t("webAnalysis.auditOpportunitiesTitle")} 
+              <AuditList
+                audits={result.opportunities || []}
+                title={t("webAnalysis.auditOpportunitiesTitle")}
                 emptyMessage={t("webAnalysis.auditOpportunitiesEmpty")}
                 defaultOpen={true}
               />
             </TabsContent>
 
             <TabsContent value="diagnostics" className="mt-4 space-y-4">
-              <AuditList 
-                audits={result.diagnostics} 
-                title={t("webAnalysis.auditDiagnosticsTitle")} 
+              <AuditList
+                audits={result.diagnostics || []}
+                title={t("webAnalysis.auditDiagnosticsTitle")}
                 emptyMessage={t("webAnalysis.auditDiagnosticsEmpty")}
                 defaultOpen={true}
               />

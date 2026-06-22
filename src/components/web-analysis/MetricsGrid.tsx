@@ -17,6 +17,7 @@ interface MetricsGridProps {
 
 export function MetricsGrid({ metrics, compact = false }: MetricsGridProps) {
   const { t } = useTranslation();
+  if (!metrics) return null;
   const metricItems: MetricItem[] = [
     {
       label: "First Contentful Paint (FCP)",
