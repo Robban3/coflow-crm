@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { MoreHorizontal, XCircle, PhoneOff, RotateCcw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface LeadStatusActionsProps {
   leadId: string;
@@ -32,6 +33,7 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const updateStatus = async (
     status: string,

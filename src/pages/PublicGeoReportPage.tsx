@@ -6,19 +6,15 @@ import {
   ExternalLink, CheckCircle, XCircle, RefreshCw, Mail, ArrowRight
 } from "lucide-react";
 
-const STEPS = [
-  { step: 1, label: t("publicPages.geo.step1") },
-  { step: 2, label: t("publicPages.geo.step2") },
-  { step: 3, label: t("publicPages.geo.step3") },
-];
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
-const scoreLabel = (s: number) =>
+const scoreLabel = (s: number, t: TranslateFn) =>
   s >= 80 ? "Stark AI-synlighet" : s >= 50 ? "Bra potential" : t("publicPages.geo.scoreLow");
 
 const scoreColor = (s: number) =>
   s >= 80 ? "#34d399" : s >= 50 ? "#fbbf24" : "#f87171";
 
-const severityBadge = (s: string) => {
+const severityBadge = (s: string, t: TranslateFn) => {
   const map: Record<string, { cls: string; label: string }> = {
     high: { cls: "kg-badge-high", label: t("publicPages.geo.severityHigh") },
     medium: { cls: "kg-badge-medium", label: t("publicPages.geo.severityMedium") },
@@ -255,7 +251,7 @@ export default function PublicGeoReportPage() {
             </div>
           </div>
           <p className="text-sm font-semibold tracking-wide uppercase" style={{ color: scoreColor(geoScore) }}>
-            {scoreLabel(geoScore)}
+            {scoreLabel(geoScore, t)}
           </p>
           <p className="text-slate-500 text-xs mt-1.5 font-mono">{scan.domain}</p>
           {scan.company_name && (
@@ -281,7 +277,7 @@ export default function PublicGeoReportPage() {
               <AlertCircle className="h-4 w-4 text-red-400" />{t("publicPages.geo.findingsTitle")}</h2>
             <div className="space-y-2.5">
               {findings.map((f: any, i: number) => {
-                const badge = severityBadge(f.severity);
+                const badge = severityBadge(f.severity, t);
                 return (
                   <div key={i} className="kg-card p-4">
                     <div className="flex items-start justify-between gap-3">
@@ -393,6 +389,12 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 function ProgressView({ currentStep, domain }: { currentStep: number; domain: string }) {
+  const { t } = useTranslation();
+  const steps = [
+    { step: 1, label: t("publicPages.geo.step1") },
+    { step: 2, label: t("publicPages.geo.step2") },
+    { step: 3, label: t("publicPages.geo.step3") },
+  ];
   return (
     <div className="max-w-md mx-auto py-20">
       <div className="text-center mb-12 animate-in">
@@ -404,7 +406,7 @@ function ProgressView({ currentStep, domain }: { currentStep: number; domain: st
       </div>
 
       <div className="space-y-3">
-        {STEPS.map(({ step, label }) => {
+        {steps.map(({ step, label }) => {
           const isActive = step === currentStep;
           const isDone = step < currentStep;
           return (
