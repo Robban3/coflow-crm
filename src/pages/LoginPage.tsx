@@ -45,8 +45,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 relative">
       {/* Language + theme toggle in corner */}
-      <div className="absolute top-4 right-4 flex items-center gap-1">
-        <LanguageSwitcher />
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <LanguageSwitcher showLabel />
         <ThemeToggle />
       </div>
 
