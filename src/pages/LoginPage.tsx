@@ -44,9 +44,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 relative">
-      {/* Language + theme toggle in corner */}
-      <div className="absolute top-4 right-4 flex items-center gap-2">
-        <LanguageSwitcher showLabel />
+      {/* Theme toggle in corner */}
+      <div className="absolute top-4 right-4 flex items-center gap-1">
         <ThemeToggle />
       </div>
 
@@ -66,6 +65,9 @@ export default function LoginPage() {
             <CardDescription className="text-muted-foreground/80">
               {t("login.subtitle")}
             </CardDescription>
+            <div className="flex justify-center pt-3">
+              <LanguageSwitcher showLabel />
+            </div>
           </CardHeader>
 
           <form onSubmit={handleSubmit}>
