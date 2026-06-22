@@ -115,7 +115,9 @@ function computeInsights(
   };
 }
 
-const SECTION_LABELS: Record<string, string> = {
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
+
+const sectionLabels = (t: TranslateFn): Record<string, string> => ({
   executive: "Executive",
   nuläge: t("reports.insights.section.nuläge"),
   barrier: t("reports.insights.section.barrier"),
@@ -126,7 +128,7 @@ const SECTION_LABELS: Record<string, string> = {
   findings: "Fynd",
   actions: t("reports.insights.section.actions"),
   cta: "CTA",
-};
+});
 
 const EVENT_LABELS: Record<string, string> = {
   view: "Sidvisning",
@@ -147,6 +149,7 @@ function formatDuration(ms: number): string {
 
 export function ReportInsightsPanel({ reportId, shareToken }: Props) {
   const { t } = useTranslation();
+  const SECTION_LABELS = sectionLabels(t);
   const { data: insights, isLoading } = useQuery({
     queryKey: ["report-insights", reportId, shareToken],
     queryFn: async () => {

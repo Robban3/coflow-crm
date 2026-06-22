@@ -62,6 +62,7 @@ interface EmailThreadViewProps {
 }
 
 export function EmailThreadView({ leadId, leadName, className }: EmailThreadViewProps) {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [sentEmails, setSentEmails] = useState<SentEmail[]>([]);
   const [replies, setReplies] = useState<EmailReply[]>([]);

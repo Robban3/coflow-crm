@@ -34,6 +34,8 @@ interface Props {
 
 /* ─── Helpers ──────────────────────────────────────────────────────────── */
 
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
+
 const scoreColor = (v: number | null) => {
   if (v === null) return "text-muted-foreground";
   if (v >= 80) return "text-emerald-600 dark:text-emerald-400";
@@ -48,14 +50,14 @@ const scoreRingColor = (v: number | null) => {
   return "stroke-red-500";
 };
 
-const scoreLabel = (v: number | null) => {
+const scoreLabel = (v: number | null, t: TranslateFn) => {
   if (v === null) return t("reports.renderer.scoreNotCalculated");
   if (v >= 80) return "Stark AI-synlighet";
   if (v >= 50) return "Bra potential";
   return t("reports.renderer.scoreLow");
 };
 
-const severityConfig: Record<string, { label: string; color: string; icon: typeof AlertCircle; bgClass: string }> = {
+const buildSeverityConfig = (t: TranslateFn): Record<string, { label: string; color: string; icon: typeof AlertCircle; bgClass: string }> => ({
   high: {
     label: t("reports.renderer.severityHigh"),
     color: "text-red-600 dark:text-red-400",
@@ -74,13 +76,13 @@ const severityConfig: Record<string, { label: string; color: string; icon: typeo
     icon: Circle,
     bgClass: "bg-blue-500/8 border-blue-500/15 dark:bg-blue-500/10 dark:border-blue-500/20",
   },
-};
+});
 
-const priorityConfig: Record<string, { label: string; timeline: string; icon: typeof Zap }> = {
+const buildPriorityConfig = (t: TranslateFn): Record<string, { label: string; timeline: string; icon: typeof Zap }> => ({
   quick_win: { label: t("reports.renderer.priorityQuickWin"), timeline: "0–30 dagar", icon: Zap },
   medium: { label: t("reports.renderer.priorityMedium"), timeline: t("reports.renderer.timelineMedium"), icon: Target },
   long_term: { label: t("reports.renderer.priorityLongTerm"), timeline: t("reports.renderer.timelineLongTerm"), icon: Clock },
-};
+});
 
 /* ─── Score Ring SVG ──────────────────────────────────────────────────── */
 
@@ -123,6 +125,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 /* ─── Section Renderers ──────────────────────────────────────────────── */
 
 function SummarySection({ content }: { content: any }) {
+  const { t } = useTranslation();
   return (
     <div className="report-section">
       <SectionLabel>{t("reports.renderer.executiveSummary")}</SectionLabel>
@@ -139,6 +142,8 @@ function ScorecardsSection({ content }: { content: any }) {
 }
 
 function FindingsSection({ content }: { content: any }) {
+  const { t } = useTranslation();
+  const severityConfig = buildSeverityConfig(t);
   const items: any[] = content.items || [];
 
   // Group by severity
@@ -194,6 +199,8 @@ function FindingsSection({ content }: { content: any }) {
 }
 
 function ActionsSection({ content }: { content: any }) {
+  const { t } = useTranslation();
+  const priorityConfig = buildPriorityConfig(t);
   const groups: any[] = content.groups || [];
   const orderedKeys = ["quick_win", "medium", "long_term"];
   const sorted = [...groups].sort(
@@ -285,7 +292,7 @@ function TextSection({ content }: { content: any }) {
   );
 }
 
-function renderSection(section: ReportSection, onBook?: () => void) {
+function renderSection(section: ReportSection, t: TranslateFn, onBook?: () => void) {
   switch (section.type) {
     case "summary":
       return <SummarySection content={section.content} />;
@@ -361,7 +368,7 @@ export function ReportRenderer({ data, publicMode, reportId, leadId }: Props) {
           <div className="flex flex-col items-center shrink-0">
             <ScoreRing value={geoScore} />
             <p className={`text-xs font-medium mt-2 ${scoreColor(geoScore)}`}>
-              {scoreLabel(geoScore)}
+              {scoreLabel(geoScore, t)}
             </p>
           </div>
         </div>
@@ -381,7 +388,7 @@ export function ReportRenderer({ data, publicMode, reportId, leadId }: Props) {
                 {section.title}
               </h2>
             )}
-            {renderSection(section, handleBook)}
+            {renderSection(section, t, handleBook)}
           </section>
         ))}
       </div>
@@ -406,7 +413,7 @@ export function ReportRenderer({ data, publicMode, reportId, leadId }: Props) {
       {/* ─── CTA ─── */}
       {ctaSection && (
         <div className="mt-12">
-          {renderSection(ctaSection, handleBook)}
+          {renderSection(ctaSection, t, handleBook)}
         </div>
       )}
 

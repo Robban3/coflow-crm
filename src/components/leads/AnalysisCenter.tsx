@@ -541,7 +541,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                             {(["quick_win", "medium", "long_term"] as const).map((prio) => {
                               const items = geoDetails.actions.filter((a) => a.priority === prio);
                               if (items.length === 0) return null;
-                              const p = priorityLabel(prio);
+                              const p = priorityLabel(prio, t);
                               return (
                                 <div key={prio}>
                                   <div className="flex items-center gap-2 mb-1">
@@ -712,6 +712,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
 // ──── Quick Scan Section ────
 
 function QuickScanSection({ leadId, website }: { leadId: string; website: string | null }) {
+  const { t } = useTranslation();
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
 

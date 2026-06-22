@@ -87,23 +87,25 @@ const scoreBg = (v: number | null) => {
   return "bg-red-500/8 dark:bg-red-500/10";
 };
 
-const severityConfig: Record<string, { label: string; color: string; icon: typeof AlertCircle; bgClass: string }> = {
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
+
+const buildSeverityConfig = (t: TranslateFn): Record<string, { label: string; color: string; icon: typeof AlertCircle; bgClass: string }> => ({
   high: { label: t("reports.renderer.severityHigh"), color: "text-red-600 dark:text-red-400", icon: AlertCircle, bgClass: "bg-red-500/8 border-red-500/15 dark:bg-red-500/10 dark:border-red-500/20" },
   medium: { label: t("reports.renderer.severityMedium"), color: "text-amber-600 dark:text-amber-400", icon: AlertTriangle, bgClass: "bg-amber-500/8 border-amber-500/15 dark:bg-amber-500/10 dark:border-amber-500/20" },
   low: { label: t("reports.renderer.severityLow"), color: "text-blue-600 dark:text-blue-400", icon: Circle, bgClass: "bg-blue-500/8 border-blue-500/15 dark:bg-blue-500/10 dark:border-blue-500/20" },
-};
+});
 
-const priorityConfig: Record<string, { label: string; timeline: string; icon: typeof Zap }> = {
+const buildPriorityConfig = (t: TranslateFn): Record<string, { label: string; timeline: string; icon: typeof Zap }> => ({
   quick_win: { label: t("reports.renderer.priorityQuickWin"), timeline: "0–30 dagar", icon: Zap },
   medium: { label: t("reports.renderer.priorityMedium"), timeline: t("reports.renderer.timelineMedium"), icon: Target },
   long_term: { label: t("reports.renderer.priorityLongTerm"), timeline: t("reports.renderer.timelineLongTerm"), icon: Clock },
-};
+});
 
-const tierLabels: Record<string, string> = {
+const buildTierLabels = (t: TranslateFn): Record<string, string> => ({
   start: "Start",
   growth: t("reports.pricing.growth"),
   dominate: "Dominate",
-};
+});
 
 /* ─── Score Ring SVG ─── */
 
@@ -141,6 +143,9 @@ function SectionDivider() {
 
 export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCtaClick, onPdfClick, onShareClick }: Props) {
   const { t } = useTranslation();
+  const severityConfig = buildSeverityConfig(t);
+  const priorityConfig = buildPriorityConfig(t);
+  const tierLabels = buildTierLabels(t);
   const [techOpen, setTechOpen] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
@@ -735,6 +740,7 @@ function OrderModal({
   leadId?: string | null;
   reportId?: string;
 }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [addWebsite, setAddWebsite] = useState(includeWebsite);
   const [isCreating, setIsCreating] = useState(false);

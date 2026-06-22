@@ -114,7 +114,7 @@ export function ReportGenerator() {
       if (!analysis) throw new Error(t("reports.generator.analysisNotFound"));
 
       // Generate HTML content
-      const htmlContent = generateWebAnalysisHtml(analysis, organization);
+      const htmlContent = generateWebAnalysisHtml(analysis, organization, t);
       
       // Save to database
       const { data, error } = await supabase.from('reports').insert({
@@ -394,7 +394,9 @@ function sanitizeUrl(url: string | null | undefined): string {
   return '';
 }
 
-function generateWebAnalysisHtml(analysis: WebAnalysis, organization: { name: string; logo_url?: string | null }) {
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
+
+function generateWebAnalysisHtml(analysis: WebAnalysis, organization: { name: string; logo_url?: string | null }, t: TranslateFn) {
   const getScoreClass = (score: number | null) => {
     if (score === null) return 'gray';
     if (score >= 90) return 'green';

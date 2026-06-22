@@ -31,6 +31,7 @@ export function ReportBookingDialog({
   companyName,
   domain,
 }: ReportBookingDialogProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     name: "",
     email: "",
