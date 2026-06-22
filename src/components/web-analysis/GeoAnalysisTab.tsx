@@ -95,7 +95,15 @@ export function GeoAnalysisTab({ url, leadId, isRunning, onRun }: Props) {
       return (data || []) as any[];
     },
     enabled: !!url,
-    refetchInterval: isRunning ? 3000 : false,
+    // Keep polling while a run is in flight OR the latest row is still
+    // running/queued in the DB — the `isRunning` prop flips to false as soon as
+    // the edge function returns, which can be before the status row is updated.
+    // Polling on the real status avoids a spinner that never resolves.
+    refetchInterval: (query) => {
+      if (isRunning) return 3000;
+      const status = (query.state.data as any[] | undefined)?.[0]?.status;
+      return status === "running" || status === "queued" ? 3000 : false;
+    },
   });
 
   const latestGeo = geoAnalyses?.[0] || null;
