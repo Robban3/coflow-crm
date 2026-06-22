@@ -18,15 +18,12 @@ export interface ServiceBusinessPluginProps {
   rawData: PageSpeedResult | null;
 }
 
-export interface ServiceBusinessPluginProps {
-  url: string;
-  rawData: PageSpeedResult | null;
-}
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
 export function ServiceBusinessPlugin({ url, rawData }: ServiceBusinessPluginProps) {
   const { t } = useTranslation();
   // Analyze based on URL patterns and available data
-  const features = analyzeServiceBusinessFeatures(url, rawData);
+  const features = analyzeServiceBusinessFeatures(url, rawData, t);
 
   return (
     <Card>
@@ -121,6 +118,7 @@ interface FeatureItemProps {
 }
 
 function FeatureItem({ label, present, description, importance }: FeatureItemProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-start gap-3">
       <div className={`mt-0.5 ${present ? 'text-green-600' : importance === 'high' ? 'text-red-500' : 'text-yellow-500'}`}>
@@ -139,7 +137,7 @@ function FeatureItem({ label, present, description, importance }: FeatureItemPro
   );
 }
 
-function analyzeServiceBusinessFeatures(url: string, rawData: PageSpeedResult | null) {
+function analyzeServiceBusinessFeatures(url: string, rawData: PageSpeedResult | null, t: TranslateFn) {
   const features = {
     hasBookingSystem: false,
     hasPricing: false,

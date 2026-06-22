@@ -19,9 +19,11 @@ export interface RestaurantHotelPluginProps {
   rawData: PageSpeedResult | null;
 }
 
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
+
 export function RestaurantHotelPlugin({ url, rawData }: RestaurantHotelPluginProps) {
   const { t } = useTranslation();
-  const features = analyzeRestaurantFeatures(url, rawData);
+  const features = analyzeRestaurantFeatures(url, rawData, t);
 
   return (
     <Card>
@@ -118,6 +120,7 @@ interface FeatureItemProps {
 }
 
 function FeatureItem({ label, present, description, importance, warning }: FeatureItemProps) {
+  const { t } = useTranslation();
   const getColor = () => {
     if (present && warning) return 'text-yellow-500';
     if (present) return 'text-green-600';
@@ -146,7 +149,7 @@ function FeatureItem({ label, present, description, importance, warning }: Featu
   );
 }
 
-function analyzeRestaurantFeatures(url: string, rawData: PageSpeedResult | null) {
+function analyzeRestaurantFeatures(url: string, rawData: PageSpeedResult | null, t: TranslateFn) {
   const features = {
     hasMenu: false,
     hasOnlineBooking: false,
