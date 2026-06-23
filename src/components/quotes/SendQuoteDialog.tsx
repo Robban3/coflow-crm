@@ -82,6 +82,11 @@ export function SendQuoteDialog({
           .eq("id", sentQuote.lead_id);
       }
 
+      // Notify org admins that an offer was sent (best-effort).
+      supabase.functions
+        .invoke("notify-deal-won", { body: { quoteId, event: "sent" } })
+        .catch(() => {});
+
       toast.success(
         documentLabel === "avtal"
           ? t("quotes.agreementSentTo", { email })

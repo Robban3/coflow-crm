@@ -143,6 +143,12 @@ export default function PipelinePage() {
         } else if (lead.lead_status !== stageKey || lead.last_call_outcome_key === "callback") {
           // Move to a real stage and clear the pending-callback marker.
           updateLead.mutate({ leadId, patch: { lead_status: stageKey, last_call_outcome_key: null } });
+          if (stageKey === "won" && lead.lead_status !== "won") {
+            // Notify org admins of the won deal (best-effort).
+            supabase.functions
+              .invoke("notify-deal-won", { body: { leadId, sellerId: user?.id, event: "won" } })
+              .catch(() => {});
+          }
         }
       }
     }

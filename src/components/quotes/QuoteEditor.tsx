@@ -351,6 +351,11 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
         await supabase.from("leads").update({ lead_status: "won" }).eq("id", leadId);
       }
 
+      // Notify org admins of the won deal (best-effort).
+      supabase.functions
+        .invoke("notify-deal-won", { body: { quoteId: currentQuoteId, sellerId: user?.id, event: "won" } })
+        .catch(() => {});
+
       setStatus("won");
       toast.success(t("quotes.quoteMarkedAsDeal"));
     } catch (err: any) {
