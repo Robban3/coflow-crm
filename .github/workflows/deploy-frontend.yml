@@ -1,0 +1,40 @@
+# Builds the app and deploys it to Cloudflare Pages via Wrangler "direct upload".
+#
+# Why: unlike the Git integration, direct-upload deployments do NOT count against
+# the Pages monthly build quota, and they run the build on a GitHub runner (more
+# memory than Cloudflare's build container). Use this when auto-deploys stop
+# because the build limit is hit. Run it manually from the Actions tab.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN  - token with the "Cloudflare Pages — Edit" permission
+#                           (Cloudflare → My Profile → API Tokens → Create Token)
+#   CLOUDFLARE_ACCOUNT_ID - Cloudflare dashboard → Workers & Pages (right sidebar)
+name: Deploy frontend (Cloudflare Pages)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=coflow-crm --branch=main
