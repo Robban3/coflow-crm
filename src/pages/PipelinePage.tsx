@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { sv, enUS, es } from "date-fns/locale";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
 const PIPELINE_STAGES = [
@@ -74,7 +74,25 @@ export default function PipelinePage() {
       return (data || []) as PipelineLead[];
     },
     enabled: !!user?.id,
+    refetchOnMount: "always",
   });
+
+  // Live updates: refetch whenever a lead changes (status moves, callbacks,
+  // assignments) so cards land in the right column without a page reload.
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel("pipeline-leads-rt")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "leads" },
+        () => queryClient.invalidateQueries({ queryKey: ["pipeline-leads"] })
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const updateLead = useMutation({
     mutationFn: async ({ leadId, patch }: { leadId: string; patch: Record<string, unknown> }) => {
