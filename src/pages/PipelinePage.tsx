@@ -68,6 +68,8 @@ export default function PipelinePage() {
         .from("leads")
         .select("id, company_name, contact_name, email, phone, website, lead_status, created_at, last_call_at, last_call_outcome_key")
         .not("is_not_interested", "eq", true)
+        // Released leads live in the shared pool, not on anyone's board.
+        .is("released_at", null)
         .order("created_at", { ascending: false });
 
       if (!isAdmin && user?.id) {

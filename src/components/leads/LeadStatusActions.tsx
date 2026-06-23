@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, XCircle, PhoneOff, RotateCcw, Loader2 } from "lucide-react";
+import { MoreHorizontal, XCircle, PhoneOff, RotateCcw, Loader2, Undo2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -30,7 +30,9 @@ interface LeadStatusActionsProps {
 
 export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadStatusActionsProps) {
   const [showNotInterestedDialog, setShowNotInterestedDialog] = useState(false);
+  const [showReleaseDialog, setShowReleaseDialog] = useState(false);
   const [reason, setReason] = useState("");
+  const [releaseReason, setReleaseReason] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -71,6 +73,28 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
 
   const handleInvalidPhone = () => {
     updateStatus("invalid_phone");
+  };
+
+  const handleReleaseToPool = async () => {
+    setLoading(true);
+    try {
+      const { error } = await (supabase as any).rpc("release_lead_to_pool", {
+        _lead_id: leadId,
+        _reason: releaseReason || null,
+      });
+      if (error) throw error;
+      toast({
+        title: "Leadet är tillbaka i poolen",
+        description: "All historik sparas. En annan säljare kan plocka upp det efter karenstiden.",
+      });
+      setShowReleaseDialog(false);
+      setReleaseReason("");
+      onStatusChange();
+    } catch (e: any) {
+      toast({ title: "Fel", description: e.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleReactivate = () => {
@@ -115,6 +139,11 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
               </DropdownMenuItem>
             </>
           )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setShowReleaseDialog(true)}>
+            <Undo2 className="h-4 w-4 mr-2 text-muted-foreground" />
+            Tillbaka till poolen
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -143,6 +172,38 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
             <Button variant="destructive" onClick={handleNotInterested} disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Bekräfta
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showReleaseDialog} onOpenChange={setShowReleaseDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Tillbaka till poolen</DialogTitle>
+            <DialogDescription>
+              Leadet frigörs så att en annan säljare kan plocka upp det. All
+              historik (samtal, anteckningar, mejl) sparas och följer med. Skriv
+              gärna kort varför det inte blev någon affär – det hjälper nästa säljare.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label htmlFor="release-reason">Anledning (valfritt)</Label>
+            <Textarea
+              id="release-reason"
+              value={releaseReason}
+              onChange={(e) => setReleaseReason(e.target.value)}
+              placeholder="T.ex. fel tajming, redan avtal med konkurrent, vill bli kontaktad senare..."
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowReleaseDialog(false)}>
+              Avbryt
+            </Button>
+            <Button onClick={handleReleaseToPool} disabled={loading}>
+              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Lämna tillbaka
             </Button>
           </DialogFooter>
         </DialogContent>

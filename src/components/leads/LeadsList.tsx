@@ -49,8 +49,11 @@ import {
   CheckCircle,
   Minus,
   Zap,
+  Inbox,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 import { LeadOwnerSelect } from "@/components/leads/LeadOwnerSelect";
 import { LeadStatusBadge } from "@/components/leads/LeadStatusBadge";
 import { useAuth } from "@/hooks/useAuth";
@@ -159,12 +162,40 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [queueProgress, setQueueProgress] = useState<{ processed: number; remaining: number } | null>(null);
   
+  const [claimingId, setClaimingId] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const { members, membersMap, getInitials } = useTeamMembers();
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   const pendingCount = useMemo(() => leads.filter(l => l.enrichment_status === "pending").length, [leads]);
+
+  // A lead sits in the shared pool when it has been released and is unassigned.
+  const isPoolLead = useCallback(
+    (lead: LeadWithOutreachStatus) => lead.assigned_to === null && !!(lead as any).released_at,
+    [],
+  );
+  const poolLeads = useMemo(() => leads.filter(isPoolLead), [leads, isPoolLead]);
+  const poolCount = poolLeads.length;
+
+  const handleClaim = async (lead: LeadWithOutreachStatus) => {
+    setClaimingId(lead.id);
+    try {
+      const { error } = await (supabase as any).rpc("claim_pool_lead", { _lead_id: lead.id });
+      if (error) throw error;
+      toast({
+        title: "Lead upplockat",
+        description: "Det ligger nu under dina leads med all tidigare historik.",
+      });
+      onRefresh();
+    } catch (e: any) {
+      toast({ title: "Kunde inte plocka upp", description: e.message, variant: "destructive" });
+    } finally {
+      setClaimingId(null);
+    }
+  };
 
   const handleProcessQueue = async () => {
     if (!leads[0]) return;
@@ -190,17 +221,21 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
     }
   };
 
-  // Filter by lead status (hide not interested / invalid phone)
+  // Filter by lead status (hide not interested / invalid phone). Pool leads are
+  // shown only under the dedicated "pool" filter, never mixed into normal views.
   const statusFilteredLeads = useMemo(() => {
-    if (!hideNotInterested) return leads;
-    return leads.filter((lead) => {
+    if (ownerFilter === "pool") return poolLeads;
+    const base = leads.filter((l) => !isPoolLead(l));
+    if (!hideNotInterested) return base;
+    return base.filter((lead) => {
       const status = (lead as any).lead_status || "active";
       return status === "active" || status === "customer";
     });
-  }, [leads, hideNotInterested]);
+  }, [leads, poolLeads, isPoolLead, hideNotInterested, ownerFilter]);
 
   // Filter by owner (using member_ids from lead_members table)
   const ownerFilteredLeads = useMemo(() => {
+    if (ownerFilter === "pool") return statusFilteredLeads;
     return statusFilteredLeads.filter((lead) => {
       if (ownerFilter === "all") return true;
       if (ownerFilter === "mine") return lead.member_ids?.includes(user?.id || "") || lead.assigned_to === user?.id;
@@ -564,6 +599,12 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                       {t("leadsList.ownerUnassigned", { count: unassignedCount })}
                     </div>
                   </SelectItem>
+                  <SelectItem value="pool">
+                    <div className="flex items-center gap-2">
+                      <Inbox className="h-4 w-4" />
+                      Lediga i poolen ({poolCount})
+                    </div>
+                  </SelectItem>
                   {isAdmin && members.length > 0 && (
                     <>
                       <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground border-t mt-1 pt-2">
@@ -694,17 +735,40 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                       )}
                     </div>
                     <div onClick={(e) => e.stopPropagation()}>
-                      <InlineLeadOwners
-                        memberIds={lead.member_ids}
-                        membersMap={membersMap}
-                        getInitials={getInitials}
-                        leadId={lead.id}
-                        currentOwnerId={lead.assigned_to}
-                        onOwnerChange={handleLeadOwnerChange}
-                      />
+                      {isPoolLead(lead) ? (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="gap-1.5 whitespace-nowrap"
+                          disabled={claimingId === lead.id}
+                          onClick={() => handleClaim(lead)}
+                        >
+                          {claimingId === lead.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Inbox className="h-3.5 w-3.5" />
+                          )}
+                          Plocka upp
+                        </Button>
+                      ) : (
+                        <InlineLeadOwners
+                          memberIds={lead.member_ids}
+                          membersMap={membersMap}
+                          getInitials={getInitials}
+                          leadId={lead.id}
+                          currentOwnerId={lead.assigned_to}
+                          onOwnerChange={handleLeadOwnerChange}
+                        />
+                      )}
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    {isPoolLead(lead) && (
+                      <Badge variant="outline" className="gap-1">
+                        <Inbox className="h-3 w-3" />
+                        {(lead as any).released_reason || "Ledig i poolen"}
+                      </Badge>
+                    )}
                     {getEnrichmentBadge(lead)}
                     {getOutreachStatusBadge(lead)}
                     <LeadStatusBadge
@@ -778,18 +842,50 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                       onClick={() => navigate(`/leads/${lead.id}`)}
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        <InlineLeadOwners
-                          memberIds={lead.member_ids}
-                          membersMap={membersMap}
-                          getInitials={getInitials}
-                          leadId={lead.id}
-                          currentOwnerId={lead.assigned_to}
-                          onOwnerChange={handleLeadOwnerChange}
-                        />
+                        {isPoolLead(lead) ? (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="gap-1.5 whitespace-nowrap"
+                            disabled={claimingId === lead.id}
+                            onClick={() => handleClaim(lead)}
+                          >
+                            {claimingId === lead.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Inbox className="h-3.5 w-3.5" />
+                            )}
+                            Plocka upp
+                          </Button>
+                        ) : (
+                          <InlineLeadOwners
+                            memberIds={lead.member_ids}
+                            membersMap={membersMap}
+                            getInitials={getInitials}
+                            leadId={lead.id}
+                            currentOwnerId={lead.assigned_to}
+                            onOwnerChange={handleLeadOwnerChange}
+                          />
+                        )}
                       </TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {lead.company_name || "-"}
+                          {isPoolLead(lead) && (lead as any).released_reason && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge variant="outline" className="gap-1 text-muted-foreground">
+                                    <Inbox className="h-3 w-3" />
+                                    Ledig
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="max-w-[240px]">{(lead as any).released_reason}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                           {lead.website && (
                             <a 
                               href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} 
