@@ -103,6 +103,8 @@ export function OrganizationDashboard() {
   });
   const [autoEnrichEnabled, setAutoEnrichEnabled] = useState(true);
   const [isSavingAutoEnrich, setIsSavingAutoEnrich] = useState(false);
+  const [maxOpenLeads, setMaxOpenLeads] = useState(50);
+  const [isSavingCap, setIsSavingCap] = useState(false);
 
   const [newUserForm, setNewUserForm] = useState({
     email: "",
@@ -129,7 +131,7 @@ export function OrganizationDashboard() {
 
   const fetchAllData = async () => {
     setIsLoading(true);
-    await Promise.all([fetchTeamData(), fetchOrgSettings(), fetchUserModules(), fetchAutoEnrichSetting()]);
+    await Promise.all([fetchTeamData(), fetchOrgSettings(), fetchUserModules(), fetchAutoEnrichSetting(), fetchLeadCap()]);
     setIsLoading(false);
   };
 
@@ -151,6 +153,39 @@ export function OrganizationDashboard() {
       toast({ title: enabled ? t("settings.autoAnalyzeEnabled") : t("settings.autoAnalyzeDisabled") });
     }
     setIsSavingAutoEnrich(false);
+  };
+
+  // Separate, error-tolerant fetch: the column may not exist until the lead
+  // ownership migration is deployed, so a failure here must not break the
+  // other org settings.
+  const fetchLeadCap = async () => {
+    if (!user?.id) return;
+    const { data: profile } = await supabase.from("profiles").select("organization_id").eq("id", user.id).single();
+    if (!profile?.organization_id) return;
+    const { data: org, error } = await supabase
+      .from("organizations")
+      .select("max_open_leads_per_user")
+      .eq("id", profile.organization_id)
+      .single();
+    if (!error && org) setMaxOpenLeads((org as any).max_open_leads_per_user ?? 50);
+  };
+
+  const handleSaveCap = async () => {
+    if (!user?.id) return;
+    setIsSavingCap(true);
+    const { data: profile } = await supabase.from("profiles").select("organization_id").eq("id", user.id).single();
+    if (profile?.organization_id) {
+      const { error } = await supabase
+        .from("organizations")
+        .update({ max_open_leads_per_user: maxOpenLeads } as any)
+        .eq("id", profile.organization_id);
+      toast(
+        error
+          ? { title: t("settings.leadCapSaveError"), variant: "destructive" }
+          : { title: t("settings.leadCapSaved") }
+      );
+    }
+    setIsSavingCap(false);
   };
 
   const fetchUserModules = async () => {
@@ -810,6 +845,25 @@ export function OrganizationDashboard() {
                   onCheckedChange={handleToggleAutoEnrich}
                   disabled={isSavingAutoEnrich}
                 />
+              </div>
+
+              <div className="flex items-center justify-between gap-4 border-t pt-6">
+                <div className="space-y-0.5">
+                  <Label className="text-base">{t("settings.leadCapLabel")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("settings.leadCapDesc")}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={maxOpenLeads}
+                    onChange={(e) => setMaxOpenLeads(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    className="w-24"
+                  />
+                  <Button size="sm" onClick={handleSaveCap} disabled={isSavingCap}>
+                    {t("settings.leadCapSave")}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
