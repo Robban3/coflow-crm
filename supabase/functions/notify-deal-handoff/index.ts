@@ -48,7 +48,7 @@ serve(async (req) => {
 
     const html = `
       <div style="font-family:system-ui,sans-serif;max-width:560px">
-        <h2 style="margin:0 0 4px">🎉 Ny vunnen affär – onboarding</h2>
+        <h2 style="margin:0 0 4px">Ny vunnen affär – onboarding</h2>
         <p style="margin:0 0 16px;color:#555">Registrerad av <strong>${sellerName}</strong></p>
         <table style="border-collapse:collapse;font-size:14px;width:100%">
           ${row("Företag", h.company_name)}
@@ -67,7 +67,7 @@ serve(async (req) => {
     await resend.emails.send({
       from: `${orgName} <mail@coflow.se>`,
       to: [RECIPIENT],
-      subject: `🎉 Vunnen affär: ${h.company_name} – av ${sellerName}`,
+      subject: `Vunnen affär: ${h.company_name} – av ${sellerName}`,
       html,
     });
 

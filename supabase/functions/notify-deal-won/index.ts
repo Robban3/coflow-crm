@@ -84,15 +84,15 @@ serve(async (req) => {
     if (!resendApiKey) throw new Error("RESEND_API_KEY not configured");
     const resend = new Resend(resendApiKey);
 
-    const headline = dealEvent === "sent" ? "📤 Offert skickad" : "🎉 Ny affär vunnen";
+    const headline = dealEvent === "sent" ? "Offert skickad" : "Ny affär vunnen";
     const action =
       dealEvent === "sent"
         ? `<strong>${sellerName}</strong> har skickat en offert.`
         : `<strong>${sellerName}</strong> har satt en ${dealType} till affär (vunnen).`;
     const subject =
       dealEvent === "sent"
-        ? `📤 Offert skickad: ${dealLabel} – av ${sellerName}`
-        : `🎉 Ny affär: ${dealLabel} – vunnen av ${sellerName}`;
+        ? `Offert skickad: ${dealLabel} – av ${sellerName}`
+        : `Ny affär: ${dealLabel} – vunnen av ${sellerName}`;
     const html = `
       <div style="font-family:system-ui,sans-serif;max-width:520px">
         <h2 style="margin:0 0 8px">${headline}</h2>

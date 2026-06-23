@@ -42,7 +42,7 @@ BEGIN
       v_quote.created_by,
       CASE WHEN p_action = 'accepted' THEN 'quote_accepted' ELSE 'quote_rejected' END,
       CASE
-        WHEN p_action = 'accepted' THEN CASE WHEN v_quote.document_label = 'avtal' THEN 'Avtal accepterad! 🎉' ELSE 'Offert accepterad! 🎉' END
+        WHEN p_action = 'accepted' THEN CASE WHEN v_quote.document_label = 'avtal' THEN 'Avtal accepterad!' ELSE 'Offert accepterad!' END
         ELSE CASE WHEN v_quote.document_label = 'avtal' THEN 'Avtal avböjd' ELSE 'Offert avböjd' END
       END,
       COALESCE(v_quote.recipient_name, 'Mottagaren') || ' har ' ||

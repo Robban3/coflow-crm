@@ -111,7 +111,7 @@ export function WonDealDialog({ open, onOpenChange, leadId, quoteId, prefill }: 
     supabase.functions
       .invoke("notify-deal-handoff", { body: { handoffId: (inserted as any)?.id } })
       .catch(() => {});
-    toast({ title: "Affär registrerad 🎉", description: "Onboarding-uppgifterna är sparade." });
+    toast({ title: "Affär registrerad", description: "Onboarding-uppgifterna är sparade." });
     onOpenChange(false);
   };
 
