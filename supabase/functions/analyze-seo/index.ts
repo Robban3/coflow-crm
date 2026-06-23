@@ -370,10 +370,16 @@ async function generateAiInsights(
   seoData: Partial<SeoAnalysisResult>,
   rankedKeywords: RankedKeyword[],
   url: string,
-  apiKey: string
+  apiKey: string,
+  lighthouseSeoScore: number | null = null
 ): Promise<{ summary: string; opportunities: any[]; estimatedKeywords: any[]; visibilityScore: number }> {
-  // Calculate a base score from real metrics first
-  const baseScore = calculateVisibilityScore(seoData, rankedKeywords);
+  const hasRealRankings = rankedKeywords.length > 0;
+  // Without real Google rankings, prefer Lighthouse's standardized SEO score
+  // (the same free score shown in the rest of the web analysis) so the number
+  // stays consistent instead of using a separate home-grown on-page calc.
+  const baseScore = (!hasRealRankings && typeof lighthouseSeoScore === 'number')
+    ? lighthouseSeoScore
+    : calculateVisibilityScore(seoData, rankedKeywords);
   
   // Format top keywords for AI context
   const topKeywordsContext = rankedKeywords.slice(0, 10).map(k => 
@@ -486,9 +492,8 @@ VIKTIGT: Om sajten har sökord som rankar i Google, inkludera konkreta tips för
     if (toolCall?.function?.arguments) {
       const args = JSON.parse(toolCall.function.arguments);
       // With real Google rankings we let the AI nudge the blended score; without
-      // them the AI would just be guessing, so we trust the measured on-page
-      // score instead of a hallucinated number that "doesn't match reality".
-      const hasRealRankings = rankedKeywords.length > 0;
+      // them the AI would just be guessing, so we trust the measured base score
+      // (Lighthouse SEO / on-page) instead of a hallucinated number.
       return {
         summary: args.summary || 'Kunde inte generera sammanfattning',
         opportunities: args.opportunities || [],
@@ -754,8 +759,23 @@ Deno.serve(async (req) => {
       console.log('DataForSEO: Used cached data (saved $0.05)');
     }
 
+    // Pull the Lighthouse SEO score (free, standardized, already computed for
+    // this URL by the web analysis) to use as the on-page basis when we have no
+    // real keyword rankings.
+    let lighthouseSeoScore: number | null = null;
+    if (webAnalysisId) {
+      const { data: wa } = await supabase
+        .from('web_analyses')
+        .select('seo_score')
+        .eq('id', webAnalysisId)
+        .maybeSingle();
+      if (wa && typeof wa.seo_score === 'number') {
+        lighthouseSeoScore = wa.seo_score;
+      }
+    }
+
     // Step 4: Generate AI insights with real keyword data
-    const aiInsights = await generateAiInsights(seoMetrics, rankedKeywords, formattedUrl, geminiApiKey);
+    const aiInsights = await generateAiInsights(seoMetrics, rankedKeywords, formattedUrl, geminiApiKey, lighthouseSeoScore);
 
     // Combine all results
     const result: SeoAnalysisResult = {
