@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,6 +78,7 @@ export default function WebAnalysisPage() {
   const [summary, setSummary] = useState<string | null>(null);
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
    const [activeReportTab, setActiveReportTab] = useState<"customer" | "technical" | "seo" | "geo">("customer");
   const [isRunningGeo, setIsRunningGeo] = useState(false);
   const [savedAnalysisId, setSavedAnalysisId] = useState<string | null>(null);
@@ -316,7 +317,13 @@ export default function WebAnalysisPage() {
     setCurrentResult(analysis.raw_data);
     setCurrentUrl(analysis.url);
     setSummary(null);
-    
+
+    // Scroll the result into view so you don't have to scroll up manually after
+    // clicking a history row. Wait a frame so the result has rendered.
+    requestAnimationFrame(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
     // Check if URL is linked to a lead
     const leadMatch = await webAnalysisApi.findLeadByUrl(analysis.url);
     setLinkedLead(leadMatch);
@@ -409,7 +416,7 @@ export default function WebAnalysisPage() {
 
         {/* Results */}
         {currentResult && (
-          <div className="space-y-6">
+          <div className="space-y-6 scroll-mt-4" ref={resultRef}>
             {/* URL and Strategy info */}
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
