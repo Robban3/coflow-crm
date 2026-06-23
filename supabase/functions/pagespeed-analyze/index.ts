@@ -210,8 +210,10 @@ Deno.serve(async (req) => {
     // PSI is frequently slow and occasionally returns a transient timeout or
     // Lighthouse runtime error. Retry a few times (with an abort timeout per
     // attempt) so a single hiccup doesn't fail the whole analysis.
-    const MAX_ATTEMPTS = 3;
-    const ATTEMPT_TIMEOUT_MS = 55_000;
+    // Keep the total well under the gateway/function wall-clock limit so a slow
+    // site can't make the whole call time out (2 x 30s + backoff ~= 62s).
+    const MAX_ATTEMPTS = 2;
+    const ATTEMPT_TIMEOUT_MS = 30_000;
     const RETRYABLE_HTTP = new Set([408, 429, 500, 502, 503, 504]);
 
     let data: any = null;
