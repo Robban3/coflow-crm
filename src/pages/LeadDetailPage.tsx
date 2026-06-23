@@ -368,17 +368,28 @@ export default function LeadDetailPage() {
   // fetchLeadData replaced by useQuery above
 
   const handleAddActivity = async () => {
-    if (!activityForm.title || !id) return;
+    if (!id) return;
+    const isNote = activityForm.type === 'note';
+    const trimmedTitle = activityForm.title.trim();
+    const trimmedDescription = activityForm.description.trim();
+    // Notes can be saved with just text — a missing title falls back to
+    // "Anteckning". Other activity types still require a title.
+    if (isNote) {
+      if (!trimmedTitle && !trimmedDescription) return;
+    } else if (!trimmedTitle) {
+      return;
+    }
+    const finalTitle = trimmedTitle || 'Anteckning';
 
     setIsSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       const { error } = await supabase.from('activities').insert({
         lead_id: id,
         type: activityForm.type,
-        title: activityForm.title,
-        description: activityForm.description || null,
+        title: finalTitle,
+        description: trimmedDescription || null,
         user_id: user?.id,
         completed_at: new Date().toISOString(),
       });
@@ -393,7 +404,7 @@ export default function LeadDetailPage() {
 
       toast({
         title: t("leadDetail.ldp_activityAdded"),
-        description: `${activityForm.title} har loggats`,
+        description: `${finalTitle} har loggats`,
       });
 
       setShowActivityDialog(false);
@@ -1231,7 +1242,7 @@ export default function LeadDetailPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>{t("leadDetail.ldp_titleReq")}</Label>
+                <Label>{activityForm.type === 'note' ? 'Rubrik (valfritt)' : t("leadDetail.ldp_titleReq")}</Label>
                 <Input
                   value={activityForm.title}
                   onChange={(e) => setActivityForm(prev => ({ ...prev, title: e.target.value }))}
@@ -1259,7 +1270,15 @@ export default function LeadDetailPage() {
               <Button variant="outline" onClick={() => setShowActivityDialog(false)}>
                 Avbryt
               </Button>
-              <Button onClick={handleAddActivity} disabled={isSaving || !activityForm.title}>
+              <Button
+                onClick={handleAddActivity}
+                disabled={
+                  isSaving ||
+                  (activityForm.type === 'note'
+                    ? !activityForm.title.trim() && !activityForm.description.trim()
+                    : !activityForm.title.trim())
+                }
+              >
                 {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
