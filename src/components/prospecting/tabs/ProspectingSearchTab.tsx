@@ -110,16 +110,25 @@ export default function ProspectingSearchTab() {
   const [canLoadMore, setCanLoadMore] = useState(false);
   const seenPlaceIdsRef = useRef<Set<string>>(new Set());
 
-  // Fetch existing leads for dedup
+  // Fetch existing leads for dedup. Leads are private, so we go through the
+  // org-wide get_org_lead_claims() RPC: it returns only identifying fields +
+  // owner name for EVERY lead in the org, so companies already taken by other
+  // users are greyed out too (with the owner shown).
   const { data: existingLeads } = useQuery({
     queryKey: ["prospecting-existing-leads", orgId],
     queryFn: async () => {
       if (!orgId) return [];
-      const { data } = await supabase
-        .from("leads")
-        .select("id, company_name, website, email, enrichment_status, auto_draft_generated")
-        .eq("organization_id", orgId);
-      return data ?? [];
+      const { data } = await (supabase as any).rpc("get_org_lead_claims");
+      return (data ?? []) as Array<{
+        id: string;
+        company_name: string | null;
+        website: string | null;
+        email: string | null;
+        enrichment_status: string | null;
+        auto_draft_generated: boolean | null;
+        owner_id: string | null;
+        owner_name: string | null;
+      }>;
     },
     enabled: !!orgId,
   });
@@ -239,8 +248,8 @@ export default function ProspectingSearchTab() {
 
   // Check duplicates
   const getDuplicateInfo = useCallback(
-    (place: PlaceResult): { isDuplicate: boolean; emailSent: boolean } => {
-      if (!existingLeads?.length) return { isDuplicate: false, emailSent: false };
+    (place: PlaceResult): { isDuplicate: boolean; emailSent: boolean; ownerName: string | null } => {
+      if (!existingLeads?.length) return { isDuplicate: false, emailSent: false, ownerName: null };
       const placeWebsite = place.website ? normalizeUrl(place.website) : null;
       const placeName = normalizeCompanyName(place.name);
       const existingLead = existingLeads.find((lead) => {
@@ -250,8 +259,12 @@ export default function ProspectingSearchTab() {
         if (lead.company_name && normalizeCompanyName(lead.company_name) === placeName) return true;
         return false;
       });
-      if (!existingLead) return { isDuplicate: false, emailSent: false };
-      return { isDuplicate: true, emailSent: sentEmailLeadIds?.has(existingLead.id) || false };
+      if (!existingLead) return { isDuplicate: false, emailSent: false, ownerName: null };
+      return {
+        isDuplicate: true,
+        emailSent: sentEmailLeadIds?.has(existingLead.id) || false,
+        ownerName: existingLead.owner_name ?? null,
+      };
     },
     [existingLeads, sentEmailLeadIds]
   );
@@ -589,7 +602,11 @@ export default function ProspectingSearchTab() {
                       <span className="font-medium text-sm truncate">{place.name}</span>
                       {dupInfo.isDuplicate && (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                          {dupInfo.emailSent ? t("prospecting.mailSent") : t("prospecting.alreadyExists")}
+                          {dupInfo.ownerName
+                            ? t("prospecting.takenBy", { name: dupInfo.ownerName })
+                            : dupInfo.emailSent
+                            ? t("prospecting.mailSent")
+                            : t("prospecting.alreadyExists")}
                         </Badge>
                       )}
                     </div>

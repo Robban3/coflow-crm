@@ -65,7 +65,9 @@ export function LeadOwnerSelect({
   };
 
   const isUserOnLead = leadMembers.some((lm) => lm.user_id === user?.id);
-  const canManage = isAdmin || isUserOnLead || currentOwnerId === user?.id;
+  // Only admins may assign/reassign leads to users (product decision). Regular
+  // users claim leads implicitly by logging a call/email, not via this control.
+  const canManage = isAdmin;
 
   const addMember = async (memberId: string) => {
     setIsLoading(true);
