@@ -56,6 +56,20 @@ function convertIDNUrl(urlString: string): string {
   }
 }
 
+// fetch with an abort-based timeout, so a hung PSI request can't stall the whole
+// function (it has no built-in timeout otherwise).
+async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 interface AuditDetail {
   id: string;
   title: string;
@@ -193,62 +207,101 @@ Deno.serve(async (req) => {
       console.log('No API key found, using public quota (limited)');
     }
 
-    const response = await fetch(apiUrl);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      console.error('PageSpeed API error:', JSON.stringify(errorData, null, 2));
-      
-      // Parse the error message for a user-friendly response
-      let userMessage = `PageSpeed API-fel: ${response.status}`;
-      
-      if (errorData?.error?.message) {
-        const errorMessage = errorData.error.message as string;
-        
-        if (errorMessage.includes('FAILED_DOCUMENT_REQUEST') || errorMessage.includes('ERR_CONNECTION')) {
-          userMessage = `Kunde inte nå webbplatsen "${formattedUrl}". Kontrollera att adressen är korrekt och att webbplatsen är online.`;
-        } else if (errorMessage.includes('DNS_FAILURE') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) {
-          userMessage = `Domänen "${formattedUrl}" kunde inte hittas. Kontrollera att adressen är korrekt stavad.`;
-        } else if (errorMessage.includes('PROTOCOL_TIMEOUT')) {
-          userMessage = `Webbplatsen svarade för långsamt. Försök igen senare.`;
-        } else if (errorMessage.includes('INVALID_URL')) {
-          userMessage = `Ogiltig URL. Kontrollera att adressen är korrekt formaterad.`;
-        } else {
-          userMessage = `Analysen misslyckades: ${errorMessage.substring(0, 150)}`;
-        }
+    // PSI is frequently slow and occasionally returns a transient timeout or
+    // Lighthouse runtime error. Retry a few times (with an abort timeout per
+    // attempt) so a single hiccup doesn't fail the whole analysis.
+    const MAX_ATTEMPTS = 3;
+    const ATTEMPT_TIMEOUT_MS = 55_000;
+    const RETRYABLE_HTTP = new Set([408, 429, 500, 502, 503, 504]);
+
+    let data: any = null;
+    let failureMessage = `Kunde inte analysera "${formattedUrl}". Försök igen om en stund.`;
+    let failureCode: string | number = 'LIGHTHOUSE_ERROR';
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      let response: Response;
+      try {
+        response = await fetchWithTimeout(apiUrl, ATTEMPT_TIMEOUT_MS);
+      } catch (e) {
+        // Network error or our own abort timeout — always retryable.
+        console.warn(`PSI attempt ${attempt}/${MAX_ATTEMPTS} failed (network/timeout):`, String(e));
+        failureMessage = `Webbplatsen svarade för långsamt. Försök igen om en stund.`;
+        failureCode = 'TIMEOUT';
+        if (attempt < MAX_ATTEMPTS) { await sleep(attempt * 1500); continue; }
+        break;
       }
-      
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error(`PSI attempt ${attempt}/${MAX_ATTEMPTS} HTTP ${response.status}:`, JSON.stringify(errorData));
+
+        // Build a user-friendly message from the API error.
+        let userMessage = `PageSpeed API-fel: ${response.status}`;
+        if (errorData?.error?.message) {
+          const errorMessage = errorData.error.message as string;
+          if (errorMessage.includes('FAILED_DOCUMENT_REQUEST') || errorMessage.includes('ERR_CONNECTION')) {
+            userMessage = `Kunde inte nå webbplatsen "${formattedUrl}". Kontrollera att adressen är korrekt och att webbplatsen är online.`;
+          } else if (errorMessage.includes('DNS_FAILURE') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) {
+            userMessage = `Domänen "${formattedUrl}" kunde inte hittas. Kontrollera att adressen är korrekt stavad.`;
+          } else if (errorMessage.includes('PROTOCOL_TIMEOUT')) {
+            userMessage = `Webbplatsen svarade för långsamt. Försök igen senare.`;
+          } else if (errorMessage.includes('INVALID_URL')) {
+            userMessage = `Ogiltig URL. Kontrollera att adressen är korrekt formaterad.`;
+          } else {
+            userMessage = `Analysen misslyckades: ${errorMessage.substring(0, 150)}`;
+          }
+        }
+
+        // Transient server-side / rate-limit errors are worth retrying; client
+        // errors (bad URL, unreachable site) are not.
+        if (RETRYABLE_HTTP.has(response.status) && attempt < MAX_ATTEMPTS) {
+          failureMessage = userMessage;
+          failureCode = response.status;
+          await sleep(attempt * 1500);
+          continue;
+        }
+        // Return 200 so supabase.functions.invoke surfaces our message in the
+        // body (non-2xx is swallowed into a generic FunctionsHttpError).
+        return new Response(
+          JSON.stringify({ success: false, error: userMessage, errorCode: response.status }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const body = await response.json();
+      const lhr = body.lighthouseResult || {};
+      const cats = lhr.categories || {};
+
+      // If Lighthouse couldn't actually analyze the site (too slow, unreachable,
+      // or it blocks automated tools), PSI returns a runtimeError and no scores.
+      // This is often transient, so retry before giving up.
+      if (lhr.runtimeError || cats.performance?.score == null) {
+        const rtMsg: string = lhr.runtimeError?.message || '';
+        console.warn(`PSI attempt ${attempt}/${MAX_ATTEMPTS} runtimeError:`, rtMsg || '(no scores)');
+        failureMessage = `Kunde inte analysera "${formattedUrl}". Sajten kan vara för långsam, otillgänglig eller blockera automatiserade verktyg. Försök igen om en stund.${rtMsg ? ` (${rtMsg.substring(0, 140)})` : ''}`;
+        failureCode = 'LIGHTHOUSE_ERROR';
+        if (attempt < MAX_ATTEMPTS) { await sleep(attempt * 2000); continue; }
+        break;
+      }
+
+      data = body; // success
+      break;
+    }
+
+    // All attempts exhausted without a usable result — surface a clear error
+    // instead of saving a misleading all-zeros / undefined report.
+    if (!data) {
+      // 200 so the client reads our message from the body (see note above).
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: userMessage,
-          errorCode: response.status,
-        }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: failureMessage, errorCode: failureCode }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const data = await response.json();
-    
     // Extract data from Lighthouse result
     const lighthouseResult = data.lighthouseResult || {};
     const categories = lighthouseResult.categories || {};
     const audits = lighthouseResult.audits || {};
-
-    // If Lighthouse couldn't actually analyze the site (too slow, unreachable,
-    // or it blocks automated tools), PSI returns a runtimeError and no category
-    // scores. Don't save a misleading all-zeros report — surface a clear error.
-    if (lighthouseResult.runtimeError || categories.performance?.score == null) {
-      const rtMsg: string = lighthouseResult.runtimeError?.message || '';
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: `Kunde inte analysera "${formattedUrl}". Sajten kan vara för långsam, otillgänglig eller blockera automatiserade verktyg. Försök igen om en stund.${rtMsg ? ` (${rtMsg.substring(0, 140)})` : ''}`,
-          errorCode: 'LIGHTHOUSE_ERROR',
-        }),
-        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
     
     // Extract all audits per category
     const performanceAudits = extractAudits(audits, categories.performance?.auditRefs);
