@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,23 @@ export function CreateTaskDialog({ open, onOpenChange, onCreated }: CreateTaskDi
   const [assignedTo, setAssignedTo] = useState<string>("");
   const [dueDate, setDueDate] = useState<Date | undefined>();
   const [saving, setSaving] = useState(false);
+
+  // A task may only be assigned to an admin or to yourself. Admins aren't
+  // visible in user_roles to regular users, so fetch the admin ids via RPC.
+  // If the RPC isn't available yet (not deployed), fall back to all members.
+  const { data: adminIds } = useQuery({
+    queryKey: ["org-admin-ids", organizationId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("get_org_admin_ids");
+      if (error) return null;
+      return new Set((data ?? []) as string[]);
+    },
+    enabled: open,
+  });
+
+  const assignableMembers = adminIds
+    ? members.filter((m) => adminIds.has(m.id) || m.id === user?.id)
+    : members;
 
   const handleSubmit = async () => {
     if (!title.trim() || !user || !organizationId) return;
@@ -121,7 +139,7 @@ export function CreateTaskDialog({ open, onOpenChange, onCreated }: CreateTaskDi
               <Select value={assignedTo} onValueChange={setAssignedTo}>
                 <SelectTrigger><SelectValue placeholder={t("tasks.assignMyself")} /></SelectTrigger>
                 <SelectContent>
-                  {members.map((m) => (
+                  {assignableMembers.map((m) => (
                     <SelectItem key={m.id} value={m.id}>
                       {m.full_name || m.email}
                     </SelectItem>
