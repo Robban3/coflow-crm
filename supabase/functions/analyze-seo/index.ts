@@ -485,12 +485,17 @@ VIKTIGT: Om sajten har sökord som rankar i Google, inkludera konkreta tips för
     
     if (toolCall?.function?.arguments) {
       const args = JSON.parse(toolCall.function.arguments);
+      // With real Google rankings we let the AI nudge the blended score; without
+      // them the AI would just be guessing, so we trust the measured on-page
+      // score instead of a hallucinated number that "doesn't match reality".
+      const hasRealRankings = rankedKeywords.length > 0;
       return {
         summary: args.summary || 'Kunde inte generera sammanfattning',
         opportunities: args.opportunities || [],
         estimatedKeywords: args.estimatedKeywords || [],
-        // Use AI score but keep it reasonable based on actual metrics
-        visibilityScore: Math.min(100, Math.max(0, args.visibilityScore || baseScore)),
+        visibilityScore: hasRealRankings
+          ? Math.min(100, Math.max(0, args.visibilityScore || baseScore))
+          : baseScore,
       };
     }
 
@@ -508,69 +513,80 @@ VIKTIGT: Om sajten har sökord som rankar i Google, inkludera konkreta tips för
 }
 
 function calculateVisibilityScore(seoData: Partial<SeoAnalysisResult>, rankedKeywords: RankedKeyword[]): number {
-  let score = 0;
-  
-  // REAL RANKINGS (up to 50 points)
-  if (rankedKeywords.length > 0) {
+  const hasRankings = rankedKeywords.length > 0;
+
+  // REAL RANKINGS (up to 50 points) — only when we actually have DataForSEO data.
+  let rankingScore = 0;
+  if (hasRankings) {
     // Keywords in top 3 (most valuable)
     const top3 = rankedKeywords.filter(k => k.position <= 3).length;
-    score += Math.min(20, top3 * 4);
-    
+    rankingScore += Math.min(20, top3 * 4);
+
     // Keywords in top 10
     const top10 = rankedKeywords.filter(k => k.position > 3 && k.position <= 10).length;
-    score += Math.min(15, top10 * 1.5);
-    
+    rankingScore += Math.min(15, top10 * 1.5);
+
     // Total traffic value
     const totalTraffic = rankedKeywords.reduce((sum, k) => sum + k.traffic, 0);
-    if (totalTraffic > 1000) score += 10;
-    else if (totalTraffic > 100) score += 5;
-    else if (totalTraffic > 10) score += 2;
-    
+    if (totalTraffic > 1000) rankingScore += 10;
+    else if (totalTraffic > 100) rankingScore += 5;
+    else if (totalTraffic > 10) rankingScore += 2;
+
     // Keyword diversity
-    if (rankedKeywords.length > 20) score += 5;
-    else if (rankedKeywords.length > 10) score += 3;
+    if (rankedKeywords.length > 20) rankingScore += 5;
+    else if (rankedKeywords.length > 10) rankingScore += 3;
   }
-  
+
   // ON-PAGE SEO (up to 50 points)
+  let onPageScore = 0;
+
   // Title (10 points)
   if (seoData.title_tag) {
-    score += 6;
+    onPageScore += 6;
     const titleLen = seoData.title_tag.length;
-    if (titleLen >= 30 && titleLen <= 60) score += 4;
-    else if (titleLen > 10) score += 2;
+    if (titleLen >= 30 && titleLen <= 60) onPageScore += 4;
+    else if (titleLen > 10) onPageScore += 2;
   }
-  
+
   // Meta description (10 points)
   if (seoData.meta_description) {
-    score += 6;
+    onPageScore += 6;
     const descLen = seoData.meta_description.length;
-    if (descLen >= 120 && descLen <= 160) score += 4;
-    else if (descLen > 50) score += 2;
+    if (descLen >= 120 && descLen <= 160) onPageScore += 4;
+    else if (descLen > 50) onPageScore += 2;
   }
-  
+
   // H1 (5 points)
   const h1Count = seoData.h1_count ?? 0;
-  if (h1Count === 1) score += 5;
-  else if (h1Count > 1) score += 2;
-  
+  if (h1Count === 1) onPageScore += 5;
+  else if (h1Count > 1) onPageScore += 2;
+
   // HTTPS (5 points - critical)
-  if (seoData.is_https) score += 5;
-  
+  if (seoData.is_https) onPageScore += 5;
+
   // Technical SEO (15 points)
-  if (seoData.has_canonical) score += 3;
-  if (seoData.has_open_graph) score += 2;
-  if (seoData.has_twitter_cards) score += 2;
-  if (seoData.mobile_friendly) score += 3;
-  if (seoData.has_robots_txt) score += 2;
-  if (seoData.has_sitemap) score += 3;
-  
+  if (seoData.has_canonical) onPageScore += 3;
+  if (seoData.has_open_graph) onPageScore += 2;
+  if (seoData.has_twitter_cards) onPageScore += 2;
+  if (seoData.mobile_friendly) onPageScore += 3;
+  if (seoData.has_robots_txt) onPageScore += 2;
+  if (seoData.has_sitemap) onPageScore += 3;
+
   // Content (5 points)
   const wordCount = seoData.word_count || 0;
-  if (wordCount > 1000) score += 5;
-  else if (wordCount > 500) score += 3;
-  else if (wordCount > 300) score += 2;
-  
-  return Math.min(100, score);
+  if (wordCount > 1000) onPageScore += 5;
+  else if (wordCount > 500) onPageScore += 3;
+  else if (wordCount > 300) onPageScore += 2;
+
+  // Without real Google ranking data, half the points are unreachable, which
+  // unfairly caps a well-optimised site at ~50 and makes the score misleading.
+  // In that case score purely on what we actually measured (on-page), scaled to
+  // 0-100. The UI already labels this as "based on on-page SEO".
+  if (!hasRankings) {
+    return Math.min(100, Math.round(onPageScore * 2));
+  }
+
+  return Math.min(100, rankingScore + onPageScore);
 }
 
 Deno.serve(async (req) => {
