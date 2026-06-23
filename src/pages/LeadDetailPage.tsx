@@ -667,12 +667,10 @@ export default function LeadDetailPage() {
                 <span className="sm:hidden">Analysera</span>
               </Button>
             )}
-            {hasModuleAccess('offers') && (
-              <Button variant="outline" size="sm" onClick={() => navigate(`/quotes?newFromLead=${id}`)} className="flex-1 sm:flex-none">
-                <FileText className="mr-2 h-4 w-4" />
-                Skapa offert
-              </Button>
-            )}
+            <Button variant="outline" size="sm" onClick={() => navigate(`/quotes?newFromLead=${id}`)} className="flex-1 sm:flex-none">
+              <FileText className="mr-2 h-4 w-4" />
+              Skapa offert
+            </Button>
             <Button
               variant="outline"
               size="sm"
