@@ -234,6 +234,21 @@ Deno.serve(async (req) => {
     const lighthouseResult = data.lighthouseResult || {};
     const categories = lighthouseResult.categories || {};
     const audits = lighthouseResult.audits || {};
+
+    // If Lighthouse couldn't actually analyze the site (too slow, unreachable,
+    // or it blocks automated tools), PSI returns a runtimeError and no category
+    // scores. Don't save a misleading all-zeros report — surface a clear error.
+    if (lighthouseResult.runtimeError || categories.performance?.score == null) {
+      const rtMsg: string = lighthouseResult.runtimeError?.message || '';
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Kunde inte analysera "${formattedUrl}". Sajten kan vara för långsam, otillgänglig eller blockera automatiserade verktyg. Försök igen om en stund.${rtMsg ? ` (${rtMsg.substring(0, 140)})` : ''}`,
+          errorCode: 'LIGHTHOUSE_ERROR',
+        }),
+        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     // Extract all audits per category
     const performanceAudits = extractAudits(audits, categories.performance?.auditRefs);

@@ -53,8 +53,10 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
     }
   };
 
+  const num = (v: number | null | undefined) => (typeof v === "number" ? v : 0);
+
   const getOverallRating = () => {
-    const avgScore = (result.performance_score + result.accessibility_score + result.seo_score + result.best_practices_score) / 4;
+    const avgScore = (num(result.performance_score) + num(result.accessibility_score) + num(result.seo_score) + num(result.best_practices_score)) / 4;
     if (avgScore >= 90) return { label: t("webAnalysis.ratingExcellent"), color: "bg-green-500", icon: ThumbsUp };
     if (avgScore >= 70) return { label: t("webAnalysis.ratingGood"), color: "bg-green-400", icon: ThumbsUp };
     if (avgScore >= 50) return { label: t("webAnalysis.ratingNeedsImprovement"), color: "bg-yellow-500", icon: AlertCircle };
@@ -81,7 +83,7 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
     {
       icon: Target,
       title: t("webAnalysis.insightGoogleVisibility"),
-      value: `${result.seo_score}/100`,
+      value: typeof result.seo_score === "number" ? `${result.seo_score}/100` : "N/A",
       status: result.seo_score >= 90 ? "good" : result.seo_score >= 50 ? "warning" : "bad",
       description: result.seo_score >= 90
         ? t("webAnalysis.insightGoogleVisibilityGood")
