@@ -1,6 +1,9 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getAuthenticatedUserId } from "../_shared/auth.ts";
 import { fetchWithRetry } from "../_shared/http.ts";
+import { getCached, setCached } from "../_shared/cache.ts";
+
+const FIRECRAWL_CACHE_TTL_SECONDS = 24 * 60 * 60;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -64,6 +67,13 @@ interface SeoAnalysisResult {
 }
 
 async function scrapeWithFirecrawl(url: string, apiKey: string): Promise<{ success: boolean; data?: any; error?: string; blocked?: boolean }> {
+  // Serve a recent cached scrape for this URL to avoid re-billing Firecrawl.
+  const cacheKey = `firecrawl:scrape:${url}`;
+  const cached = await getCached<any>(cacheKey);
+  if (cached) {
+    console.log('Firecrawl cache hit for', url);
+    return { success: true, data: cached, blocked: false };
+  }
   try {
     const response = await fetchWithRetry('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
@@ -97,6 +107,11 @@ async function scrapeWithFirecrawl(url: string, apiKey: string): Promise<{ succe
       statusCode === 403 ||
       ((html.length + markdown.length) < 600 &&
         /(access denied|forbidden|are you a robot|verify you are human|captcha|cloudflare|attention required)/i.test(html + markdown));
+
+    // Only cache clean, non-blocked scrapes so we never serve a block page.
+    if (!blocked) {
+      await setCached(cacheKey, scraped, FIRECRAWL_CACHE_TTL_SECONDS, 'firecrawl');
+    }
 
     return { success: true, data: scraped, blocked };
   } catch (error) {

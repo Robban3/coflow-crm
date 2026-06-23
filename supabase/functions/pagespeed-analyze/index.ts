@@ -1,4 +1,8 @@
 import { getAuthenticatedUserId } from "../_shared/auth.ts";
+import { getCached, setCached } from "../_shared/cache.ts";
+
+// Reuse a recent analysis of the same URL+strategy to avoid re-billing PSI.
+const PSI_CACHE_TTL_SECONDS = 24 * 60 * 60;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -189,6 +193,17 @@ Deno.serve(async (req) => {
     console.log('ASCII URL for API:', asciiUrl);
 
     console.log('Analyzing URL:', asciiUrl, 'Strategy:', strategy);
+
+    // Serve a recent cached result for this exact URL + strategy if we have one.
+    const cacheKey = `psi:${strategy}:${asciiUrl}`;
+    const cached = await getCached<PageSpeedResult>(cacheKey);
+    if (cached) {
+      console.log('PSI cache hit for', cacheKey);
+      return new Response(
+        JSON.stringify({ success: true, data: cached, cached: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get API key from environment
     const apiKey = Deno.env.get('GOOGLE_PAGESPEED_API_KEY');
@@ -395,6 +410,9 @@ Deno.serve(async (req) => {
       opportunities: result.opportunities.length,
       diagnostics: result.diagnostics.length,
     });
+
+    // Cache the successful result for subsequent identical requests.
+    await setCached(cacheKey, result, PSI_CACHE_TTL_SECONDS, 'pagespeed');
 
     return new Response(
       JSON.stringify({ success: true, data: result }),
