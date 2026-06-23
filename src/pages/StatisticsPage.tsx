@@ -14,7 +14,6 @@ import { StatisticsInsights } from "@/components/statistics/StatisticsInsights";
 import { StatisticsUserTable } from "@/components/statistics/StatisticsUserTable";
 import { StatisticsUserDrawer } from "@/components/statistics/StatisticsUserDrawer";
 import { DailyActivityTable } from "@/components/statistics/DailyActivityTable";
-import { TodaySnapshot } from "@/components/statistics/TodaySnapshot";
 import { CallOutcomesBreakdown, type CallOutcomeStats } from "@/components/statistics/CallOutcomesBreakdown";
 import { SalesFunnel, type FunnelStage } from "@/components/statistics/SalesFunnel";
 import { RevenuePerformance, type RevenueData } from "@/components/statistics/RevenuePerformance";
@@ -241,7 +240,6 @@ export default function StatisticsPage() {
             ) : (
               <>
                 <StatisticsKPICards totals={data.totals} deltas={data.deltas} />
-                <TodaySnapshot timeSeries={data.timeSeries} />
 
                 {isUser && currentUserEntry && (
                   <PersonalProgress

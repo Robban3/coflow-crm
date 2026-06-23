@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -66,33 +67,39 @@ export function EmailStatisticsTab() {
   const { t, language } = useTranslation();
   const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const organizationId = useOrganizationId();
+  const { user, isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("last_30_days");
   const groupBy = PERIOD_OPTIONS.find(p => p.value === period)?.defaultGroup ?? "day";
 
   const startDate = useMemo(() => getStartDate(period), [period]);
 
   const { data: emails, isLoading: loadingEmails } = useQuery({
-    queryKey: ["email-stats-sent", organizationId, period],
+    queryKey: ["email-stats-sent", organizationId, period, isAdmin, user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("sent_emails")
         .select("id, created_at, subject, recipient_email, recipient_name, opened_at, opened_count, source, status, send_error, lead_id, sent_by")
         .eq("organization_id", organizationId!)
         .gte("created_at", startDate.toISOString())
         .order("created_at", { ascending: false });
+      // Regular users only see their own email statistics; admins see all.
+      if (!isAdmin && user?.id) q = q.eq("sent_by", user.id);
+      const { data } = await q;
       return (data ?? []) as SentEmail[];
     },
     enabled: !!organizationId,
   });
 
   const { data: replies } = useQuery({
-    queryKey: ["email-stats-replies", organizationId, period],
+    queryKey: ["email-stats-replies", organizationId, period, isAdmin, user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("email_replies")
         .select("id, received_at, original_email_id, lead_id")
         .eq("organization_id", organizationId!)
         .gte("received_at", startDate.toISOString());
+      if (!isAdmin && user?.id) q = q.eq("sent_by", user.id);
+      const { data } = await q;
       return (data ?? []) as EmailReply[];
     },
     enabled: !!organizationId,
