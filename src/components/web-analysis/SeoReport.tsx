@@ -306,7 +306,21 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />{t("webAnalysis.googleVisibilityScore")}</CardTitle>
+                <TrendingUp className="h-5 w-5" />{t("webAnalysis.googleVisibilityScore")}
+                <Badge
+                  variant={hasRealKeywordData ? "default" : "secondary"}
+                  className="ml-1 gap-1 font-normal"
+                >
+                  {hasRealKeywordData ? (
+                    <CheckCircle className="h-3 w-3" />
+                  ) : (
+                    <Globe className="h-3 w-3" />
+                  )}
+                  {hasRealKeywordData
+                    ? t("webAnalysis.seoSourceRealBadge")
+                    : t("webAnalysis.seoSourceOnPageBadge")}
+                </Badge>
+              </CardTitle>
               <CardDescription>
                 {hasRealKeywordData ? t("webAnalysis.basedOnRealRankings") : t("webAnalysis.basedOnOnPage")}
               </CardDescription>
@@ -333,6 +347,14 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
               </p>
             </div>
           </div>
+
+          {/* Data-source note when real Google rankings are unavailable */}
+          {!hasRealKeywordData && (
+            <div className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2.5 text-xs text-muted-foreground">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" />
+              <span>{t("webAnalysis.seoNoRankingNote")}</span>
+            </div>
+          )}
 
           {/* Traffic Stats Grid */}
           {hasRealKeywordData && (
