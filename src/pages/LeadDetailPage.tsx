@@ -385,6 +385,12 @@ export default function LeadDetailPage() {
 
       if (error) throw error;
 
+      // Logging outreach (email/meeting) claims an unassigned lead for the
+      // caller — only if currently unassigned, so it never takes someone else's.
+      if ((activityForm.type === "email" || activityForm.type === "meeting") && user?.id) {
+        await supabase.from("leads").update({ assigned_to: user.id }).eq("id", id).is("assigned_to", null);
+      }
+
       toast({
         title: t("leadDetail.ldp_activityAdded"),
         description: `${activityForm.title} har loggats`,

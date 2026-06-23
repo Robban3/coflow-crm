@@ -198,6 +198,14 @@ export function LogCallDialog({
         await supabase.from("leads").update(updateData).eq("id", leadId);
       }
 
+      // Logging a call claims the lead for the caller — but only if it is
+      // currently unassigned, so it never takes a lead someone else owns.
+      await supabase
+        .from("leads")
+        .update({ assigned_to: user.id })
+        .eq("id", leadId)
+        .is("assigned_to", null);
+
       toast({
         title: t("leadDetail.lc_savedTitle"),
         description: `${selectedOutcome.label}${callbackTaskId ? t("leadDetail.lc_followUpCreated") : ""}`,
