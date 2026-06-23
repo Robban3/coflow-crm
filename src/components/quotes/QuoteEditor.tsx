@@ -346,6 +346,11 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
         .eq("id", currentQuoteId);
       if (updErr) throw updErr;
 
+      // Advance the linked lead to the "Vunnen" pipeline stage.
+      if (leadId) {
+        await supabase.from("leads").update({ lead_status: "won" }).eq("id", leadId);
+      }
+
       setStatus("won");
       toast.success(t("quotes.quoteMarkedAsDeal"));
     } catch (err: any) {

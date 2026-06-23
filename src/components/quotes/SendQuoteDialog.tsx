@@ -62,7 +62,7 @@ export function SendQuoteDialog({
       if (error) throw error;
 
       // Update quote status
-      await supabase
+      const { data: sentQuote } = await supabase
         .from("quotes")
         .update({
           status: "sent",
@@ -70,7 +70,17 @@ export function SendQuoteDialog({
           recipient_email: email,
           recipient_name: name,
         })
-        .eq("id", quoteId);
+        .eq("id", quoteId)
+        .select("lead_id")
+        .single();
+
+      // Advance the linked lead to the "Offert skickad" pipeline stage.
+      if (sentQuote?.lead_id) {
+        await supabase
+          .from("leads")
+          .update({ lead_status: "offer_sent" })
+          .eq("id", sentQuote.lead_id);
+      }
 
       toast.success(
         documentLabel === "avtal"

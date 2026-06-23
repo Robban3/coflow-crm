@@ -176,15 +176,16 @@ export function LogCallDialog({
 
       if (callError) throw callError;
 
-      // Always record the latest outcome on the lead. This drives the pipeline
-      // "Återkopplingar" column (leads with last_call_outcome_key = "callback"),
-      // and logging any other outcome later clears that state automatically.
+      // "Bokad" advances the lead to the meeting_booked pipeline stage; other
+      // outcomes use their configured lead_status_effect.
+      const statusEffect = selectedOutcome.lead_status_effect
+        || (selectedOutcome.key === "booked" ? "meeting_booked" : null);
       const leadUpdate: Record<string, unknown> = {
         last_call_outcome_key: selectedOutcome.key,
       };
-      if (selectedOutcome.lead_status_effect) {
-        leadUpdate.lead_status = selectedOutcome.lead_status_effect;
-        if (selectedOutcome.lead_status_effect === "not_interested") {
+      if (statusEffect) {
+        leadUpdate.lead_status = statusEffect;
+        if (statusEffect === "not_interested") {
           leadUpdate.not_interested_at = new Date().toISOString();
           leadUpdate.not_interested_reason = note || null;
         }

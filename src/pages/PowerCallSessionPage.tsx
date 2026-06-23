@@ -437,6 +437,9 @@ export default function PowerCallSessionPage() {
           last_call_outcome_key: selectedOutcome.key,
           last_call_at: new Date().toISOString(),
         };
+        if (selectedOutcome.key === "booked") {
+          leadUpdate.lead_status = "meeting_booked";
+        }
         if (selectedOutcome.key === "not_interested") {
           leadUpdate.is_not_interested = true;
           leadUpdate.not_interested_at = new Date().toISOString();
