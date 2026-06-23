@@ -27,7 +27,7 @@ import { useTranslation } from "@/i18n/LanguageProvider";
 
 const PIPELINE_STAGES = [
   { key: "active", color: "bg-blue-500" },
-  { key: "contacted", color: "bg-indigo-500" },
+  { key: "callback", color: "bg-indigo-500" },
   { key: "meeting_booked", color: "bg-violet-500" },
   { key: "offer_sent", color: "bg-amber-500" },
   { key: "won", color: "bg-emerald-500" },
@@ -46,6 +46,7 @@ interface PipelineLead {
   lead_status: string;
   created_at: string;
   last_call_at: string | null;
+  last_call_outcome_key: string | null;
 }
 
 export default function PipelinePage() {
@@ -60,7 +61,7 @@ export default function PipelinePage() {
     queryFn: async () => {
       let query = supabase
         .from("leads")
-        .select("id, company_name, contact_name, email, phone, website, lead_status, created_at, last_call_at")
+        .select("id, company_name, contact_name, email, phone, website, lead_status, created_at, last_call_at, last_call_outcome_key")
         .not("is_not_interested", "eq", true)
         .order("created_at", { ascending: false });
 
@@ -75,11 +76,11 @@ export default function PipelinePage() {
     enabled: !!user?.id,
   });
 
-  const updateStatus = useMutation({
-    mutationFn: async ({ leadId, newStatus }: { leadId: string; newStatus: string }) => {
+  const updateLead = useMutation({
+    mutationFn: async ({ leadId, patch }: { leadId: string; patch: Record<string, unknown> }) => {
       const { error } = await supabase
         .from("leads")
-        .update({ lead_status: newStatus })
+        .update(patch)
         .eq("id", leadId);
       if (error) throw error;
     },
@@ -92,8 +93,17 @@ export default function PipelinePage() {
     },
   });
 
-  const getLeadsForStage = (stageKey: string) =>
-    leads.filter((l) => l.lead_status === stageKey);
+  // The "Återkopplingar" column auto-collects leads whose latest call outcome is
+  // a callback. Such leads live ONLY there until the next call is logged (which
+  // overwrites last_call_outcome_key) or they're dragged to another stage.
+  const getLeadsForStage = (stageKey: string) => {
+    if (stageKey === "callback") {
+      return leads.filter((l) => l.last_call_outcome_key === "callback");
+    }
+    return leads.filter(
+      (l) => l.last_call_outcome_key !== "callback" && l.lead_status === stageKey
+    );
+  };
 
   const handleDragStart = (e: React.DragEvent, leadId: string) => {
     e.dataTransfer.setData("text/plain", leadId);
@@ -107,8 +117,15 @@ export default function PipelinePage() {
     const leadId = e.dataTransfer.getData("text/plain");
     if (leadId) {
       const lead = leads.find((l) => l.id === leadId);
-      if (lead && lead.lead_status !== stageKey) {
-        updateStatus.mutate({ leadId, newStatus: stageKey });
+      if (lead) {
+        if (stageKey === "callback") {
+          if (lead.last_call_outcome_key !== "callback") {
+            updateLead.mutate({ leadId, patch: { last_call_outcome_key: "callback" } });
+          }
+        } else if (lead.lead_status !== stageKey || lead.last_call_outcome_key === "callback") {
+          // Move to a real stage and clear the pending-callback marker.
+          updateLead.mutate({ leadId, patch: { lead_status: stageKey, last_call_outcome_key: null } });
+        }
       }
     }
     setDraggingId(null);

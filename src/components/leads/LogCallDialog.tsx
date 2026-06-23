@@ -176,17 +176,20 @@ export function LogCallDialog({
 
       if (callError) throw callError;
 
-      // Update lead status if needed
+      // Always record the latest outcome on the lead. This drives the pipeline
+      // "Återkopplingar" column (leads with last_call_outcome_key = "callback"),
+      // and logging any other outcome later clears that state automatically.
+      const leadUpdate: Record<string, unknown> = {
+        last_call_outcome_key: selectedOutcome.key,
+      };
       if (selectedOutcome.lead_status_effect) {
-        const updateData: Record<string, unknown> = {
-          lead_status: selectedOutcome.lead_status_effect,
-        };
+        leadUpdate.lead_status = selectedOutcome.lead_status_effect;
         if (selectedOutcome.lead_status_effect === "not_interested") {
-          updateData.not_interested_at = new Date().toISOString();
-          updateData.not_interested_reason = note || null;
+          leadUpdate.not_interested_at = new Date().toISOString();
+          leadUpdate.not_interested_reason = note || null;
         }
-        await supabase.from("leads").update(updateData).eq("id", leadId);
       }
+      await supabase.from("leads").update(leadUpdate).eq("id", leadId);
 
       // Logging a call claims the lead for the caller — but only if it is
       // currently unassigned, so it never takes a lead someone else owns.
