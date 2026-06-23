@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
+import { DEFAULT_CALL_OUTCOMES } from "@/lib/defaultCallOutcomes";
 import {
   PhoneMissed,
   CalendarClock,
@@ -65,19 +66,8 @@ interface CallOutcome {
   sort_order: number;
 }
 
-// Fallback outcomes used when an organization has no call_outcomes rows yet
-// (default outcomes were only seeded for orgs that existed at the seed
-// migration; newer orgs would otherwise see an empty outcome picker). Mirrors
-// the seed in 20260217143010. call_logs stores outcome_key/label as text, so
-// these save correctly even without a matching DB row.
-const DEFAULT_OUTCOMES: CallOutcome[] = [
-  { id: "no_answer", key: "no_answer", label: "Ej svar", category: "neutral", requires_note: false, requires_task: false, lead_status_effect: null, icon: "phone-missed", color: "slate", sort_order: 1 },
-  { id: "callback", key: "callback", label: "Återkoppling", category: "neutral", requires_note: false, requires_task: true, lead_status_effect: null, icon: "calendar-clock", color: "amber", sort_order: 2 },
-  { id: "answered", key: "answered", label: "Svar", category: "positive", requires_note: true, requires_task: false, lead_status_effect: null, icon: "message-square", color: "green", sort_order: 3 },
-  { id: "not_interested", key: "not_interested", label: "Ej intresserad", category: "negative", requires_note: true, requires_task: false, lead_status_effect: "not_interested", icon: "x-circle", color: "red", sort_order: 4 },
-  { id: "booked", key: "booked", label: "Bokad", category: "positive", requires_note: true, requires_task: false, lead_status_effect: null, icon: "calendar-check", color: "green", sort_order: 5 },
-  { id: "wrong_number", key: "wrong_number", label: "Nummer fel", category: "negative", requires_note: true, requires_task: false, lead_status_effect: "invalid_phone", icon: "phone-off", color: "red", sort_order: 6 },
-];
+// Default outcomes (used when the org has none seeded) live in
+// @/lib/defaultCallOutcomes so Power Call and this dialog share one source.
 
 interface LogCallDialogProps {
   open: boolean;
@@ -242,7 +232,7 @@ export function LogCallDialog({
           <div>
             <Label className="text-sm mb-2 block">{t("leadDetail.lc_outcomeLabel")}</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {(outcomes.length > 0 ? outcomes : DEFAULT_OUTCOMES).map((outcome) => {
+              {(outcomes.length > 0 ? outcomes : DEFAULT_CALL_OUTCOMES).map((outcome) => {
                 const Icon = ICON_MAP[outcome.icon || ""] || Phone;
                 const isSelected = selectedOutcome?.key === outcome.key;
                 const baseColor = COLOR_MAP[outcome.color || "slate"] || COLOR_MAP.slate;

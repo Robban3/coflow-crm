@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { DEFAULT_CALL_OUTCOMES } from "@/lib/defaultCallOutcomes";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -924,7 +925,7 @@ export default function PowerCallSessionPage() {
                     <CardContent className="p-5">
                       <h3 className="text-sm font-semibold mb-4">Registrera utfall</h3>
                       <div className="grid grid-cols-1 gap-2">
-                        {outcomes.map((outcome) => {
+                        {(outcomes.length > 0 ? outcomes : (DEFAULT_CALL_OUTCOMES as CallOutcome[])).map((outcome) => {
                           const Icon = ICON_COMPONENT[outcome.icon || ""] || Phone;
                           const base = COLOR_BASE[outcome.color || "slate"] || COLOR_BASE.slate;
                           return (
