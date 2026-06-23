@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { sv, enUS, es } from "date-fns/locale";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import { WonDealDialog } from "@/components/deals/WonDealDialog";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
 const PIPELINE_STAGES = [
@@ -55,6 +56,10 @@ export default function PipelinePage() {
   const { t, language } = useTranslation();
   const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [wonDeal, setWonDeal] = useState<
+    | { leadId: string; prefill: { company_name?: string | null; contact_name?: string | null; email?: string | null; phone?: string | null } }
+    | null
+  >(null);
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["pipeline-leads", user?.id, isAdmin],
@@ -148,6 +153,16 @@ export default function PipelinePage() {
             supabase.functions
               .invoke("notify-deal-won", { body: { leadId, sellerId: user?.id, event: "won" } })
               .catch(() => {});
+            // Open the onboarding handoff form for the seller.
+            setWonDeal({
+              leadId,
+              prefill: {
+                company_name: lead.company_name,
+                contact_name: lead.contact_name,
+                email: lead.email,
+                phone: lead.phone,
+              },
+            });
           }
         }
       }
@@ -273,6 +288,13 @@ export default function PipelinePage() {
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
+
+      <WonDealDialog
+        open={!!wonDeal}
+        onOpenChange={(o) => !o && setWonDeal(null)}
+        leadId={wonDeal?.leadId}
+        prefill={wonDeal?.prefill}
+      />
     </AppLayout>
   );
 }

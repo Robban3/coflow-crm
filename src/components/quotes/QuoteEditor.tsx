@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { WonDealDialog } from "@/components/deals/WonDealDialog";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
   const [discountPercent, setDiscountPercent] = useState(0);
   const [viewToken, setViewToken] = useState("");
   const [leadId, setLeadId] = useState<string | null>(null);
+  const [wonDealOpen, setWonDealOpen] = useState(false);
   const [viewCount, setViewCount] = useState(0);
   const [documentLabel, setDocumentLabel] = useState<"offert" | "avtal">("offert");
 
@@ -357,6 +359,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
         .catch(() => {});
 
       setStatus("won");
+      setWonDealOpen(true);
       toast.success(t("quotes.quoteMarkedAsDeal"));
     } catch (err: any) {
       toast.error(t("quotes.couldNotConvert", { error: err.message || t("quotes.unknownError") }));
@@ -1021,6 +1024,14 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
           onClose={() => setShowSendDialog(false)}
         />
       )}
+
+      <WonDealDialog
+        open={wonDealOpen}
+        onOpenChange={setWonDealOpen}
+        quoteId={currentQuoteId}
+        leadId={leadId}
+        prefill={{ contact_name: recipientName, email: recipientEmail }}
+      />
     </div>
   );
 }
