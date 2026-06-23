@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { validateQuickOutreachRequest, sanitizeForHtml } from "../_shared/validation.ts";
 import { logActivityEvent } from "../_shared/activity-logger.ts";
+import { fetchWithTimeout } from "../_shared/http.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -221,7 +222,7 @@ serve(async (req) => {
     let resendText = "";
 
     try {
-      const resendResponse = await fetch("https://api.resend.com/emails", {
+      const resendResponse = await fetchWithTimeout("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${activeResendKey}`,

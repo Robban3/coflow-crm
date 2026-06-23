@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getAuthenticatedUserId } from "../_shared/auth.ts";
+import { fetchWithRetry } from "../_shared/http.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -57,11 +58,14 @@ interface SeoAnalysisResult {
   visibility_score: number;
   ai_summary: string;
   ai_opportunities: Array<{ title: string; description: string; priority: 'high' | 'medium' | 'low' }>;
+  // True when the site blocks automated tools (bot protection), so the scraped
+  // on-page data may be incomplete/unreliable.
+  automated_access_blocked?: boolean;
 }
 
-async function scrapeWithFirecrawl(url: string, apiKey: string): Promise<{ success: boolean; data?: any; error?: string }> {
+async function scrapeWithFirecrawl(url: string, apiKey: string): Promise<{ success: boolean; data?: any; error?: string; blocked?: boolean }> {
   try {
-    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+    const response = await fetchWithRetry('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -72,15 +76,29 @@ async function scrapeWithFirecrawl(url: string, apiKey: string): Promise<{ succe
         formats: ['markdown', 'html', 'links'],
         onlyMainContent: false,
       }),
-    });
+    }, { timeoutMs: 45_000, label: 'Firecrawl scrape' });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      return { success: false, error: data.error || `Firecrawl error: ${response.status}` };
+      // Firecrawl surfaces the target site's status; 403 / bot-block pages mean
+      // the site blocks automated tools, so our on-page data would be unreliable.
+      const msg = String(data?.error || `Firecrawl error: ${response.status}`);
+      const blocked = response.status === 403 || /403|forbidden|blocked|bot|captcha|cloudflare/i.test(msg);
+      return { success: false, error: msg, blocked };
     }
 
-    return { success: true, data: data.data || data };
+    const scraped = data.data || data;
+    // Detect a block even when Firecrawl returns 200 with a tiny challenge page.
+    const html: string = scraped?.html || '';
+    const markdown: string = scraped?.markdown || '';
+    const statusCode: number | undefined = scraped?.metadata?.statusCode;
+    const blocked =
+      statusCode === 403 ||
+      ((html.length + markdown.length) < 600 &&
+        /(access denied|forbidden|are you a robot|verify you are human|captcha|cloudflare|attention required)/i.test(html + markdown));
+
+    return { success: true, data: scraped, blocked };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Firecrawl request failed' };
   }
@@ -100,7 +118,7 @@ async function fetchDataForSEO(domain: string, login: string, password: string):
     const credentials = btoa(`${login}:${password}`);
     
     // Use Ranked Keywords endpoint - returns all keywords a domain ranks for
-    const response = await fetch('https://api.dataforseo.com/v3/dataforseo_labs/google/ranked_keywords/live', {
+    const response = await fetchWithRetry('https://api.dataforseo.com/v3/dataforseo_labs/google/ranked_keywords/live', {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${credentials}`,
@@ -118,7 +136,7 @@ async function fetchDataForSEO(domain: string, login: string, password: string):
           ],
         },
       ]),
-    });
+    }, { timeoutMs: 45_000, label: 'DataForSEO' });
 
     const data = await response.json();
     
@@ -716,12 +734,17 @@ Deno.serve(async (req) => {
     ]);
     
     if (!scrapeResult.success || !scrapeResult.data) {
+      const blockedMsg = scrapeResult.blocked
+        ? `Sajten "${formattedUrl}" blockerar automatiserade verktyg (t.ex. bot-skydd), så SEO-datan kan inte hämtas. Siffrorna i en webbläsare kan se annorlunda ut.`
+        : (scrapeResult.error || 'Kunde inte scrapa webbplatsen');
+      // 200 so the client reads our message from the body.
       return new Response(
-        JSON.stringify({ success: false, error: scrapeResult.error || 'Kunde inte scrapa webbplatsen' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: blockedMsg, errorCode: scrapeResult.blocked ? 'BLOCKED' : 'SCRAPE_FAILED' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const automatedAccessBlocked = scrapeResult.blocked === true;
     const { html, markdown, links = [] } = scrapeResult.data;
 
     // Step 2: Extract on-page SEO metrics
@@ -808,6 +831,7 @@ Deno.serve(async (req) => {
       visibility_score: aiInsights.visibilityScore,
       ai_summary: aiInsights.summary,
       ai_opportunities: aiInsights.opportunities,
+      automated_access_blocked: automatedAccessBlocked,
     };
 
     // Step 5: Save to database if we have the organization context
@@ -858,6 +882,7 @@ Deno.serve(async (req) => {
             total_traffic_cost: result.total_traffic_cost,
             top_positions: result.top_positions,
             dataforseo_enabled: hasDataForSeo,
+            automated_access_blocked: automatedAccessBlocked,
           },
         })
         .select('id')

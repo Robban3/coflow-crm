@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { validateGooglePlacesRequest } from "../_shared/validation.ts";
 import { getAuthenticatedUserId } from "../_shared/auth.ts";
+import { fetchWithRetry } from "../_shared/http.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -118,7 +119,7 @@ serve(async (req) => {
       };
     }
 
-    const searchRes = await fetch(searchUrl, {
+    const searchRes = await fetchWithRetry(searchUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -126,7 +127,7 @@ serve(async (req) => {
         "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.websiteUri,places.rating,places.userRatingCount,places.types,places.regularOpeningHours,places.location",
       },
       body: JSON.stringify(requestBody),
-    });
+    }, { timeoutMs: 30_000, label: "Google Places" });
 
     const searchData = await searchRes.json();
 

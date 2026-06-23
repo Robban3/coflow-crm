@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { logActivityEvent } from "../_shared/activity-logger.ts";
+import { fetchWithTimeout } from "../_shared/http.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -237,7 +238,7 @@ Deno.serve(async (req) => {
         }
 
         // Send via Resend
-        const resendResponse = await fetch("https://api.resend.com/emails", {
+        const resendResponse = await fetchWithTimeout("https://api.resend.com/emails", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${activeResendKey}`,

@@ -37,6 +37,11 @@ export interface OpenAIShapedResponse {
   choices: Array<{ message: { role: "assistant"; content: string } }>;
 }
 
+import { fetchWithRetry } from "./http.ts";
+
+// LLM calls can be slow; give them a longer per-attempt timeout than the default.
+const AI_TIMEOUT_MS = 60_000;
+
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
@@ -73,14 +78,14 @@ async function callGemini(
   if (maxTokens !== undefined) body.max_tokens = maxTokens;
   if (jsonMode) body.response_format = { type: "json_object" };
 
-  const res = await fetch(GEMINI_URL, {
+  const res = await fetchWithRetry(GEMINI_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
-  });
+  }, { timeoutMs: AI_TIMEOUT_MS, label: "Gemini" });
 
   if (!res.ok) {
     const errText = await res.text();
@@ -120,7 +125,7 @@ async function callClaude(
   if (system.trim()) body.system = system;
   if (temperature !== undefined) body.temperature = temperature;
 
-  const res = await fetch(ANTHROPIC_URL, {
+  const res = await fetchWithRetry(ANTHROPIC_URL, {
     method: "POST",
     headers: {
       "x-api-key": apiKey,
@@ -128,7 +133,7 @@ async function callClaude(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
-  });
+  }, { timeoutMs: AI_TIMEOUT_MS, label: "Anthropic" });
 
   if (!res.ok) {
     const errText = await res.text();

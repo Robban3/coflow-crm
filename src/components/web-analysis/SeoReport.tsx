@@ -297,9 +297,22 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
   const totalKeywords = seoData.raw_data?.total_ranked_keywords || rankedKeywords.length;
   const topPositions = seoData.raw_data?.top_positions || rankedKeywords.filter(k => k.position <= 10).length;
   const trafficValue = seoData.raw_data?.total_traffic_cost || 0;
+  const automatedAccessBlocked = !!(
+    (seoData as any).automated_access_blocked ||
+    (seoData.raw_data as any)?.automated_access_blocked
+  );
 
   return (
     <div className="space-y-6">
+      {automatedAccessBlocked && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 px-3 py-2.5 text-xs text-amber-800 dark:text-amber-300">
+          <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+          <span>
+            Sajten blockerar automatiserade verktyg (bot-skydd), så on-page-datan
+            kan vara ofullständig. Kör Lighthouse i din webbläsare för en exakt bild.
+          </span>
+        </div>
+      )}
       {/* Visibility Score Header with Traffic Stats */}
       <Card>
         <CardHeader className="pb-2">
