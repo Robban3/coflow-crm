@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { TrainingNavGroup } from "./TrainingNavGroup";
+import { useAuth } from "@/hooks/useAuth";
+import { Users } from "lucide-react";
 
 export function AppSidebar() {
   const location = useLocation();
   const { enabledModules } = useModules();
   const { settings } = useOrganization();
   const { t } = useTranslation();
+  const { isAdmin } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const hasAnimated = useRef(false);
   const shouldAnimate = !hasAnimated.current;
@@ -129,6 +132,27 @@ export function AppSidebar() {
 
       {/* Settings & Collapse */}
       <div className="px-3 py-4 border-t border-sidebar-border/60 space-y-2">
+        {isAdmin && (
+          <Link
+            to="/saljare"
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
+              "transition-all duration-200",
+              location.pathname.startsWith('/saljare')
+                ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
+                : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+            )}
+            title={isCollapsed ? "Säljare" : undefined}
+          >
+            <Users className={cn(
+              "h-5 w-5 shrink-0 transition-colors duration-200",
+              location.pathname.startsWith('/saljare')
+                ? "text-sidebar-primary"
+                : "text-sidebar-foreground/60"
+            )} />
+            {!isCollapsed && <span>Säljare</span>}
+          </Link>
+        )}
         <Link
           to="/settings"
           className={cn(

@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { AppHeader } from "./AppHeader";
+import { SellerProfileGate } from "@/components/seller/SellerProfileGate";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -10,6 +11,7 @@ interface AppLayoutProps {
 export function AppLayout({ children, title }: AppLayoutProps) {
   return (
     <div className="flex h-screen bg-gradient-subtle overflow-hidden">
+      <SellerProfileGate />
       <AppSidebar />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <AppHeader title={title} />

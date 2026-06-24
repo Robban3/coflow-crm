@@ -10,6 +10,7 @@ declare module 'lucide-react' {
   // Icons (keep alphabetical-ish for sanity)
   export const Activity: any;
   export const Undo2: any;
+  export const IdCard: any;
   export const AlertCircle: any;
   export const AlertTriangle: any;
   export const ArrowDown: any;

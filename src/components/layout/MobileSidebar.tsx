@@ -8,12 +8,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useState } from "react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { TrainingNavGroup } from "./TrainingNavGroup";
+import { useAuth } from "@/hooks/useAuth";
+import { Users } from "lucide-react";
 
 export function MobileSidebar() {
   const location = useLocation();
   const { enabledModules } = useModules();
   const { settings } = useOrganization();
   const { t } = useTranslation();
+  const { isAdmin } = useAuth();
   const [open, setOpen] = useState(false);
 
   const navigationModules = enabledModules.filter(m => m.id !== 'settings' && !m.isLeadSection);
@@ -96,7 +99,22 @@ export function MobileSidebar() {
         </nav>
 
         {/* Settings */}
-        <div className="px-3 py-4 border-t border-border mt-auto">
+        <div className="px-3 py-4 border-t border-border mt-auto space-y-1">
+          {isAdmin && (
+            <Link
+              to="/saljare"
+              onClick={handleNavClick}
+              className={cn(
+                "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
+                location.pathname.startsWith('/saljare')
+                  ? "bg-accent text-primary"
+                  : "text-foreground hover:bg-accent hover:text-accent-foreground"
+              )}
+            >
+              <Users className="h-5 w-5 shrink-0" />
+              <span>Säljare</span>
+            </Link>
+          )}
           <Link
             to="/settings"
             onClick={handleNavClick}

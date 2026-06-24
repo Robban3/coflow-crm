@@ -12,7 +12,9 @@ import { OrganizationDashboard } from "@/components/settings/OrganizationDashboa
 import { OrganizationEmailSettings } from "@/components/settings/OrganizationEmailSettings";
 import { ProfileImageUpload } from "@/components/settings/ProfileImageUpload";
 import { GrowthReportPricingSettings } from "@/components/reports/growth/GrowthReportPricingSettings";
-import { User, Building2, Settings as SettingsIcon, Mail, Loader2, Layout, BarChart3 } from "lucide-react";
+import { User, Building2, Settings as SettingsIcon, Mail, Loader2, Layout, BarChart3, IdCard } from "lucide-react";
+import { useSellerProfile } from "@/hooks/useSellerProfile";
+import { SellerProfileSettings } from "@/components/settings/SellerProfileSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useModules } from "@/hooks/useModules";
@@ -26,6 +28,7 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { hasModuleAccess } = useModules();
+  const { isSeller } = useSellerProfile();
   const location = useLocation();
 
   // Check if we're on a template editor sub-route
@@ -115,6 +118,12 @@ export default function SettingsPage() {
               <span className="hidden sm:inline">{t("settings.tabProfile")}</span>
               <span className="sm:hidden">{t("settings.tabProfile")}</span>
             </TabsTrigger>
+            {isSeller && (
+              <TabsTrigger value="seller" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <IdCard className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span>Mina uppgifter</span>
+              </TabsTrigger>
+            )}
             <TabsTrigger value="outreach" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">{t("settings.tabOutreach")}</span>
@@ -147,6 +156,13 @@ export default function SettingsPage() {
               <span className="sm:hidden">{t("settings.tabGeneralShort")}</span>
             </TabsTrigger>
           </TabsList>
+
+          {/* Seller profile tab */}
+          {isSeller && (
+            <TabsContent value="seller">
+              <SellerProfileSettings />
+            </TabsContent>
+          )}
 
           {/* Profile Tab */}
           <TabsContent value="profile">

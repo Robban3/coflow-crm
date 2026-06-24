@@ -63,6 +63,7 @@ const PowerCallSessionPage = lazyRetry(() => import("./pages/PowerCallSessionPag
 const ProspectingPage = lazyRetry(() => import("./pages/ProspectingPage"));
 const TicketsPage = lazyRetry(() => import("./pages/TicketsPage"));
 const TrainingPage = lazyRetry(() => import("./pages/TrainingPage"));
+const SalespeoplePage = lazyRetry(() => import("./pages/SalespeoplePage"));
 const PricingPage = lazyRetry(() => import("./pages/PricingPage"));
 
 const queryClient = new QueryClient({
@@ -180,6 +181,9 @@ const App = () => (
                 } />
                 <Route path="/statistics" element={
                   <ProtectedRoute><StatisticsPage /></ProtectedRoute>
+                } />
+                <Route path="/saljare" element={
+                  <ProtectedRoute><SalespeoplePage /></ProtectedRoute>
                 } />
                 <Route path="/outreach-pro" element={
                   <ProtectedRoute><OutreachProPage /></ProtectedRoute>
