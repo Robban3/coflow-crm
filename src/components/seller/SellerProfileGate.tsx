@@ -31,7 +31,13 @@ export function SellerProfileGate() {
     <Dialog open onOpenChange={() => { /* blocking: cannot be dismissed */ }}>
       <DialogContent
         className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto [&>button]:hidden"
-        onInteractOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => {
+          e.preventDefault();
+          toast({
+            title: "Försök inte! Fyll i alla uppgifter!",
+            description: ":) Robban och Oliver :)",
+          });
+        }}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
