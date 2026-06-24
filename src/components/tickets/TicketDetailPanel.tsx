@@ -55,10 +55,39 @@ export function TicketDetailPanel({ ticket, open, onClose, onUpdated }: Props) {
             </Badge>
           </div>
 
-          {/* Description */}
-          {ticket.description && (
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{ticket.description}</p>
-          )}
+          {/* Description / won-deal onboarding details */}
+          {(() => {
+            const handoff = (ticket.metadata as any)?.deal_handoff;
+            if (handoff) {
+              const rows: Array<[string, string | null | undefined]> = [
+                ["Företag", handoff.company_name],
+                ["Kontaktperson", handoff.contact_name],
+                ["E-post", handoff.email],
+                ["Telefon", handoff.phone],
+                ["Produkt/tjänst", handoff.product_service],
+                ["Onboarding", [handoff.onboarding_date, handoff.onboarding_time].filter(Boolean).join(" ")],
+                ["Säljarens anteckningar", handoff.seller_notes],
+                ["Kundens mål", handoff.customer_goal],
+                ["Löften / överenskommelser", handoff.promises],
+              ];
+              return (
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-foreground">Vunnen affär – onboarding</p>
+                  {rows.map(([label, value]) =>
+                    value && String(value).trim() ? (
+                      <div key={label} className="space-y-0.5">
+                        <p className="text-xs font-semibold text-foreground">{label}</p>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{value}</p>
+                      </div>
+                    ) : null,
+                  )}
+                </div>
+              );
+            }
+            return ticket.description ? (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{ticket.description}</p>
+            ) : null;
+          })()}
 
           <Separator />
 
