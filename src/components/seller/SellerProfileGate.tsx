@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,8 +47,11 @@ export function SellerProfileGate() {
         onInteractOutside={(e) => {
           e.preventDefault();
           const originalEvent = (e.detail as { originalEvent?: { clientX?: number; clientY?: number } } | undefined)?.originalEvent;
-          const x = originalEvent?.clientX ?? window.innerWidth / 2;
-          const y = originalEvent?.clientY ?? window.innerHeight / 2;
+          const rawX = originalEvent?.clientX ?? window.innerWidth / 2;
+          const rawY = originalEvent?.clientY ?? window.innerHeight / 2;
+          // Keep the bubble inside the viewport (it's anchored above the click).
+          const x = Math.min(Math.max(rawX, 12), window.innerWidth - 12);
+          const y = Math.max(rawY, 64);
           setNudge({ x, y, key: (nudge?.key ?? 0) + 1 });
         }}
         onEscapeKeyDown={(e) => e.preventDefault()}
@@ -69,16 +73,17 @@ export function SellerProfileGate() {
       </DialogContent>
     </Dialog>
 
-      {nudge && (
+      {nudge && createPortal(
         <div
           key={nudge.key}
-          className="fixed -translate-x-1/2 -translate-y-full -mt-2 pointer-events-none rounded-lg border bg-background px-4 py-2 shadow-xl text-sm font-semibold text-center whitespace-nowrap animate-in fade-in zoom-in-95"
-          style={{ left: nudge.x, top: nudge.y, zIndex: 9999 }}
+          className="fixed -translate-x-1/2 -translate-y-full -mt-2 pointer-events-none rounded-lg border bg-background px-4 py-2 shadow-xl text-sm font-semibold text-center whitespace-nowrap"
+          style={{ left: nudge.x, top: nudge.y, zIndex: 2147483647 }}
         >
           Försök inte! Fyll i alla uppgifter!
           <br />
           <span className="text-muted-foreground">:) Robban och Oliver :)</span>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
