@@ -12,8 +12,8 @@ const SELLER_PROFILE_TEST_USERS = ["robert@applabbet.com"];
 
 // Drives the mandatory seller-profile popup and the settings tab. A "seller" is
 // a non-admin @applabbet user; they must fill in their profile once. Admins are
-// exempt from the popup (per product decision), but test users may still edit
-// their own profile via the settings tab.
+// exempt from the popup (per product decision) — EXCEPT admins on the test
+// allowlist, who get the popup + tab so they can verify the full experience.
 export function useSellerProfile() {
   const { user, isAdmin } = useAuth();
   const organizationId = useOrganizationId();
@@ -78,8 +78,9 @@ export function useSellerProfile() {
     [user?.id, organizationId, refetch],
   );
 
-  // Blocking popup only for real sellers — never for admins/test users.
-  const needsSellerProfile = isSeller && !isLoading && !profile;
+  // Blocking popup for real sellers AND test users (so admins on the test
+  // allowlist can preview the exact first-login experience).
+  const needsSellerProfile = canEditProfile && !isLoading && !profile;
 
   return { isSeller, isApplabbet, isTestUser, canEditProfile, profile, isLoading, saving, needsSellerProfile, save, refetch };
 }
