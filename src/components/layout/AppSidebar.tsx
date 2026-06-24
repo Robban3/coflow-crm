@@ -142,7 +142,7 @@ export function AppSidebar() {
                 ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
                 : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
             )}
-            title={isCollapsed ? "Säljare" : undefined}
+            title={isCollapsed ? t("nav.salespeople") : undefined}
           >
             <Users className={cn(
               "h-5 w-5 shrink-0 transition-colors duration-200",
@@ -150,7 +150,7 @@ export function AppSidebar() {
                 ? "text-sidebar-primary"
                 : "text-sidebar-foreground/60"
             )} />
-            {!isCollapsed && <span>Säljare</span>}
+            {!isCollapsed && <span>{t("nav.salespeople")}</span>}
           </Link>
         )}
         <Link

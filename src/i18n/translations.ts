@@ -91,6 +91,7 @@ export const translations: Record<Language, Dict> = {
     "nav.pricing": "Priser & paket",
     "nav.training": "Utbildning",
     "nav.settings": "Inställningar",
+    "nav.salespeople": "Säljare",
 
     // Header
     "header.searchPlaceholder": "Sök...",
@@ -428,6 +429,7 @@ export const translations: Record<Language, Dict> = {
     "nav.pricing": "Prices & packages",
     "nav.training": "Training",
     "nav.settings": "Settings",
+    "nav.salespeople": "Salespeople",
 
     // Header
     "header.searchPlaceholder": "Search...",
@@ -765,6 +767,7 @@ export const translations: Record<Language, Dict> = {
     "nav.pricing": "Precios y paquetes",
     "nav.training": "Formación",
     "nav.settings": "Ajustes",
+    "nav.salespeople": "Vendedores",
 
     // Header
     "header.searchPlaceholder": "Buscar...",

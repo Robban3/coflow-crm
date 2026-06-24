@@ -112,7 +112,7 @@ export function MobileSidebar() {
               )}
             >
               <Users className="h-5 w-5 shrink-0" />
-              <span>Säljare</span>
+              <span>{t("nav.salespeople")}</span>
             </Link>
           )}
           <Link
