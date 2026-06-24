@@ -81,7 +81,7 @@ export function SellerProfileGate() {
         >
           Försök inte! Fyll i alla uppgifter!
           <br />
-          <span className="text-muted-foreground">:) Robban och Oliver :)</span>
+          <span className="text-muted-foreground">😊 Robban och Oliver 😊</span>
         </div>,
         document.body,
       )}
