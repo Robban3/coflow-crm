@@ -78,9 +78,22 @@ export function useSellerProfile() {
     [user?.id, organizationId, refetch],
   );
 
+  // Reset for test users: delete the own profile row so the blocking first-login
+  // popup shows again. DELETE is admin-only by RLS, and test users are admins.
+  const reset = useCallback(async (): Promise<{ error?: string }> => {
+    if (!user?.id) return { error: "Inte inloggad" };
+    const { error } = await (supabase as any)
+      .from("seller_profiles")
+      .delete()
+      .eq("user_id", user.id);
+    if (error) return { error: error.message };
+    await refetch();
+    return {};
+  }, [user?.id, refetch]);
+
   // Blocking popup for real sellers AND test users (so admins on the test
   // allowlist can preview the exact first-login experience).
   const needsSellerProfile = canEditProfile && !isLoading && !profile;
 
-  return { isSeller, isApplabbet, isTestUser, canEditProfile, profile, isLoading, saving, needsSellerProfile, save, refetch };
+  return { isSeller, isApplabbet, isTestUser, canEditProfile, profile, isLoading, saving, needsSellerProfile, save, refetch, reset };
 }
