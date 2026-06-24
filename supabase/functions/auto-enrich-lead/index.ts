@@ -5,6 +5,7 @@ import {
   parseOutreachResponse,
   type OutreachContext,
 } from "../_shared/outreach-prompt.ts";
+import { fetchWithRetry } from "../_shared/http.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -146,13 +147,21 @@ async function stepFirecrawlDeep(website: string): Promise<CrawlResult> {
   let url = website.trim();
   if (!url.startsWith("http://") && !url.startsWith("https://")) url = `https://${url}`;
 
-  const mainRes = await fetch("https://api.firecrawl.dev/v1/scrape", {
+  const mainRes = await fetchWithRetry("https://api.firecrawl.dev/v1/scrape", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({ url, formats: ["markdown", "links"], onlyMainContent: false }),
-  });
-  const mainData = await mainRes.json();
-  if (!mainRes.ok) throw new Error(`Firecrawl main page error: ${mainData.error || mainRes.status}`);
+  }, { timeoutMs: 20_000, attempts: 2, label: "Firecrawl main" });
+  const mainData = await mainRes.json().catch(() => ({}));
+  if (!mainRes.ok) {
+    const detail = String(mainData?.error || mainRes.status);
+    // Many prospect sites have bot protection; make that explicit rather than a
+    // generic failure, since retrying won't get past a 403.
+    if (mainRes.status === 403 || /403|forbidden|blocked|bot|captcha|cloudflare/i.test(detail)) {
+      throw new Error(`Sajten blockerar automatiserade verktyg (bot-skydd): ${detail}`);
+    }
+    throw new Error(`Firecrawl main page error: ${detail}`);
+  }
 
   const mainMarkdown = mainData.data?.markdown || mainData.markdown || "";
   const mainMetadata = mainData.data?.metadata || mainData.metadata || {};
@@ -173,11 +182,11 @@ async function stepFirecrawlDeep(website: string): Promise<CrawlResult> {
   if (contactLink) {
     console.log("[auto-enrich] Crawling contact page:", contactLink);
     try {
-      const contactRes = await fetch("https://api.firecrawl.dev/v1/scrape", {
+      const contactRes = await fetchWithRetry("https://api.firecrawl.dev/v1/scrape", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({ url: contactLink, formats: ["markdown"], onlyMainContent: false }),
-      });
+      }, { timeoutMs: 15_000, attempts: 2, label: "Firecrawl contact" });
       if (contactRes.ok) {
         const contactData = await contactRes.json();
         const contactMd = contactData.data?.markdown || contactData.markdown || "";
@@ -374,7 +383,7 @@ Regler:
 - business_fit_score 1-4: Dålig match (t.ex. de säljer samma sak som du, eller behöver inte din tjänst)
 - Svara BARA med JSON, ingen annan text`;
 
-  const aiRes = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+  const aiRes = await fetchWithRetry("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${GEMINI_API_KEY}`,
@@ -384,7 +393,7 @@ Regler:
       model: "gemini-2.5-flash",
       messages: [{ role: "user", content: prompt }],
     }),
-  });
+  }, { timeoutMs: 30_000, attempts: 2, label: "Gemini business-analysis" });
 
   if (!aiRes.ok) {
     const errText = await aiRes.text();
@@ -462,7 +471,7 @@ async function stepGenerateDraft(
   const systemPrompt = buildOutreachSystemPrompt(ctx);
   const userPrompt = buildOutreachUserPrompt(ctx);
 
-  const aiRes = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+  const aiRes = await fetchWithRetry("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${GEMINI_API_KEY}`,
@@ -475,7 +484,7 @@ async function stepGenerateDraft(
         { role: "user", content: userPrompt },
       ],
     }),
-  });
+  }, { timeoutMs: 30_000, attempts: 2, label: "Gemini draft" });
 
   if (!aiRes.ok) {
     const errText = await aiRes.text();
