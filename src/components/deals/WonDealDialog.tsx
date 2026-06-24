@@ -111,6 +111,47 @@ export function WonDealDialog({ open, onOpenChange, leadId, quoteId, prefill }: 
     supabase.functions
       .invoke("notify-deal-handoff", { body: { handoffId: (inserted as any)?.id } })
       .catch(() => {});
+
+    // Mirror the onboarding details onto the auto-created ticket under "Ärenden"
+    // so the whole team sees what the seller filled in (the trigger only creates
+    // a bare ticket when the lead is won).
+    if (leadId) {
+      const f = form;
+      const line = (label: string, v: string) => (v && v.trim() ? `${label}: ${v.trim()}\n` : "");
+      const description =
+        "Vunnen affär – onboarding-uppgifter\n\n" +
+        line("Företag", f.company_name) +
+        line("Kontaktperson", f.contact_name) +
+        line("E-post", f.email) +
+        line("Telefon", f.phone) +
+        line("Produkt/tjänst", f.product_service) +
+        line("Onboarding", `${f.onboarding_date} ${f.onboarding_time}`) +
+        line("Säljarens anteckningar", f.seller_notes) +
+        line("Kundens mål", f.customer_goal) +
+        line("Löften / överenskommelser", f.promises);
+      await (supabase as any)
+        .from("tickets")
+        .update({
+          description: description.trim(),
+          metadata: {
+            deal_handoff: {
+              company_name: f.company_name.trim(),
+              contact_name: f.contact_name.trim(),
+              email: f.email.trim(),
+              phone: f.phone.trim(),
+              product_service: f.product_service.trim(),
+              onboarding_date: f.onboarding_date,
+              onboarding_time: f.onboarding_time,
+              seller_notes: f.seller_notes.trim() || null,
+              customer_goal: f.customer_goal.trim() || null,
+              promises: f.promises.trim() || null,
+            },
+          },
+        })
+        .eq("lead_id", leadId)
+        .eq("type", "sales");
+    }
+
     toast({ title: "Affär registrerad", description: "Onboarding-uppgifterna är sparade." });
     onOpenChange(false);
   };
