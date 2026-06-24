@@ -28,7 +28,7 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { hasModuleAccess } = useModules();
-  const { isSeller } = useSellerProfile();
+  const { canEditProfile: canEditSellerProfile } = useSellerProfile();
   const location = useLocation();
 
   // Check if we're on a template editor sub-route
@@ -118,7 +118,7 @@ export default function SettingsPage() {
               <span className="hidden sm:inline">{t("settings.tabProfile")}</span>
               <span className="sm:hidden">{t("settings.tabProfile")}</span>
             </TabsTrigger>
-            {isSeller && (
+            {canEditSellerProfile && (
               <TabsTrigger value="seller" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <IdCard className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>Mina uppgifter</span>
@@ -158,7 +158,7 @@ export default function SettingsPage() {
           </TabsList>
 
           {/* Seller profile tab */}
-          {isSeller && (
+          {canEditSellerProfile && (
             <TabsContent value="seller">
               <SellerProfileSettings />
             </TabsContent>

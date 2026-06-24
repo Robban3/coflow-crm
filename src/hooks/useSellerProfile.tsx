@@ -6,9 +6,14 @@ import type { SellerProfileValues } from "@/components/seller/SellerProfileForm"
 
 const APPLABBET_DOMAIN = "@applabbet.com";
 
+// Test users (admins) who may also fill in / edit a seller profile via the
+// settings tab so they can verify the flow — WITHOUT getting the blocking popup.
+const SELLER_PROFILE_TEST_USERS = ["robert@applabbet.com"];
+
 // Drives the mandatory seller-profile popup and the settings tab. A "seller" is
 // a non-admin @applabbet user; they must fill in their profile once. Admins are
-// exempt (per product decision).
+// exempt from the popup (per product decision), but test users may still edit
+// their own profile via the settings tab.
 export function useSellerProfile() {
   const { user, isAdmin } = useAuth();
   const organizationId = useOrganizationId();
@@ -19,9 +24,12 @@ export function useSellerProfile() {
   const email = user?.email?.toLowerCase() ?? "";
   const isApplabbet = email.endsWith(APPLABBET_DOMAIN);
   const isSeller = isApplabbet && !isAdmin;
+  const isTestUser = SELLER_PROFILE_TEST_USERS.includes(email);
+  // Who may read/edit their own profile via the settings tab (sellers + testers).
+  const canEditProfile = isSeller || isTestUser;
 
   const refetch = useCallback(async () => {
-    if (!user?.id || !isSeller) {
+    if (!user?.id || !canEditProfile) {
       setProfile(null);
       setIsLoading(false);
       return;
@@ -34,7 +42,7 @@ export function useSellerProfile() {
       .maybeSingle();
     setProfile((data as Record<string, unknown>) ?? null);
     setIsLoading(false);
-  }, [user?.id, isSeller]);
+  }, [user?.id, canEditProfile]);
 
   useEffect(() => {
     refetch();
@@ -70,7 +78,8 @@ export function useSellerProfile() {
     [user?.id, organizationId, refetch],
   );
 
+  // Blocking popup only for real sellers — never for admins/test users.
   const needsSellerProfile = isSeller && !isLoading && !profile;
 
-  return { isSeller, isApplabbet, profile, isLoading, saving, needsSellerProfile, save, refetch };
+  return { isSeller, isApplabbet, isTestUser, canEditProfile, profile, isLoading, saving, needsSellerProfile, save, refetch };
 }
