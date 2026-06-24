@@ -64,17 +64,10 @@ serve(async (req) => {
     const senderDisplayName = profile?.sender_display_name || profile?.full_name || org?.sender_name || org?.name || "CoFlow";
 
     // Determine Resend key and from-address
-    let resendApiKey: string | undefined;
+    const resendApiKey = Deno.env.get("RESEND_API_KEY_PLATFORM") || Deno.env.get("RESEND_API_KEY");
     let fromEmail = "mail@coflow.se";
-
-    if (org?.name === "Kod & Co.") {
-      resendApiKey = Deno.env.get("RESEND_API_KEY");
-      fromEmail = org?.sender_email || "hej@kodco.se";
-    } else {
-      resendApiKey = Deno.env.get("RESEND_API_KEY_PLATFORM");
-      if (org?.resend_api_key_configured && org?.sender_email) {
-        fromEmail = org.sender_email;
-      }
+    if (org?.resend_api_key_configured && org?.sender_email) {
+      fromEmail = org.sender_email;
     }
 
     if (!resendApiKey) throw new Error("RESEND_API_KEY not configured");

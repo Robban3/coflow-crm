@@ -441,7 +441,7 @@ async function sendResultEmail(
 
   try {
     await resend.emails.send({
-      from: "GEO Rapport <hej@kodco.se>",
+      from: "GEO Rapport <mail@coflow.se>",
       to: [scan.email],
       subject: `Din AI-synlighet: ${geoScore}/100 – mini-rapport`,
       html,
@@ -493,7 +493,7 @@ async function sendFailureEmail(scan: any) {
 
   try {
     await resend.emails.send({
-      from: "GEO Rapport <hej@kodco.se>",
+      from: "GEO Rapport <mail@coflow.se>",
       to: [scan.email],
       subject: "Vi kunde inte analysera webbplatsen automatiskt",
       html,

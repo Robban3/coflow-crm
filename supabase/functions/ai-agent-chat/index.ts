@@ -321,7 +321,7 @@ serve(async (req) => {
     }
 
     // System prompt for the AI agent
-    const systemPrompt = `Du är en AI-assistent för Kod & Co:s CRM-system. Du hjälper användaren att:
+    const systemPrompt = `Du är en AI-assistent för CoFlow CRM-system. Du hjälper användaren att:
 - Hitta nya leads via Google Places
 - Importera företag som leads OCH uppdatera deras info
 - Analysera webbplatser (enskilt och i batch)
@@ -2016,8 +2016,8 @@ ${websiteContent}
         return { success: false, error: "RESEND_API_KEY saknas" };
       }
       
-      const fromEmail = "hej@kodco.se";
-      const fromName = profile?.sender_display_name || profile?.full_name || profile?.company_name || "Kod & Co.";
+      const fromEmail = "mail@coflow.se";
+      const fromName = profile?.sender_display_name || profile?.full_name || profile?.company_name || "CoFlow";
       
       const resendRes = await fetch("https://api.resend.com/emails", {
         method: "POST",

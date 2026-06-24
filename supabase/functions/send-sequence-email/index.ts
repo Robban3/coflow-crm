@@ -143,10 +143,7 @@ serve(async (req) => {
         .single();
 
       if (org) {
-        if (org.name === "Kod & Co." && org.sender_email === "hej@kodco.se") {
-          orgEmail = "hej@kodco.se";
-          useCustomDomain = true;
-        } else if (org.sender_email && org.resend_api_key_configured) {
+        if (org.sender_email && org.resend_api_key_configured) {
           orgEmail = org.sender_email;
           useCustomDomain = true;
         } else {

@@ -498,7 +498,7 @@ const SIGNATURE_CLOSING: Record<SignatureMarket, string> = {
   DE: "Mit freundlichen Grüßen,",
 };
 
-const SIGNATURE_FALLBACK_NAME = "Kod & Co";
+const SIGNATURE_FALLBACK_NAME = "CoFlow";
 
 /**
  * Heuristic: detects a Swedish-language signature so we can skip it when the

@@ -112,10 +112,7 @@ Deno.serve(async (req) => {
 
     let fromEmail = "mail@coflow.se";
     let useCustomDomain = false;
-    if (org?.name === "Kod & Co." && org?.sender_email === "hej@kodco.se") {
-      fromEmail = "hej@kodco.se";
-      useCustomDomain = true;
-    } else if (org?.sender_email && org?.resend_api_key_configured) {
+    if (org?.sender_email && org?.resend_api_key_configured) {
       fromEmail = org.sender_email;
       useCustomDomain = true;
     }

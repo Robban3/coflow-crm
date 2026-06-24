@@ -88,21 +88,16 @@ serve(async (req) => {
         .single();
       
       if (org) {
-        // Kod & Co uses their own domain directly
-        if (org.name === "Kod & Co." && org.sender_email === "hej@kodco.se") {
-          orgEmail = "hej@kodco.se";
-          useCustomDomain = true;
-        }
-        // Other orgs with configured API key use their own domain
-        else if (org.sender_email && org.resend_api_key_configured) {
+        // Orgs with their own configured + verified domain send from it.
+        if (org.sender_email && org.resend_api_key_configured) {
           orgEmail = org.sender_email;
           useCustomDomain = true;
         }
-        // Default: use platform domain (coflow.se)
+        // Default: use the platform domain (coflow.se).
         else {
           orgEmail = "mail@coflow.se";
         }
-        
+
         if (org.sender_name) {
           orgName = profile?.sender_display_name || org.sender_name;
         }

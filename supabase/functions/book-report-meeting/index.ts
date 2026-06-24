@@ -63,7 +63,7 @@ serve(async (req) => {
     // ── Get host org for meeting ────────────────────────────────────────
     const { data: hostProfile } = await supabase
       .from("profiles")
-      .select("organization_id, full_name")
+      .select("organization_id, full_name, email")
       .eq("id", hostUserId)
       .single();
 
@@ -106,8 +106,8 @@ serve(async (req) => {
       throw new Error("Kunde inte skapa mötet");
     }
 
-    // ── Send notification email to hej@kodco.se ─────────────────────────
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    // ── Notify the assigned host of the new booking ─────────────────────
+    const resendApiKey = Deno.env.get("RESEND_API_KEY_PLATFORM") || Deno.env.get("RESEND_API_KEY");
     if (resendApiKey) {
       const resend = new Resend(resendApiKey);
 
@@ -143,8 +143,8 @@ serve(async (req) => {
 
       try {
         await resend.emails.send({
-          from: `Kod & Co <hej@kodco.se>`,
-          to: ["hej@kodco.se"],
+          from: `CoFlow <mail@coflow.se>`,
+          to: [hostProfile?.email || "robert@applabbet.com"],
           subject: `Ny genomgång: ${companyName || guestName}${domain ? ` (${domain})` : ""}`,
           html: htmlBody,
         });
