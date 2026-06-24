@@ -52,9 +52,11 @@ interface Props {
   onSave: (values: SellerProfileValues) => void;
   /** When set, the applabbet email is locked (prefilled from the login). */
   lockApplabbetEmail?: boolean;
+  /** When set, the personnummer is locked (already saved — cannot be edited). */
+  lockPersonnummer?: boolean;
 }
 
-export function SellerProfileForm({ initial, saving, submitLabel, onSave, lockApplabbetEmail }: Props) {
+export function SellerProfileForm({ initial, saving, submitLabel, onSave, lockApplabbetEmail, lockPersonnummer }: Props) {
   const [form, setForm] = useState<SellerProfileValues>(initial);
 
   const set = (key: keyof SellerProfileValues, value: string) =>
@@ -110,7 +112,14 @@ export function SellerProfileForm({ initial, saving, submitLabel, onSave, lockAp
           value={form.personnummer}
           onChange={(e) => set("personnummer", e.target.value)}
           placeholder="ÅÅÅÅMMDD-XXXX"
+          readOnly={lockPersonnummer}
+          className={lockPersonnummer ? "bg-muted cursor-not-allowed" : undefined}
         />
+        {lockPersonnummer && (
+          <p className="text-xs text-muted-foreground">
+            Personnumret är låst när det väl är ifyllt. Kontakta en administratör om det behöver ändras.
+          </p>
+        )}
       </Field>
 
       <div className="space-y-2">

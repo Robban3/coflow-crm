@@ -92,6 +92,8 @@ export function OrganizationDashboard() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showInviteCodeDialog, setShowInviteCodeDialog] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [deletingMember, setDeletingMember] = useState<TeamMember | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isSavingOrg, setIsSavingOrg] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [savingModule, setSavingModule] = useState<string | null>(null);
@@ -401,6 +403,28 @@ export function OrganizationDashboard() {
     return code;
   };
 
+  const handleDeleteUser = async () => {
+    if (!deletingMember) return;
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { userId: deletingMember.id },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast({
+        title: "Användare borttagen",
+        description: `${deletingMember.full_name || deletingMember.email} har tagits bort.`,
+      });
+      setDeletingMember(null);
+      fetchTeamData();
+    } catch (e: any) {
+      toast({ title: "Kunde inte ta bort", description: e.message, variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleCreateInviteCode = async () => {
     setIsCreating(true);
     try {
@@ -647,6 +671,7 @@ export function OrganizationDashboard() {
                       <TableHead>{t("settings.email")}</TableHead>
                       <TableHead>{t("settings.role")}</TableHead>
                       <TableHead className="text-right">{t("settings.roleAdmin")}</TableHead>
+                      <TableHead className="w-12" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -679,6 +704,18 @@ export function OrganizationDashboard() {
                             onCheckedChange={() => handleToggleRole(member.id, member.role)}
                             disabled={member.id === user?.id}
                           />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => setDeletingMember(member)}
+                            disabled={member.id === user?.id}
+                            title={member.id === user?.id ? "Du kan inte ta bort dig själv" : "Ta bort användare"}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -871,6 +908,30 @@ export function OrganizationDashboard() {
       </Tabs>
 
       {/* Add User Dialog */}
+      {/* Delete user confirmation */}
+      <Dialog open={!!deletingMember} onOpenChange={(o) => !o && setDeletingMember(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ta bort användare</DialogTitle>
+            <DialogDescription>
+              Är du säker på att du vill ta bort{" "}
+              <strong>{deletingMember?.full_name || deletingMember?.email}</strong>? Kontot raderas
+              permanent och personen kan inte längre logga in. Deras leads frigörs och hamnar i poolen.
+              Detta går inte att ångra.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletingMember(null)} disabled={isDeleting}>
+              {t("settings.cancel")}
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteUser} disabled={isDeleting}>
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Ta bort
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>

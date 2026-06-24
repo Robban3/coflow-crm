@@ -75,6 +75,7 @@ export function SellerProfileSettings() {
           submitLabel="Spara ändringar"
           onSave={handleSave}
           lockApplabbetEmail
+          lockPersonnummer={!!p?.personnummer}
         />
 
         {isTestUser && (
