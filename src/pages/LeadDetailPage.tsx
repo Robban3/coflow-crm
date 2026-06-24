@@ -28,6 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { 
   ArrowLeft,
+  ArrowRight,
   Building2,
   User,
   Mail,
@@ -79,6 +80,7 @@ import { webAnalysisApi } from "@/lib/api/webAnalysis";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { useModules } from "@/hooks/useModules";
+import { useLeadQueue } from "@/hooks/useLeadQueue";
 
 
 interface Lead {
@@ -172,6 +174,7 @@ function AutoEnrichButton({ leadId, onDone }: { leadId: string; onDone: () => vo
 export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { getNextId } = useLeadQueue();
   const { toast } = useToast();
   const { t } = useTranslation();
   const { hasModuleAccess } = useModules();
@@ -667,6 +670,19 @@ export default function LeadDetailPage() {
                 Skapad {format(new Date(lead.created_at), "d MMMM yyyy", { locale: sv })}
               </p>
             </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0 ml-auto"
+              onClick={() => {
+                const next = getNextId(lead.id);
+                if (next) navigate(`/leads/${next}`);
+              }}
+              disabled={!getNextId(lead.id)}
+              title="Nästa lead"
+            >
+              <ArrowRight className="h-5 w-5" />
+            </Button>
           </div>
           
           {/* Action buttons - stack on mobile */}
