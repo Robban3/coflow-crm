@@ -27,8 +27,23 @@ import {
 } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { 
-  Search, 
+import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Search,
   ExternalLink, 
   BarChart3,
   User,
@@ -50,6 +65,8 @@ import {
   Minus,
   Zap,
   Inbox,
+  MoreHorizontal,
+  Undo2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -152,12 +169,102 @@ function InlineLeadOwners({
   );
 }
 
+// Per-row "remove" action: releases the lead back to the shared pool. A reason
+// is mandatory so the next seller understands why it was let go. The 30-day
+// releaser cooldown is enforced server-side by claim_pool_lead.
+function LeadRemoveAction({
+  leadId,
+  onReleased,
+}: {
+  leadId: string;
+  onReleased: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleRelease = async () => {
+    if (!reason.trim()) return;
+    setLoading(true);
+    try {
+      const { error } = await (supabase as any).rpc("release_lead_to_pool", {
+        _lead_id: leadId,
+        _reason: reason.trim(),
+      });
+      if (error) throw error;
+      toast({
+        title: "Leadet är tillbaka i poolen",
+        description: "Din anledning visas för nästa säljare som plockar upp det.",
+      });
+      setOpen(false);
+      setReason("");
+      onReleased();
+    } catch (e: any) {
+      toast({ title: "Kunde inte ta bort", description: e.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-7 w-7">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setOpen(true)}>
+            <Undo2 className="h-4 w-4 mr-2 text-muted-foreground" />
+            Ta bort från mina leads
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ta bort lead till poolen</DialogTitle>
+            <DialogDescription>
+              Leadet frigörs så att en annan säljare kan plocka upp det. All
+              historik (samtal, anteckningar, mejl) sparas och följer med. Skriv
+              varför du släpper det – det visas för nästa säljare.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label htmlFor="remove-reason">Anledning (visas för nästa säljare)</Label>
+            <Textarea
+              id="remove-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="T.ex. fel tajming, redan avtal med konkurrent, vill bli kontaktad senare..."
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Avbryt
+            </Button>
+            <Button onClick={handleRelease} disabled={loading || !reason.trim()}>
+              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Lämna tillbaka
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 export function LeadsList({ leads, onRefresh }: LeadsListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [ownerFilter, setOwnerFilter] = useState<OwnerFilter>("all");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [hideNotInterested, setHideNotInterested] = useState(true);
+  const [hideWorked, setHideWorked] = useState(true);
   const [enrichmentFilter, setEnrichmentFilter] = useState<EnrichmentFilter>("all");
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [queueProgress, setQueueProgress] = useState<{ processed: number; remaining: number } | null>(null);
@@ -225,13 +332,16 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
   // shown only under the dedicated "pool" filter, never mixed into normal views.
   const statusFilteredLeads = useMemo(() => {
     if (ownerFilter === "pool") return poolLeads;
-    const base = leads.filter((l) => !isPoolLead(l));
+    let base = leads.filter((l) => !isPoolLead(l));
+    // Worked leads (logged call/email/meeting) live in the pipeline; hide them
+    // from the leads list by default.
+    if (hideWorked) base = base.filter((l) => !l.has_activity);
     if (!hideNotInterested) return base;
     return base.filter((lead) => {
       const status = (lead as any).lead_status || "active";
       return status === "active" || status === "customer";
     });
-  }, [leads, poolLeads, isPoolLead, hideNotInterested, ownerFilter]);
+  }, [leads, poolLeads, isPoolLead, hideNotInterested, hideWorked, ownerFilter]);
 
   // Filter by owner (using member_ids from lead_members table)
   const ownerFilteredLeads = useMemo(() => {
@@ -665,16 +775,28 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
             </Select>
           </div>
 
-          {/* Hide not interested toggle */}
-          <div className="flex items-center gap-2">
-            <Switch
-              id="hide-not-interested"
-              checked={hideNotInterested}
-              onCheckedChange={setHideNotInterested}
-            />
-            <Label htmlFor="hide-not-interested" className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap">
-              {t("leadsList.hideNotInterested")}
-            </Label>
+          {/* Visibility toggles */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="hide-not-interested"
+                checked={hideNotInterested}
+                onCheckedChange={setHideNotInterested}
+              />
+              <Label htmlFor="hide-not-interested" className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap">
+                {t("leadsList.hideNotInterested")}
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="hide-worked"
+                checked={hideWorked}
+                onCheckedChange={setHideWorked}
+              />
+              <Label htmlFor="hide-worked" className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap">
+                Dölj bearbetade leads
+              </Label>
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -751,14 +873,17 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                           Plocka upp
                         </Button>
                       ) : (
-                        <InlineLeadOwners
-                          memberIds={lead.member_ids}
-                          membersMap={membersMap}
-                          getInitials={getInitials}
-                          leadId={lead.id}
-                          currentOwnerId={lead.assigned_to}
-                          onOwnerChange={handleLeadOwnerChange}
-                        />
+                        <div className="flex items-center gap-1">
+                          <InlineLeadOwners
+                            memberIds={lead.member_ids}
+                            membersMap={membersMap}
+                            getInitials={getInitials}
+                            leadId={lead.id}
+                            currentOwnerId={lead.assigned_to}
+                            onOwnerChange={handleLeadOwnerChange}
+                          />
+                          <LeadRemoveAction leadId={lead.id} onReleased={onRefresh} />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -832,6 +957,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                         <SortIcon field="source" />
                       </div>
                     </TableHead>
+                    <TableHead className="w-12" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -906,6 +1032,11 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                       <TableCell>{getOutreachStatusBadge(lead)}</TableCell>
                       <TableCell>{getAnalysisStatusBadge(lead)}</TableCell>
                       <TableCell>{getSourceBadge(lead.source)}</TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()} className="text-right">
+                        {!isPoolLead(lead) && (
+                          <LeadRemoveAction leadId={lead.id} onReleased={onRefresh} />
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

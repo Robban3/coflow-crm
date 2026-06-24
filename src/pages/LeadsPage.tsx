@@ -9,6 +9,7 @@ import { LeadGeneration } from "@/components/leads/LeadGeneration";
 import { CompanyRegistrySearch } from "@/components/leads/CompanyRegistrySearch";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { batchIn } from "@/lib/batchIn";
 
 interface Lead {
   id: string;
@@ -35,21 +36,7 @@ export interface LeadWithOutreachStatus extends Lead {
   analysis_id?: string;
   has_analysis: boolean;
   member_ids: string[];
-}
-
-// Batch helper: split an array into chunks and run .in() queries in parallel, then merge results
-async function batchIn<T>(
-  queryFn: (ids: string[]) => PromiseLike<{ data: T[] | null; error: any }>,
-  ids: string[],
-  batchSize = 100,
-): Promise<T[]> {
-  if (ids.length === 0) return [];
-  const chunks: string[][] = [];
-  for (let i = 0; i < ids.length; i += batchSize) {
-    chunks.push(ids.slice(i, i + batchSize));
-  }
-  const results = await Promise.all(chunks.map(chunk => queryFn(chunk)));
-  return results.flatMap(r => r.data ?? []);
+  has_activity: boolean;
 }
 
 async function fetchLeadsData(): Promise<LeadWithOutreachStatus[]> {
@@ -83,15 +70,25 @@ async function fetchLeadsData(): Promise<LeadWithOutreachStatus[]> {
   }
 
   const leadIds = leadsData.map(l => l.id);
-  if (leadIds.length === 0) return leadsData.map(l => ({ ...l, outreach_status: "none" as const, email_count: 0, has_analysis: false, member_ids: [] }));
+  if (leadIds.length === 0) return leadsData.map(l => ({ ...l, outreach_status: "none" as const, email_count: 0, has_analysis: false, member_ids: [], has_activity: false }));
 
   // Use batched queries to avoid exceeding URL length limits with large .in() lists
-  const [emailCounts, sequences, analyses, leadMembersData] = await Promise.all([
+  const [emailCounts, sequences, analyses, leadMembersData, callLogs, meetingsData] = await Promise.all([
     batchIn(ids => supabase.from('sent_emails').select('lead_id').in('lead_id', ids), leadIds),
     batchIn(ids => supabase.from('lead_sequences').select('lead_id, status').in('lead_id', ids), leadIds),
     batchIn(ids => supabase.from('web_analyses').select('id, lead_id, url').in('lead_id', ids).order('created_at', { ascending: false }), leadIds),
     batchIn(ids => supabase.from('lead_members').select('lead_id, user_id').in('lead_id', ids), leadIds),
+    batchIn(ids => supabase.from('call_logs').select('lead_id').in('lead_id', ids), leadIds),
+    batchIn(ids => supabase.from('meetings').select('lead_id').in('lead_id', ids), leadIds),
   ]);
+
+  // A lead counts as "worked" once it has any logged activity (a call, a sent
+  // email/active sequence, or a meeting). Worked leads move to the pipeline and
+  // are hidden from the leads list by default.
+  const callLogSet = new Set<string>();
+  (callLogs as Array<{ lead_id: string | null }>).forEach(c => { if (c.lead_id) callLogSet.add(c.lead_id); });
+  const meetingSet = new Set<string>();
+  (meetingsData as Array<{ lead_id: string | null }>).forEach(m => { if (m.lead_id) meetingSet.add(m.lead_id); });
 
   const emailCountMap = new Map<string, number>();
   emailCounts?.forEach(e => {
@@ -149,6 +146,9 @@ async function fetchLeadsData(): Promise<LeadWithOutreachStatus[]> {
       analysis_id: analysisId,
       has_analysis: !!analysisId,
       member_ids: leadMembersMap.get(lead.id) || [],
+      has_activity:
+        emailCount > 0 || !!sequenceStatus ||
+        callLogSet.has(lead.id) || meetingSet.has(lead.id),
     };
   });
 }

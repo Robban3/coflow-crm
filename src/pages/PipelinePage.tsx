@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { WonDealDialog } from "@/components/deals/WonDealDialog";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { batchIn } from "@/lib/batchIn";
 
 const PIPELINE_STAGES = [
   { key: "active", color: "bg-blue-500" },
@@ -76,7 +77,31 @@ export default function PipelinePage() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as PipelineLead[];
+      const rows = (data || []) as PipelineLead[];
+      if (rows.length === 0) return rows;
+
+      // The pipeline only shows worked leads: those with logged activity
+      // (call/email/meeting/sequence) OR an advanced status. Untouched new
+      // 'active' leads stay on the leads page until they're worked.
+      const ids = rows.map((r) => r.id);
+      const [calls, emails, meetings, seqs] = await Promise.all([
+        batchIn((qIds) => supabase.from("call_logs").select("lead_id").in("lead_id", qIds), ids),
+        batchIn((qIds) => supabase.from("sent_emails").select("lead_id").in("lead_id", qIds), ids),
+        batchIn((qIds) => supabase.from("meetings").select("lead_id").in("lead_id", qIds), ids),
+        batchIn((qIds) => supabase.from("lead_sequences").select("lead_id").in("lead_id", qIds), ids),
+      ]);
+      const activity = new Set<string>();
+      [calls, emails, meetings, seqs].forEach((list) =>
+        (list as Array<{ lead_id: string | null }>).forEach((r) => {
+          if (r.lead_id) activity.add(r.lead_id);
+        })
+      );
+      return rows.filter(
+        (l) =>
+          l.lead_status !== "active" ||
+          l.last_call_outcome_key != null ||
+          activity.has(l.id)
+      );
     },
     enabled: !!user?.id,
     refetchOnMount: "always",
