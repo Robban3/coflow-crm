@@ -454,7 +454,7 @@ export function TeamManagement() {
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>{t("settings.cancel")}</Button>
             <Button onClick={handleAddUser} disabled={isCreating}>
               {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Skapa användare
+              {t("settings.createUser")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -478,9 +478,9 @@ export function TeamManagement() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1 användning</SelectItem>
-                  <SelectItem value="5">5 användningar</SelectItem>
-                  <SelectItem value="10">10 användningar</SelectItem>
+                  <SelectItem value="1">{t("settings.uses1")}</SelectItem>
+                  <SelectItem value="5">{t("settings.uses5")}</SelectItem>
+                  <SelectItem value="10">{t("settings.uses10")}</SelectItem>
                   <SelectItem value="100">{t("settings.usesUnlimited")}</SelectItem>
                 </SelectContent>
               </Select>
@@ -490,7 +490,7 @@ export function TeamManagement() {
             <Button variant="outline" onClick={() => setShowInviteCodeDialog(false)}>{t("settings.cancel")}</Button>
             <Button onClick={handleCreateInviteCode} disabled={isCreating}>
               {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Generera kod
+              {t("settings.generateCode")}
             </Button>
           </DialogFooter>
         </DialogContent>

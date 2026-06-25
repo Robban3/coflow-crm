@@ -75,15 +75,15 @@ export function ArticleTableBlockRenderer({ block, readOnly, onChange }: Props) 
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left">
-              <th className="py-2 pr-2 font-medium text-muted-foreground">Beskrivning</th>
-              <th className="py-2 px-2 font-medium text-muted-foreground w-16 text-right">Antal</th>
-              <th className="py-2 px-2 font-medium text-muted-foreground w-16 text-center">Enhet</th>
-              <th className="py-2 px-2 font-medium text-muted-foreground w-24 text-right">À-pris</th>
-              <th className="py-2 px-2 font-medium text-muted-foreground w-16 text-right">Rab %</th>
+              <th className="py-2 pr-2 font-medium text-muted-foreground">{t("quotes.colDescription")}</th>
+              <th className="py-2 px-2 font-medium text-muted-foreground w-16 text-right">{t("quotes.colQuantity")}</th>
+              <th className="py-2 px-2 font-medium text-muted-foreground w-16 text-center">{t("quotes.colUnit")}</th>
+              <th className="py-2 px-2 font-medium text-muted-foreground w-24 text-right">{t("quotes.colUnitPrice")}</th>
+              <th className="py-2 px-2 font-medium text-muted-foreground w-16 text-right">{t("quotes.colDiscountShort")}</th>
               {config.show_vat && (
-                <th className="py-2 px-2 font-medium text-muted-foreground w-16 text-right">Moms %</th>
+                <th className="py-2 px-2 font-medium text-muted-foreground w-16 text-right">{t("quotes.vat")}</th>
               )}
-              <th className="py-2 px-2 font-medium text-muted-foreground w-24 text-right">Summa</th>
+              <th className="py-2 px-2 font-medium text-muted-foreground w-24 text-right">{t("quotes.colTotal")}</th>
               {!readOnly && <th className="w-8" />}
             </tr>
           </thead>
@@ -195,10 +195,10 @@ export function ArticleTableBlockRenderer({ block, readOnly, onChange }: Props) 
       {!readOnly && (
         <div className="mt-2 flex gap-2">
           <Button variant="outline" size="sm" onClick={addRow}>
-            <Plus className="h-3.5 w-3.5 mr-1" /> Lägg till rad
+            <Plus className="h-3.5 w-3.5 mr-1" /> {t("quotes.addRow")}
           </Button>
           <Button variant="outline" size="sm" onClick={() => setShowProductPicker(true)}>
-            <FileText className="h-3.5 w-3.5 mr-1" /> Från katalog
+            <FileText className="h-3.5 w-3.5 mr-1" /> {t("quotes.fromCatalog")}
           </Button>
         </div>
       )}
@@ -206,17 +206,17 @@ export function ArticleTableBlockRenderer({ block, readOnly, onChange }: Props) 
       <div className="mt-4 flex justify-end">
         <div className="text-sm space-y-1 text-right">
           <div className="flex justify-between gap-8">
-            <span className="text-muted-foreground">Subtotal:</span>
+            <span className="text-muted-foreground">{t("quotes.subtotalColon")}</span>
             <span className="font-medium">{subtotal.toLocaleString("sv-SE")} kr</span>
           </div>
           {config.show_vat && (
             <div className="flex justify-between gap-8">
-              <span className="text-muted-foreground">Moms:</span>
+              <span className="text-muted-foreground">{t("quotes.vatColon")}</span>
               <span className="font-medium">{Math.round(vatTotal * 100 / 100).toLocaleString("sv-SE")} kr</span>
             </div>
           )}
           <div className="flex justify-between gap-8 border-t border-border pt-1">
-            <span className="font-semibold">Totalt:</span>
+            <span className="font-semibold">{t("quotes.totalColon")}</span>
             <span className="font-bold">{(subtotal + vatTotal).toLocaleString("sv-SE")} kr</span>
           </div>
         </div>

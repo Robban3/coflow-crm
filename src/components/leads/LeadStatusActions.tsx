@@ -55,7 +55,7 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
       toast({ title: t("leadDetail.lsa_statusUpdated") });
       onStatusChange();
     } catch (e: any) {
-      toast({ title: "Fel", description: e.message, variant: "destructive" });
+      toast({ title: t("leadDetail.ls_errorTitle"), description: e.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -84,14 +84,14 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
       });
       if (error) throw error;
       toast({
-        title: "Leadet är tillbaka i poolen",
-        description: "All historik sparas. En annan säljare kan plocka upp det efter karenstiden.",
+        title: t("leadDetail.lsa_backInPoolTitle"),
+        description: t("leadDetail.lsa_backInPoolDesc"),
       });
       setShowReleaseDialog(false);
       setReleaseReason("");
       onStatusChange();
     } catch (e: any) {
-      toast({ title: "Fel", description: e.message, variant: "destructive" });
+      toast({ title: t("leadDetail.ls_errorTitle"), description: e.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -126,7 +126,7 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleInvalidPhone}>
                 <PhoneOff className="h-4 w-4 mr-2 text-muted-foreground" />
-                Markera felaktigt nummer
+                {t("leadDetail.ls_markInvalidPhone")}
               </DropdownMenuItem>
             </>
           )}
@@ -135,14 +135,14 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleReactivate}>
                 <RotateCcw className="h-4 w-4 mr-2 text-primary" />
-                Återaktivera lead
+                {t("leadDetail.ls_reactivate")}
               </DropdownMenuItem>
             </>
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setShowReleaseDialog(true)}>
             <Undo2 className="h-4 w-4 mr-2 text-muted-foreground" />
-            Tillbaka till poolen
+            {t("leadDetail.ls_backToPool")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -152,11 +152,11 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
           <DialogHeader>
             <DialogTitle>{t("leadDetail.lsa_markNotInterested")}</DialogTitle>
             <DialogDescription>
-              Ange en valfri anledning. Leaden kommer att filtreras bort från uppföljning.
+              {t("leadDetail.ls_dialogDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <Label htmlFor="reason">Anledning (valfritt)</Label>
+            <Label htmlFor="reason">{t("leadDetail.ls_reasonLabel")}</Label>
             <Textarea
               id="reason"
               value={reason}
@@ -167,11 +167,11 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNotInterestedDialog(false)}>
-              Avbryt
+              {t("leadDetail.ls_cancel")}
             </Button>
             <Button variant="destructive" onClick={handleNotInterested} disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Bekräfta
+              {t("leadDetail.ls_confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -180,30 +180,28 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
       <Dialog open={showReleaseDialog} onOpenChange={setShowReleaseDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Tillbaka till poolen</DialogTitle>
+            <DialogTitle>{t("leadDetail.ls_backToPool")}</DialogTitle>
             <DialogDescription>
-              Leadet frigörs så att en annan säljare kan plocka upp det. All
-              historik (samtal, anteckningar, mejl) sparas och följer med. Skriv
-              gärna kort varför det inte blev någon affär – det hjälper nästa säljare.
+              {t("leadDetail.ls_releaseDialogDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <Label htmlFor="release-reason">Anledning (valfritt)</Label>
+            <Label htmlFor="release-reason">{t("leadDetail.ls_reasonLabel")}</Label>
             <Textarea
               id="release-reason"
               value={releaseReason}
               onChange={(e) => setReleaseReason(e.target.value)}
-              placeholder="T.ex. fel tajming, redan avtal med konkurrent, vill bli kontaktad senare..."
+              placeholder={t("leadDetail.ls_releasePlaceholder")}
               rows={3}
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowReleaseDialog(false)}>
-              Avbryt
+              {t("leadDetail.ls_cancel")}
             </Button>
             <Button onClick={handleReleaseToPool} disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Lämna tillbaka
+              {t("leadDetail.ls_returnBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>

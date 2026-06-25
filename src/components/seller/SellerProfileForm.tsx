@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export type CompanyForm = "enskild_firma" | "aktiebolag" | "extern_tjanst";
 
@@ -57,6 +58,7 @@ interface Props {
 }
 
 export function SellerProfileForm({ initial, saving, submitLabel, onSave, lockApplabbetEmail, lockPersonnummer }: Props) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<SellerProfileValues>(initial);
 
   const set = (key: keyof SellerProfileValues, value: string) =>
@@ -67,15 +69,15 @@ export function SellerProfileForm({ initial, saving, submitLabel, onSave, lockAp
   return (
     <div className="space-y-4">
       <div className="grid sm:grid-cols-2 gap-3">
-        <Field label="Namn *">
+        <Field label={t("settings.sellerFirstName")}>
           <Input value={form.first_name} onChange={(e) => set("first_name", e.target.value)} />
         </Field>
-        <Field label="Efternamn *">
+        <Field label={t("settings.sellerLastName")}>
           <Input value={form.last_name} onChange={(e) => set("last_name", e.target.value)} />
         </Field>
       </div>
 
-      <Field label="Applabbet-epost *">
+      <Field label={t("settings.sellerApplabbetEmail")}>
         <Input
           type="email"
           value={form.applabbet_email}
@@ -85,75 +87,75 @@ export function SellerProfileForm({ initial, saving, submitLabel, onSave, lockAp
         />
       </Field>
 
-      <Field label="E-post utanför Applabbet *">
+      <Field label={t("settings.sellerExternalEmail")}>
         <Input
           type="email"
           value={form.external_email}
           onChange={(e) => set("external_email", e.target.value)}
-          placeholder="t.ex. namn@gmail.com"
+          placeholder={t("settings.sellerExternalEmailPlaceholder")}
         />
       </Field>
 
-      <Field label="Adress *">
+      <Field label={t("settings.sellerAddress")}>
         <Input value={form.address} onChange={(e) => set("address", e.target.value)} />
       </Field>
 
       <div className="grid sm:grid-cols-2 gap-3">
-        <Field label="Postnummer *">
+        <Field label={t("settings.sellerPostalCode")}>
           <Input value={form.postal_code} onChange={(e) => set("postal_code", e.target.value)} />
         </Field>
-        <Field label="Postort *">
+        <Field label={t("settings.sellerCity")}>
           <Input value={form.city} onChange={(e) => set("city", e.target.value)} />
         </Field>
       </div>
 
-      <Field label="Personnummer *">
+      <Field label={t("settings.sellerPersonnummer")}>
         <Input
           value={form.personnummer}
           onChange={(e) => set("personnummer", e.target.value)}
-          placeholder="ÅÅÅÅMMDD-XXXX"
+          placeholder={t("settings.sellerPersonnummerPlaceholder")}
           readOnly={lockPersonnummer}
           className={lockPersonnummer ? "bg-muted cursor-not-allowed" : undefined}
         />
         {lockPersonnummer && (
           <p className="text-xs text-muted-foreground">
-            Personnumret är låst när det väl är ifyllt. Kontakta en administratör om det behöver ändras.
+            {t("settings.sellerPersonnummerLockedHelp")}
           </p>
         )}
       </Field>
 
       <div className="space-y-2">
-        <Label className="text-sm">Bolagsform *</Label>
+        <Label className="text-sm">{t("settings.sellerCompanyForm")}</Label>
         <RadioGroup
           value={form.company_form}
           onValueChange={(v) => set("company_form", v)}
           className="gap-2"
         >
           <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <RadioGroupItem value="enskild_firma" /> Enskild firma
+            <RadioGroupItem value="enskild_firma" /> {t("settings.sellerSoleProprietor")}
           </label>
           <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <RadioGroupItem value="aktiebolag" /> Aktiebolag
+            <RadioGroupItem value="aktiebolag" /> {t("settings.sellerLimitedCompany")}
           </label>
           <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <RadioGroupItem value="extern_tjanst" /> Extern tjänst (t.ex. frilans/Finans)
+            <RadioGroupItem value="extern_tjanst" /> {t("settings.sellerExternalService")}
           </label>
         </RadioGroup>
       </div>
 
       {form.company_form === "extern_tjanst" && (
-        <Field label="Vilken extern tjänst? (valfritt)">
+        <Field label={t("settings.sellerExternalServiceLabel")}>
           <Input
             value={form.external_service_name}
             onChange={(e) => set("external_service_name", e.target.value)}
-            placeholder="t.ex. Frilans Finans"
+            placeholder={t("settings.sellerExternalServicePlaceholder")}
           />
         </Field>
       )}
 
       <div className="flex justify-end pt-2">
         <Button onClick={() => onSave(form)} disabled={!canSave || saving}>
-          {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sparar…</> : submitLabel}
+          {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("settings.sellerSaving")}</> : submitLabel}
         </Button>
       </div>
     </div>

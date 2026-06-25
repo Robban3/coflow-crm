@@ -174,11 +174,11 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
           <div className="space-y-4">
             <div>
               <Label>{t("quotes.name")}</Label>
-              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Produktnamn" />
+              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder={t("quotes.productName")} />
             </div>
             <div>
               <Label>{t("quotes.description")}</Label>
-              <Input value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Valfri beskrivning" />
+              <Input value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder={t("quotes.optionalDescription")} />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
@@ -190,16 +190,16 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
                 <Input value={newUnit} onChange={(e) => setNewUnit(e.target.value)} />
               </div>
               <div>
-                <Label>Moms %</Label>
+                <Label>{t("quotes.vat")}</Label>
                 <Input type="number" value={newVat} onChange={(e) => setNewVat(Number(e.target.value))} />
               </div>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setShowCreate(false)} className="flex-1">
-                Tillbaka
+                {t("quotes.back")}
               </Button>
               <Button onClick={createProduct} className="flex-1" disabled={!newName.trim()}>
-                Skapa & lägg till
+                {t("quotes.createAndAdd")}
               </Button>
             </div>
           </div>

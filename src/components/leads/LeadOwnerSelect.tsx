@@ -224,7 +224,7 @@ export function LeadOwnerSelect({
             {availableMembers.length > 0 && canManage && (
               <>
                 <p className="text-xs font-medium text-muted-foreground px-2 py-1 border-t mt-1 pt-2">
-                  Lägg till
+                  {t("leadDetail.lo_addLabel")}
                 </p>
                 {availableMembers.map((member) => (
                   <Button
@@ -323,7 +323,7 @@ export function LeadOwnerSelect({
           {availableMembers.length > 0 && canManage && (
             <>
               <p className="text-xs font-medium text-muted-foreground px-2 py-1 border-t mt-1 pt-2">
-                Lägg till
+                {t("leadDetail.lo_addLabel")}
               </p>
               {availableMembers.map((member) => (
                 <Button

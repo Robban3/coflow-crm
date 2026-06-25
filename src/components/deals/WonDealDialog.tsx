@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { Loader2, Trophy } from "lucide-react";
 
 interface Prefill {
@@ -59,6 +60,7 @@ export function WonDealDialog({ open, onOpenChange, leadId, quoteId, prefill }: 
   const { user } = useAuth();
   const organizationId = useOrganizationId();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ ...EMPTY });
 
@@ -104,7 +106,7 @@ export function WonDealDialog({ open, onOpenChange, leadId, quoteId, prefill }: 
       .single();
     setSaving(false);
     if (error) {
-      toast({ title: "Kunde inte spara", description: error.message, variant: "destructive" });
+      toast({ title: t("leadDetail.wd_couldNotSave"), description: error.message, variant: "destructive" });
       return;
     }
     // Email the handoff to the onboarding recipient (best-effort).
@@ -152,7 +154,7 @@ export function WonDealDialog({ open, onOpenChange, leadId, quoteId, prefill }: 
         .eq("type", "sales");
     }
 
-    toast({ title: "Affär registrerad", description: "Onboarding-uppgifterna är sparade." });
+    toast({ title: t("leadDetail.wd_dealRegisteredTitle"), description: t("leadDetail.wd_dealRegisteredDesc") });
     onOpenChange(false);
   };
 
@@ -161,64 +163,64 @@ export function WonDealDialog({ open, onOpenChange, leadId, quoteId, prefill }: 
       <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-primary" /> Grattis till affären!
+            <Trophy className="h-5 w-5 text-primary" /> {t("leadDetail.wd_title")}
           </DialogTitle>
-          <DialogDescription>Fyll i uppgifterna för kundens onboarding.</DialogDescription>
+          <DialogDescription>{t("leadDetail.wd_description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Obligatoriska fält
+            {t("leadDetail.wd_requiredFields")}
           </p>
           <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Företagsnamn *">
+            <Field label={t("leadDetail.wd_companyName")}>
               <Input value={form.company_name} onChange={(e) => set("company_name", e.target.value)} />
             </Field>
-            <Field label="Kontaktperson *">
+            <Field label={t("leadDetail.wd_contactPerson")}>
               <Input value={form.contact_name} onChange={(e) => set("contact_name", e.target.value)} />
             </Field>
-            <Field label="E-postadress *">
+            <Field label={t("leadDetail.wd_emailAddress")}>
               <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
             </Field>
-            <Field label="Telefonnummer *">
+            <Field label={t("leadDetail.wd_phoneNumber")}>
               <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} />
             </Field>
           </div>
-          <Field label="Produkt/tjänst som sålts *">
+          <Field label={t("leadDetail.wd_productService")}>
             <Input value={form.product_service} onChange={(e) => set("product_service", e.target.value)} />
           </Field>
           <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Datum för onboarding *">
+            <Field label={t("leadDetail.wd_onboardingDate")}>
               <Input type="date" value={form.onboarding_date} onChange={(e) => set("onboarding_date", e.target.value)} />
             </Field>
-            <Field label="Tid för onboarding *">
+            <Field label={t("leadDetail.wd_onboardingTime")}>
               <Input type="time" value={form.onboarding_time} onChange={(e) => set("onboarding_time", e.target.value)} />
             </Field>
           </div>
 
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground pt-2">
-            Bra att ha
+            {t("leadDetail.wd_niceToHave")}
           </p>
-          <Field label="Säljarens anteckningar">
+          <Field label={t("leadDetail.wd_sellerNotes")}>
             <Textarea rows={2} value={form.seller_notes} onChange={(e) => set("seller_notes", e.target.value)} />
           </Field>
-          <Field label="Kundens huvudsakliga mål med köpet">
+          <Field label={t("leadDetail.wd_customerGoal")}>
             <Textarea rows={2} value={form.customer_goal} onChange={(e) => set("customer_goal", e.target.value)} />
           </Field>
-          <Field label="Löften / specialöverenskommelser under försäljningen">
+          <Field label={t("leadDetail.wd_promises")}>
             <Textarea rows={2} value={form.promises} onChange={(e) => set("promises", e.target.value)} />
           </Field>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Avbryt
+            {t("leadDetail.wd_cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={!canSave || saving}>
             {saving ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sparar…</>
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("leadDetail.wd_saving")}</>
             ) : (
-              "Spara affär"
+              t("leadDetail.wd_saveDeal")
             )}
           </Button>
         </DialogFooter>

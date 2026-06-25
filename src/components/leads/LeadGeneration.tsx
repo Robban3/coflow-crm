@@ -203,7 +203,7 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="https://exempel.se"
+                placeholder={t("leadDetail.lg_searchUrlPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -296,7 +296,7 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="08-xxx xx xx"
+                  placeholder={t("leadDetail.lg_phonePlaceholder")}
                 />
               </div>
             </div>
@@ -310,7 +310,7 @@ export function LeadGeneration({ onLeadCreated }: LeadGenerationProps) {
                 id="website"
                 value={formData.website}
                 onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                placeholder="https://företag.se"
+                placeholder={t("leadDetail.lg_websitePlaceholder")}
               />
             </div>
           </div>

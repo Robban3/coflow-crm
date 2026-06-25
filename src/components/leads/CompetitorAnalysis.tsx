@@ -410,7 +410,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
             <div className="space-y-2">
               <label className="text-sm font-medium">{t("leadDetail.co2_companyName")}</label>
               <Input
-                placeholder="t.ex. Konkurrent AB"
+                placeholder={t("leadDetail.co_namePlaceholder")}
                 value={manualForm.name}
                 onChange={(e) => setManualForm(prev => ({ ...prev, name: e.target.value }))}
               />
@@ -418,7 +418,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
             <div className="space-y-2">
               <label className="text-sm font-medium">{t("leadDetail.pw_badgeWebsite")}</label>
               <Input
-                placeholder="t.ex. konkurrent.se"
+                placeholder={t("leadDetail.co_urlPlaceholder")}
                 value={manualForm.url}
                 onChange={(e) => setManualForm(prev => ({ ...prev, url: e.target.value }))}
               />
@@ -431,7 +431,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
               disabled={!manualForm.name || !manualForm.url || isAddingManual}
             >
               {isAddingManual && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Lägg till
+              {t("leadDetail.co_addBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -454,9 +454,9 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Plats (valfritt)</label>
+              <label className="text-sm font-medium">{t("leadDetail.co_locationLabel")}</label>
               <Input
-                placeholder="t.ex. Stockholm"
+                placeholder={t("leadDetail.co_locationPlaceholder")}
                 value={autoSearchLocation}
                 onChange={(e) => setAutoSearchLocation(e.target.value)}
               />
@@ -471,7 +471,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
               ) : (
                 <Search className="mr-2 h-4 w-4" />
               )}
-              Sök
+              {t("leadDetail.ef_search")}
             </Button>
 
             {/* Results */}
@@ -528,7 +528,7 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
                 disabled={selectedAuto.size === 0 || isAddingManual}
               >
                 {isAddingManual && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Lägg till {selectedAuto.size} valda
+                {t("leadDetail.co_addSelectedCount", { count: selectedAuto.size })}
               </Button>
             )}
           </DialogFooter>

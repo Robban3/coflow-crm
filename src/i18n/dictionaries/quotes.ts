@@ -152,6 +152,11 @@ export const quotesDict: FeatureDictionary = {
     "quotes.agreementSent": "Avtalet har skickats!",
     "quotes.quoteSent": "Offerten har skickats!",
     "quotes.perMonth": "/mån",
+    "quotes.addRow": "Lägg till rad",
+    "quotes.colDiscountShort": "Rab %",
+    "quotes.subtotalColon": "Subtotal:",
+    "quotes.vatColon": "Moms:",
+    "quotes.totalColon": "Totalt:",
   },
   en: {
     // ProductPicker
@@ -304,6 +309,11 @@ export const quotesDict: FeatureDictionary = {
     "quotes.agreementSent": "The agreement has been sent!",
     "quotes.quoteSent": "The quote has been sent!",
     "quotes.perMonth": "/mo",
+    "quotes.addRow": "Add row",
+    "quotes.colDiscountShort": "Disc %",
+    "quotes.subtotalColon": "Subtotal:",
+    "quotes.vatColon": "VAT:",
+    "quotes.totalColon": "Total:",
   },
   es: {
     // ProductPicker
@@ -456,5 +466,10 @@ export const quotesDict: FeatureDictionary = {
     "quotes.agreementSent": "¡El contrato se ha enviado!",
     "quotes.quoteSent": "¡El presupuesto se ha enviado!",
     "quotes.perMonth": "/mes",
+    "quotes.addRow": "Añadir línea",
+    "quotes.colDiscountShort": "Dto %",
+    "quotes.subtotalColon": "Subtotal:",
+    "quotes.vatColon": "IVA:",
+    "quotes.totalColon": "Total:",
   },
 };

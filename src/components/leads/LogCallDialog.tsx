@@ -324,7 +324,7 @@ export function LogCallDialog({
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("leadDetail.lc_saving")}</>
             ) : (
-              "Spara"
+              t("leadDetail.lc_save")
             )}
           </Button>
         </DialogFooter>

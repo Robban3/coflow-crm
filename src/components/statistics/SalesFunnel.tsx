@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowDown, Users, MessageSquare, Calendar, FileText, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,10 +24,11 @@ const STAGE_COLORS = [
 ];
 
 export function SalesFunnel({ stages }: Props) {
+  const { t } = useTranslation();
   return (
     <Card className="border-border/50">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Säljtratt</CardTitle>
+        <CardTitle className="text-base">{t("statistics.salesFunnel")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-1">
@@ -51,7 +53,7 @@ export function SalesFunnel({ stages }: Props) {
                         <span className="text-lg font-bold tabular-nums">{stage.count}</span>
                         {i > 0 && (
                           <span className="text-xs text-muted-foreground">
-                            {stage.pct}% konv.
+                            {t("statistics.conversionPct", { count: stage.pct })}
                           </span>
                         )}
                       </div>

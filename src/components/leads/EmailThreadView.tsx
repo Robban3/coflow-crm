@@ -117,7 +117,7 @@ export function EmailThreadView({ leadId, leadName, className }: EmailThreadView
       subject: email.subject,
       body: email.body,
       timestamp: email.created_at,
-      from: "Du",
+      from: t("leadDetail.et_you"),
       isRead: email.opened_at !== null,
       openCount: email.opened_count || 0,
     })),
@@ -173,7 +173,7 @@ export function EmailThreadView({ leadId, leadName, className }: EmailThreadView
         <CardContent className="flex flex-col items-center justify-center py-8">
           <Mail className="h-10 w-10 text-muted-foreground/40 mb-3" />
           <p className="text-sm text-muted-foreground text-center">
-            Ingen mailkorrespondens med denna lead ännu
+            {t("leadDetail.et_emptyThread")}
           </p>
         </CardContent>
       </Card>

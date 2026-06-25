@@ -503,10 +503,14 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
               {isWon
-                ? `Vunnen affär`
+                ? t("quotes.wonDeal")
                 : isReadOnly
-                ? (status === "accepted" ? `Accepterad ${documentLabel}` : `Avböjd ${documentLabel}`)
-                : currentQuoteId ? `Redigera ${documentLabel}` : `Ny ${documentLabel}`}
+                ? (status === "accepted"
+                    ? (documentLabel === "avtal" ? t("quotes.acceptedAvtal") : t("quotes.acceptedOffert"))
+                    : (documentLabel === "avtal" ? t("quotes.rejectedAvtal") : t("quotes.rejectedOffert")))
+                : currentQuoteId
+                ? (documentLabel === "avtal" ? t("quotes.editAvtal") : t("quotes.editOffert"))
+                : (documentLabel === "avtal" ? t("quotes.newAvtal") : t("quotes.newOffert"))}
             </h1>
             {quoteNumber && (
               <p className="text-sm text-muted-foreground">#{quoteNumber}</p>
@@ -528,7 +532,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
           )}
           {viewCount > 0 && (
             <Badge variant="outline" className="text-xs">
-              Visad {viewCount}x
+              {t("quotes.viewedTimes", { count: viewCount })}
             </Badge>
           )}
           {currentQuoteId && (
@@ -541,7 +545,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
             <>
               <Button variant="outline" onClick={saveQuote} disabled={saving}>
                 <Save className="h-4 w-4 mr-1" />
-                {saving ? "Sparar..." : "Spara"}
+                {saving ? t("quotes.saving") : t("quotes.save")}
               </Button>
               {currentQuoteId && ["draft", "sent", "viewed"].includes(status) && (
                 <Button onClick={() => setShowSendDialog(true)}>
@@ -559,7 +563,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
               title={t("quotes.markAsDealTitle")}
             >
               <CheckCircle2 className="h-4 w-4 mr-1" />
-              {convertingToDeal ? "Konverterar..." : t("quotes.markAsDeal")}
+              {convertingToDeal ? t("quotes.convertingToDeal") : t("quotes.markAsDeal")}
             </Button>
           )}
         </div>
@@ -571,7 +575,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
           {/* Basic info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{documentLabel === "avtal" ? "Avtalsinformation" : "Offertinformation"}</CardTitle>
+              <CardTitle className="text-base">{documentLabel === "avtal" ? t("quotes.avtalInfo") : t("quotes.offertInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -686,7 +690,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                     <div className="col-span-3">{t("quotes.description")}</div>
                     <div className="col-span-1 text-right">{t("quotes.colQuantity")}</div>
                     <div className="col-span-1">{t("quotes.unit")}</div>
-                    <div className="col-span-2 text-right">Á-pris</div>
+                    <div className="col-span-2 text-right">{t("quotes.colUnitPrice")}</div>
                     <div className="col-span-1 text-right">{t("quotes.colDiscount")}</div>
                     <div className="col-span-1 text-center">{t("quotes.colType")}</div>
                     <div className="col-span-2 text-right">{t("quotes.colTotal")}</div>
@@ -768,7 +772,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                             {(item.quantity * item.unit_price).toLocaleString("sv-SE")} kr
                           </div>
                         )}
-                        {item.billing_type === "monthly" && <span className="text-xs text-muted-foreground">/mån</span>}
+                        {item.billing_type === "monthly" && <span className="text-xs text-muted-foreground">{t("quotes.perMonthShort")}</span>}
                       </div>
                       {!isReadOnly && (
                         <div className="col-span-1 flex justify-end">
@@ -837,7 +841,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                 </>
               ) : null}
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Netto ({items.length} rader)</span>
+                <span className="text-muted-foreground">{t("quotes.netRows", { count: items.length })}</span>
                 <span>{subtotal.toLocaleString("sv-SE")} kr</span>
               </div>
               <div className="flex items-center gap-2">
@@ -901,9 +905,9 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                 }
               >
                 {status === "draft"
-                  ? "Utkast"
+                  ? t("quotes.statusDraft")
                   : status === "sent"
-                  ? "Skickad"
+                  ? t("quotes.statusSent")
                   : status === "viewed"
                   ? t("quotes.statusViewed")
                   : status === "accepted"
@@ -934,7 +938,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                 {senderSignature ? (
                   <div className="space-y-2">
                     <div className="border rounded-lg p-3 bg-white">
-                      <img src={senderSignature} alt="Din signatur" className="max-h-16" />
+                      <img src={senderSignature} alt={t("quotes.yourSignatureAlt")} className="max-h-16" />
                     </div>
                     <Button variant="ghost" size="sm" onClick={() => { setSenderSignature(null); setShowSignature(true); }}>{t("quotes.changeSignature")}</Button>
                   </div>
@@ -969,20 +973,20 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                     </div>
                     {senderSignedAt && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Signerad {new Date(senderSignedAt).toLocaleDateString("sv-SE")}
+                        {t("quotes.signedOn", { date: new Date(senderSignedAt).toLocaleDateString(numberLocale) })}
                       </p>
                     )}
                   </div>
                 )}
                 {recipientSignature && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Mottagare – {recipientName || "Mottagare"}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t("quotes.recipientSignatureLabel", { name: recipientName || t("quotes.recipientLabel") })}</p>
                     <div className="border rounded-lg p-3 bg-white">
-                      <img src={recipientSignature} alt="Mottagarens signatur" className="max-h-16" />
+                      <img src={recipientSignature} alt={t("quotes.recipientSignatureAlt")} className="max-h-16" />
                     </div>
                     {recipientSignedAt && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Signerad {new Date(recipientSignedAt).toLocaleDateString("sv-SE")}
+                        {t("quotes.signedOn", { date: new Date(recipientSignedAt).toLocaleDateString(numberLocale) })}
                       </p>
                     )}
                   </div>
@@ -1019,7 +1023,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
           onSent={() => {
             setShowSendDialog(false);
             setStatus("sent");
-            toast.success(documentLabel === "avtal" ? "Avtalet har skickats!" : "Offerten har skickats!");
+            toast.success(documentLabel === "avtal" ? t("quotes.agreementSent") : t("quotes.quoteSent"));
           }}
           onClose={() => setShowSendDialog(false)}
         />

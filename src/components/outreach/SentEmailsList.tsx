@@ -178,13 +178,13 @@ export function SentEmailsList({ currentUserOnly = false }: SentEmailsListProps)
   const getSourceLabel = (source: string) => {
     switch (source) {
       case "sequence":
-        return "Sekvens";
+        return t("outreach.sent.sourceSequence");
       case "quick_outreach":
-        return "Snabbmail";
+        return t("outreach.sent.sourceQuickOutreach");
       case "single_email":
-        return "Enskilt mail";
+        return t("outreach.sent.sourceSingleEmail");
       default:
-        return "Manuellt";
+        return t("outreach.sent.sourceManual");
     }
   };
 
@@ -207,7 +207,7 @@ export function SentEmailsList({ currentUserOnly = false }: SentEmailsListProps)
           <div className="flex-1 min-w-0">
             <p className="font-medium truncate">{email.subject}</p>
             <p className="text-sm text-muted-foreground truncate">
-              Till: {email.recipient_name || email.recipient_email}
+              {t("outreach.sent.toLabel", { value: email.recipient_name || email.recipient_email })}
             </p>
           </div>
           <Badge variant={email.opened_at ? "default" : "secondary"} className="shrink-0">
@@ -297,7 +297,7 @@ export function SentEmailsList({ currentUserOnly = false }: SentEmailsListProps)
 
       {/* Summary */}
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{filteredEmails.length} mail totalt</span>
+        <span>{t("outreach.sent.totalCount", { count: filteredEmails.length })}</span>
         <span>{t("outreach.sent.openedCount", { count: filteredEmails.filter(e => e.opened_at).length })}</span>
       </div>
 
@@ -465,7 +465,7 @@ export function SentEmailsList({ currentUserOnly = false }: SentEmailsListProps)
                 <Button variant="outline" asChild className="w-full">
                   <Link to={`/leads/${selectedEmail.lead.id}`}>
                     <Building2 className="h-4 w-4 mr-2" />
-                    Visa lead: {selectedEmail.lead.company_name}
+                    {t("outreach.sent.viewLead", { name: selectedEmail.lead.company_name })}
                   </Link>
                 </Button>
               )}

@@ -333,13 +333,13 @@ export function FleetDataSection({
                   ) : (
                     <Sparkles className="h-3 w-3" />
                   )}
-                  Sök org-nummer automatiskt
+                  {t("leadDetail.fd_searchOrgAuto")}
                 </Button>
               </div>
             )}
             {!orgNumber && !companyName && (
               <p className="text-xs text-muted-foreground">
-                Lägg till org-nummer eller företagsnamn för att söka
+                {t("leadDetail.fd_addOrgOrNameToSearch")}
               </p>
             )}
           </div>
@@ -355,7 +355,7 @@ export function FleetDataSection({
                   <Car className="h-5 w-5 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-muted-foreground">Antal fordon</p>
+                  <p className="text-xs text-muted-foreground">{t("leadDetail.fd_vehicleCount")}</p>
                   <p className="text-lg font-semibold">
                     {fleetData.vehicle_count !== null ? fleetData.vehicle_count : vehicles.length || '-'}
                   </p>
@@ -368,7 +368,7 @@ export function FleetDataSection({
                   <Phone className="h-5 w-5 text-blue-500" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-muted-foreground">Telefonnummer</p>
+                  <p className="text-xs text-muted-foreground">{t("leadDetail.fd_phoneNumbers")}</p>
                   <p className="text-lg font-semibold">
                     {fleetData.phone_subscription_count !== null ? fleetData.phone_subscription_count : phoneNumbers.length || '-'}
                   </p>
@@ -382,7 +382,7 @@ export function FleetDataSection({
                     <Building2 className="h-5 w-5 text-green-500" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-muted-foreground">Operatör</p>
+                    <p className="text-xs text-muted-foreground">{t("leadDetail.fd_operator")}</p>
                     <p className="font-medium truncate">{fleetData.phone_operator}</p>
                   </div>
                 </div>
@@ -395,7 +395,7 @@ export function FleetDataSection({
                     <Car className="h-5 w-5 text-orange-500" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-muted-foreground">Leasingbolag</p>
+                    <p className="text-xs text-muted-foreground">{t("leadDetail.fd_leasingCompany")}</p>
                     <p className="font-medium truncate">{fleetData.leasing_company}</p>
                   </div>
                 </div>
@@ -409,7 +409,7 @@ export function FleetDataSection({
                   <Button variant="ghost" size="sm" className="w-full justify-between">
                     <span className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
-                      Visa {phoneNumbers.length} telefonnummer
+                      {t("leadDetail.fd_showPhones", { count: phoneNumbers.length })}
                     </span>
                     {showPhones ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
@@ -443,7 +443,7 @@ export function FleetDataSection({
                   <Button variant="ghost" size="sm" className="w-full justify-between">
                     <span className="flex items-center gap-2">
                       <Car className="h-4 w-4" />
-                      Visa {vehicles.length} fordon
+                      {t("leadDetail.fd_showVehicles", { count: vehicles.length })}
                     </span>
                     {showVehicles ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
@@ -475,7 +475,7 @@ export function FleetDataSection({
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 <span>
-                  Hämtad {format(new Date(fleetData.fetched_at), "d MMM yyyy, HH:mm", { locale: sv })}
+                  {t("leadDetail.fd_fetchedAt", { date: format(new Date(fleetData.fetched_at), "d MMM yyyy, HH:mm", { locale: sv }) })}
                 </span>
               </div>
               {fleetData.source_url && (
@@ -486,7 +486,7 @@ export function FleetDataSection({
                   className="flex items-center gap-1 text-primary hover:underline"
                 >
                   <ExternalLink className="h-3 w-3" />
-                  Källa
+                  {t("leadDetail.fd_source")}
                 </a>
               )}
               {fleetData.org_number && (

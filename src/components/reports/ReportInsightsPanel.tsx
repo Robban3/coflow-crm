@@ -118,27 +118,27 @@ function computeInsights(
 type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
 const sectionLabels = (t: TranslateFn): Record<string, string> => ({
-  executive: "Executive",
+  executive: t("reports.insights.section.executive"),
   nuläge: t("reports.insights.section.nuläge"),
   barrier: t("reports.insights.section.barrier"),
-  roadmap: "Roadmap",
-  pricing: "Investering & Paket",
+  roadmap: t("reports.insights.section.roadmap"),
+  pricing: t("reports.insights.section.pricing"),
   next_steps: t("reports.insights.section.next_steps"),
-  summary: "Sammanfattning",
-  findings: "Fynd",
+  summary: t("reports.insights.section.summary"),
+  findings: t("reports.insights.section.findings"),
   actions: t("reports.insights.section.actions"),
-  cta: "CTA",
+  cta: t("reports.insights.section.cta"),
 });
 
-const EVENT_LABELS: Record<string, string> = {
-  view: "Sidvisning",
-  heartbeat: "Aktiv",
-  section_view: "Sektion visad",
-  scroll_depth: "Scroll",
-  cta_click: "CTA-klick",
-  pdf_click: "PDF-export",
-  share_click: "Dela",
-};
+const eventLabels = (t: TranslateFn): Record<string, string> => ({
+  view: t("reports.insights.event.view"),
+  heartbeat: t("reports.insights.event.heartbeat"),
+  section_view: t("reports.insights.event.section_view"),
+  scroll_depth: t("reports.insights.event.scroll_depth"),
+  cta_click: t("reports.insights.event.cta_click"),
+  pdf_click: t("reports.insights.event.pdf_click"),
+  share_click: t("reports.insights.event.share_click"),
+});
 
 function formatDuration(ms: number): string {
   if (ms < 60000) return `${Math.round(ms / 1000)}s`;
@@ -150,6 +150,7 @@ function formatDuration(ms: number): string {
 export function ReportInsightsPanel({ reportId, shareToken }: Props) {
   const { t } = useTranslation();
   const SECTION_LABELS = sectionLabels(t);
+  const EVENT_LABELS = eventLabels(t);
   const { data: insights, isLoading } = useQuery({
     queryKey: ["report-insights", reportId, shareToken],
     queryFn: async () => {
@@ -226,7 +227,7 @@ export function ReportInsightsPanel({ reportId, shareToken }: Props) {
         <MetricCard
           icon={<Eye className="h-3.5 w-3.5" />}
           label={t("reports.insights.opened")}
-          value="Ja"
+          value={t("reports.insights.yes")}
           sub={d.first_opened ? format(new Date(d.first_opened), "d MMM HH:mm", { locale: sv }) : undefined}
         />
         <MetricCard
@@ -287,7 +288,7 @@ export function ReportInsightsPanel({ reportId, shareToken }: Props) {
       {/* Last seen */}
       {d.last_opened && (
         <p className="text-[10px] text-muted-foreground">
-          Senast aktiv: {format(new Date(d.last_opened), "d MMM yyyy HH:mm", { locale: sv })}
+          {t("reports.insights.lastActive")}: {format(new Date(d.last_opened), "d MMM yyyy HH:mm", { locale: sv })}
         </p>
       )}
 

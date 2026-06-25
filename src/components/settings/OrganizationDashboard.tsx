@@ -413,13 +413,13 @@ export function OrganizationDashboard() {
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
       toast({
-        title: "Användare borttagen",
-        description: `${deletingMember.full_name || deletingMember.email} har tagits bort.`,
+        title: t("settings.userRemovedTitle"),
+        description: t("settings.userRemovedDesc", { name: deletingMember.full_name || deletingMember.email }),
       });
       setDeletingMember(null);
       fetchTeamData();
     } catch (e: any) {
-      toast({ title: "Kunde inte ta bort", description: e.message, variant: "destructive" });
+      toast({ title: t("settings.userRemoveErrorTitle"), description: e.message, variant: "destructive" });
     } finally {
       setIsDeleting(false);
     }
@@ -712,7 +712,7 @@ export function OrganizationDashboard() {
                             className="h-8 w-8 text-destructive hover:text-destructive"
                             onClick={() => setDeletingMember(member)}
                             disabled={member.id === user?.id}
-                            title={member.id === user?.id ? "Du kan inte ta bort dig själv" : "Ta bort användare"}
+                            title={member.id === user?.id ? t("settings.cannotDeleteSelf") : t("settings.deleteUserTitle")}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -858,7 +858,7 @@ export function OrganizationDashboard() {
                 ) : (
                   <Save className="mr-2 h-4 w-4" />
                 )}
-                Spara uppgifter
+                {t("settings.saveDetails")}
               </Button>
             </CardContent>
           </Card>
@@ -912,12 +912,10 @@ export function OrganizationDashboard() {
       <Dialog open={!!deletingMember} onOpenChange={(o) => !o && setDeletingMember(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ta bort användare</DialogTitle>
+            <DialogTitle>{t("settings.deleteUserTitle")}</DialogTitle>
             <DialogDescription>
-              Är du säker på att du vill ta bort{" "}
-              <strong>{deletingMember?.full_name || deletingMember?.email}</strong>? Kontot raderas
-              permanent och personen kan inte längre logga in. Deras leads frigörs och hamnar i poolen.
-              Detta går inte att ångra.
+              {t("settings.deleteUserConfirm")}{" "}
+              <strong>{deletingMember?.full_name || deletingMember?.email}</strong>{t("settings.deleteUserConfirmRest")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -926,7 +924,7 @@ export function OrganizationDashboard() {
             </Button>
             <Button variant="destructive" onClick={handleDeleteUser} disabled={isDeleting}>
               {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Ta bort
+              {t("settings.delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1021,7 +1019,7 @@ export function OrganizationDashboard() {
             <Button variant="outline" onClick={() => setShowInviteCodeDialog(false)}>{t("settings.cancel")}</Button>
             <Button onClick={handleCreateInviteCode} disabled={isCreating}>
               {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Generera kod
+              {t("settings.generateCode")}
             </Button>
           </DialogFooter>
         </DialogContent>

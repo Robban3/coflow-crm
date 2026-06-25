@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb, Users } from "lucide-react";
 import type { InsightEntry } from "@/pages/StatisticsPage";
@@ -7,12 +8,13 @@ interface Props {
 }
 
 export function StatisticsInsights({ insights }: Props) {
+  const { t } = useTranslation();
   return (
     <Card className="border-border/50">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Lightbulb className="h-4 w-4 text-amber-500" />
-          Coaching-insikter
+          {t("statistics.coachingInsights")}
         </CardTitle>
       </CardHeader>
       <CardContent>

@@ -530,6 +530,94 @@ export const leadDetailDict: FeatureDictionary = {
     "leadDetail.lsa_markNotInterested": "Markera som Ej intresserad",
     "leadDetail.co2_findAuto": "Hitta konkurrenter automatiskt",
     "leadDetail.message_label": "Meddelande",
+
+    // LeadDetailPage (additional)
+    "leadDetail.ldp_nextLead": "Nästa lead",
+    "leadDetail.ldp_titleOptional": "Rubrik (valfritt)",
+
+    // SingleEmailGenerator (additional)
+    "leadDetail.se_noSourceSelected": "Ingen datakälla vald",
+    "leadDetail.se_fleetDataTitle": "Fordonsdata",
+    "leadDetail.se_telephonyTitle": "Telefonidata",
+    "leadDetail.se_noData": "Ingen data",
+    "leadDetail.se_vehiclesCount": "{count} fordon",
+    "leadDetail.se_notAnalyzedPaid": "Ej analyserad (betald)",
+
+    // PlaceWorkflowDialog (additional)
+    "leadDetail.pw_leadAlreadyExists": "Lead finns redan!",
+    "leadDetail.pw_savedAsLead": "{name} är sparad som lead",
+    "leadDetail.pw_statusHeading": "Status",
+    "leadDetail.pw_quickInsights": "Snabbinsikter",
+    "leadDetail.pw_emailRequired": "E-post *",
+    "leadDetail.pw_phonePlaceholder": "08-xxx xx xx",
+
+    // CompetitorAnalysis (additional)
+    "leadDetail.co_addBtn": "Lägg till",
+    "leadDetail.co_locationLabel": "Plats (valfritt)",
+    "leadDetail.co_locationPlaceholder": "t.ex. Stockholm",
+    "leadDetail.co_addSelectedCount": "Lägg till {count} valda",
+    "leadDetail.co_namePlaceholder": "t.ex. Konkurrent AB",
+    "leadDetail.co_urlPlaceholder": "t.ex. konkurrent.se",
+
+    // LeadsList
+    "leadDetail.ll_backInPoolTitle": "Leadet är tillbaka i poolen",
+    "leadDetail.ll_backInPoolDesc": "Din anledning visas för nästa säljare som plockar upp det.",
+    "leadDetail.ll_couldNotRemove": "Kunde inte ta bort",
+    "leadDetail.ll_removeFromMyLeads": "Ta bort från mina leads",
+    "leadDetail.ll_removeDialogTitle": "Ta bort lead till poolen",
+    "leadDetail.ll_removeDialogDesc": "Leadet frigörs så att en annan säljare kan plocka upp det. All historik (samtal, anteckningar, mejl) sparas och följer med. Skriv varför du släpper det – det visas för nästa säljare.",
+    "leadDetail.ll_reasonLabel": "Anledning (visas för nästa säljare)",
+    "leadDetail.ll_reasonPlaceholder": "T.ex. fel tajming, redan avtal med konkurrent, vill bli kontaktad senare...",
+    "leadDetail.ll_cancel": "Avbryt",
+    "leadDetail.ll_returnBtn": "Lämna tillbaka",
+    "leadDetail.ll_hideWorked": "Dölj bearbetade leads",
+
+    // FleetDataSection (additional)
+    "leadDetail.fd_searchOrgAuto": "Sök org-nummer automatiskt",
+    "leadDetail.fd_addOrgOrNameToSearch": "Lägg till org-nummer eller företagsnamn för att söka",
+    "leadDetail.fd_operator": "Operatör",
+    "leadDetail.fd_fetchedAt": "Hämtad {date}",
+    "leadDetail.fd_source": "Källa",
+    "leadDetail.fd_vehicleCount": "Antal fordon",
+    "leadDetail.fd_phoneNumbers": "Telefonnummer",
+    "leadDetail.fd_leasingCompany": "Leasingbolag",
+    "leadDetail.fd_showPhones": "Visa {count} telefonnummer",
+    "leadDetail.fd_showVehicles": "Visa {count} fordon",
+
+    // LeadStatusActions (additional)
+    "leadDetail.lsa_backInPoolTitle": "Leadet är tillbaka i poolen",
+    "leadDetail.lsa_backInPoolDesc": "All historik sparas. En annan säljare kan plocka upp det efter karenstiden.",
+    "leadDetail.ls_backToPool": "Tillbaka till poolen",
+    "leadDetail.ls_releaseDialogDesc": "Leadet frigörs så att en annan säljare kan plocka upp det. All historik (samtal, anteckningar, mejl) sparas och följer med. Skriv gärna kort varför det inte blev någon affär – det hjälper nästa säljare.",
+    "leadDetail.ls_returnBtn": "Lämna tillbaka",
+    "leadDetail.ls_releasePlaceholder": "T.ex. fel tajming, redan avtal med konkurrent, vill bli kontaktad senare...",
+
+    // LeadGeneration (additional)
+    "leadDetail.lg_searchUrlPlaceholder": "https://exempel.se",
+    "leadDetail.lg_phonePlaceholder": "08-xxx xx xx",
+    "leadDetail.lg_websitePlaceholder": "https://företag.se",
+
+    // WonDealDialog
+    "leadDetail.wd_couldNotSave": "Kunde inte spara",
+    "leadDetail.wd_dealRegisteredTitle": "Affär registrerad",
+    "leadDetail.wd_dealRegisteredDesc": "Onboarding-uppgifterna är sparade.",
+    "leadDetail.wd_title": "Grattis till affären!",
+    "leadDetail.wd_description": "Fyll i uppgifterna för kundens onboarding.",
+    "leadDetail.wd_requiredFields": "Obligatoriska fält",
+    "leadDetail.wd_companyName": "Företagsnamn *",
+    "leadDetail.wd_contactPerson": "Kontaktperson *",
+    "leadDetail.wd_emailAddress": "E-postadress *",
+    "leadDetail.wd_phoneNumber": "Telefonnummer *",
+    "leadDetail.wd_productService": "Produkt/tjänst som sålts *",
+    "leadDetail.wd_onboardingDate": "Datum för onboarding *",
+    "leadDetail.wd_onboardingTime": "Tid för onboarding *",
+    "leadDetail.wd_niceToHave": "Bra att ha",
+    "leadDetail.wd_sellerNotes": "Säljarens anteckningar",
+    "leadDetail.wd_customerGoal": "Kundens huvudsakliga mål med köpet",
+    "leadDetail.wd_promises": "Löften / specialöverenskommelser under försäljningen",
+    "leadDetail.wd_cancel": "Avbryt",
+    "leadDetail.wd_saving": "Sparar…",
+    "leadDetail.wd_saveDeal": "Spara affär",
   },
   en: {
     // ActivityTimeline
@@ -1060,6 +1148,94 @@ export const leadDetailDict: FeatureDictionary = {
     "leadDetail.lsa_markNotInterested": "Mark as Not interested",
     "leadDetail.co2_findAuto": "Find competitors automatically",
     "leadDetail.message_label": "Message",
+
+    // LeadDetailPage (additional)
+    "leadDetail.ldp_nextLead": "Next lead",
+    "leadDetail.ldp_titleOptional": "Title (optional)",
+
+    // SingleEmailGenerator (additional)
+    "leadDetail.se_noSourceSelected": "No data source selected",
+    "leadDetail.se_fleetDataTitle": "Vehicle data",
+    "leadDetail.se_telephonyTitle": "Telephony data",
+    "leadDetail.se_noData": "No data",
+    "leadDetail.se_vehiclesCount": "{count} vehicles",
+    "leadDetail.se_notAnalyzedPaid": "Not analyzed (paid)",
+
+    // PlaceWorkflowDialog (additional)
+    "leadDetail.pw_leadAlreadyExists": "Lead already exists!",
+    "leadDetail.pw_savedAsLead": "{name} is saved as a lead",
+    "leadDetail.pw_statusHeading": "Status",
+    "leadDetail.pw_quickInsights": "Quick insights",
+    "leadDetail.pw_emailRequired": "Email *",
+    "leadDetail.pw_phonePlaceholder": "08-xxx xx xx",
+
+    // CompetitorAnalysis (additional)
+    "leadDetail.co_addBtn": "Add",
+    "leadDetail.co_locationLabel": "Location (optional)",
+    "leadDetail.co_locationPlaceholder": "e.g. Stockholm",
+    "leadDetail.co_addSelectedCount": "Add {count} selected",
+    "leadDetail.co_namePlaceholder": "e.g. Competitor Ltd",
+    "leadDetail.co_urlPlaceholder": "e.g. competitor.com",
+
+    // LeadsList
+    "leadDetail.ll_backInPoolTitle": "The lead is back in the pool",
+    "leadDetail.ll_backInPoolDesc": "Your reason is shown to the next salesperson who picks it up.",
+    "leadDetail.ll_couldNotRemove": "Could not remove",
+    "leadDetail.ll_removeFromMyLeads": "Remove from my leads",
+    "leadDetail.ll_removeDialogTitle": "Release lead to the pool",
+    "leadDetail.ll_removeDialogDesc": "The lead is released so another salesperson can pick it up. All history (calls, notes, emails) is kept and follows it. Write why you are releasing it – it is shown to the next salesperson.",
+    "leadDetail.ll_reasonLabel": "Reason (shown to the next salesperson)",
+    "leadDetail.ll_reasonPlaceholder": "E.g. wrong timing, already has a contract with a competitor, wants to be contacted later...",
+    "leadDetail.ll_cancel": "Cancel",
+    "leadDetail.ll_returnBtn": "Return",
+    "leadDetail.ll_hideWorked": "Hide worked leads",
+
+    // FleetDataSection (additional)
+    "leadDetail.fd_searchOrgAuto": "Search org number automatically",
+    "leadDetail.fd_addOrgOrNameToSearch": "Add org number or company name to search",
+    "leadDetail.fd_operator": "Operator",
+    "leadDetail.fd_fetchedAt": "Fetched {date}",
+    "leadDetail.fd_source": "Source",
+    "leadDetail.fd_vehicleCount": "Number of vehicles",
+    "leadDetail.fd_phoneNumbers": "Phone numbers",
+    "leadDetail.fd_leasingCompany": "Leasing company",
+    "leadDetail.fd_showPhones": "Show {count} phone numbers",
+    "leadDetail.fd_showVehicles": "Show {count} vehicles",
+
+    // LeadStatusActions (additional)
+    "leadDetail.lsa_backInPoolTitle": "The lead is back in the pool",
+    "leadDetail.lsa_backInPoolDesc": "All history is kept. Another salesperson can pick it up after the cooldown period.",
+    "leadDetail.ls_backToPool": "Back to the pool",
+    "leadDetail.ls_releaseDialogDesc": "The lead is released so another salesperson can pick it up. All history (calls, notes, emails) is kept and follows it. Feel free to briefly write why it did not result in a deal – it helps the next salesperson.",
+    "leadDetail.ls_returnBtn": "Return",
+    "leadDetail.ls_releasePlaceholder": "E.g. wrong timing, already has a contract with a competitor, wants to be contacted later...",
+
+    // LeadGeneration (additional)
+    "leadDetail.lg_searchUrlPlaceholder": "https://example.com",
+    "leadDetail.lg_phonePlaceholder": "08-xxx xx xx",
+    "leadDetail.lg_websitePlaceholder": "https://company.com",
+
+    // WonDealDialog
+    "leadDetail.wd_couldNotSave": "Could not save",
+    "leadDetail.wd_dealRegisteredTitle": "Deal registered",
+    "leadDetail.wd_dealRegisteredDesc": "The onboarding details have been saved.",
+    "leadDetail.wd_title": "Congratulations on the deal!",
+    "leadDetail.wd_description": "Fill in the details for the customer's onboarding.",
+    "leadDetail.wd_requiredFields": "Required fields",
+    "leadDetail.wd_companyName": "Company name *",
+    "leadDetail.wd_contactPerson": "Contact person *",
+    "leadDetail.wd_emailAddress": "Email address *",
+    "leadDetail.wd_phoneNumber": "Phone number *",
+    "leadDetail.wd_productService": "Product/service sold *",
+    "leadDetail.wd_onboardingDate": "Onboarding date *",
+    "leadDetail.wd_onboardingTime": "Onboarding time *",
+    "leadDetail.wd_niceToHave": "Nice to have",
+    "leadDetail.wd_sellerNotes": "Seller's notes",
+    "leadDetail.wd_customerGoal": "Customer's main goal with the purchase",
+    "leadDetail.wd_promises": "Promises / special agreements made during the sale",
+    "leadDetail.wd_cancel": "Cancel",
+    "leadDetail.wd_saving": "Saving…",
+    "leadDetail.wd_saveDeal": "Save deal",
   },
   es: {
     // ActivityTimeline
@@ -1521,5 +1697,97 @@ export const leadDetailDict: FeatureDictionary = {
     "leadDetail.lsa_markNotInterested": "Marcar como No interesado",
     "leadDetail.co2_findAuto": "Encontrar competidores automáticamente",
     "leadDetail.message_label": "Mensaje",
+
+    // LeadDetailPage (additional)
+    "leadDetail.ldp_nextLead": "Siguiente lead",
+    "leadDetail.ldp_titleOptional": "Título (opcional)",
+    "leadDetail.ldp_placeholderCall": "P. ej. Llamada de seguimiento",
+    "leadDetail.ldp_placeholderMeeting": "P. ej. Presentación de servicios",
+    "leadDetail.ldp_placeholderNote": "P. ej. Nota interna",
+    "leadDetail.ldp_companyNameLabel": "Nombre de la empresa *",
+
+    // SingleEmailGenerator (additional)
+    "leadDetail.se_noSourceSelected": "Ninguna fuente de datos seleccionada",
+    "leadDetail.se_fleetDataTitle": "Datos de vehículos",
+    "leadDetail.se_telephonyTitle": "Datos de telefonía",
+    "leadDetail.se_noData": "Sin datos",
+    "leadDetail.se_vehiclesCount": "{count} vehículos",
+    "leadDetail.se_notAnalyzedPaid": "No analizado (de pago)",
+
+    // PlaceWorkflowDialog (additional)
+    "leadDetail.pw_leadAlreadyExists": "¡El lead ya existe!",
+    "leadDetail.pw_savedAsLead": "{name} se ha guardado como lead",
+    "leadDetail.pw_statusHeading": "Estado",
+    "leadDetail.pw_quickInsights": "Información rápida",
+    "leadDetail.pw_emailRequired": "Correo electrónico *",
+    "leadDetail.pw_phonePlaceholder": "08-xxx xx xx",
+
+    // CompetitorAnalysis (additional)
+    "leadDetail.co_addBtn": "Añadir",
+    "leadDetail.co_locationLabel": "Ubicación (opcional)",
+    "leadDetail.co_locationPlaceholder": "p. ej. Estocolmo",
+    "leadDetail.co_addSelectedCount": "Añadir {count} seleccionados",
+    "leadDetail.co_namePlaceholder": "p. ej. Competidor S.L.",
+    "leadDetail.co_urlPlaceholder": "p. ej. competidor.com",
+
+    // LeadsList
+    "leadDetail.ll_backInPoolTitle": "El lead vuelve a estar en el grupo",
+    "leadDetail.ll_backInPoolDesc": "Tu motivo se muestra al próximo vendedor que lo tome.",
+    "leadDetail.ll_couldNotRemove": "No se pudo eliminar",
+    "leadDetail.ll_removeFromMyLeads": "Quitar de mis leads",
+    "leadDetail.ll_removeDialogTitle": "Devolver el lead al grupo",
+    "leadDetail.ll_removeDialogDesc": "El lead se libera para que otro vendedor pueda tomarlo. Todo el historial (llamadas, notas, correos) se conserva y lo acompaña. Escribe por qué lo liberas: se muestra al próximo vendedor.",
+    "leadDetail.ll_reasonLabel": "Motivo (se muestra al próximo vendedor)",
+    "leadDetail.ll_reasonPlaceholder": "P. ej. mal momento, ya tiene contrato con un competidor, quiere que lo contacten más tarde...",
+    "leadDetail.ll_cancel": "Cancelar",
+    "leadDetail.ll_returnBtn": "Devolver",
+    "leadDetail.ll_hideWorked": "Ocultar leads trabajados",
+
+    // FleetDataSection (additional)
+    "leadDetail.fd_searchOrgAuto": "Buscar número de organización automáticamente",
+    "leadDetail.fd_addOrgOrNameToSearch": "Añade el número de organización o el nombre de la empresa para buscar",
+    "leadDetail.fd_operator": "Operador",
+    "leadDetail.fd_fetchedAt": "Obtenido {date}",
+    "leadDetail.fd_source": "Fuente",
+    "leadDetail.fd_vehicleCount": "Número de vehículos",
+    "leadDetail.fd_phoneNumbers": "Números de teléfono",
+    "leadDetail.fd_leasingCompany": "Empresa de leasing",
+    "leadDetail.fd_showPhones": "Mostrar {count} números de teléfono",
+    "leadDetail.fd_showVehicles": "Mostrar {count} vehículos",
+
+    // LeadStatusActions (additional)
+    "leadDetail.lsa_backInPoolTitle": "El lead vuelve a estar en el grupo",
+    "leadDetail.lsa_backInPoolDesc": "Todo el historial se conserva. Otro vendedor puede tomarlo tras el periodo de espera.",
+    "leadDetail.ls_backToPool": "Devolver al grupo",
+    "leadDetail.ls_releaseDialogDesc": "El lead se libera para que otro vendedor pueda tomarlo. Todo el historial (llamadas, notas, correos) se conserva y lo acompaña. Escribe brevemente por qué no se cerró el trato: ayuda al próximo vendedor.",
+    "leadDetail.ls_returnBtn": "Devolver",
+    "leadDetail.ls_releasePlaceholder": "P. ej. mal momento, ya tiene contrato con un competidor, quiere que lo contacten más tarde...",
+
+    // LeadGeneration (additional)
+    "leadDetail.lg_searchUrlPlaceholder": "https://ejemplo.com",
+    "leadDetail.lg_phonePlaceholder": "08-xxx xx xx",
+    "leadDetail.lg_websitePlaceholder": "https://empresa.com",
+
+    // WonDealDialog
+    "leadDetail.wd_couldNotSave": "No se pudo guardar",
+    "leadDetail.wd_dealRegisteredTitle": "Trato registrado",
+    "leadDetail.wd_dealRegisteredDesc": "Los datos de incorporación se han guardado.",
+    "leadDetail.wd_title": "¡Felicidades por el trato!",
+    "leadDetail.wd_description": "Completa los datos para la incorporación del cliente.",
+    "leadDetail.wd_requiredFields": "Campos obligatorios",
+    "leadDetail.wd_companyName": "Nombre de la empresa *",
+    "leadDetail.wd_contactPerson": "Persona de contacto *",
+    "leadDetail.wd_emailAddress": "Dirección de correo electrónico *",
+    "leadDetail.wd_phoneNumber": "Número de teléfono *",
+    "leadDetail.wd_productService": "Producto/servicio vendido *",
+    "leadDetail.wd_onboardingDate": "Fecha de incorporación *",
+    "leadDetail.wd_onboardingTime": "Hora de incorporación *",
+    "leadDetail.wd_niceToHave": "Bueno tener",
+    "leadDetail.wd_sellerNotes": "Notas del vendedor",
+    "leadDetail.wd_customerGoal": "Objetivo principal del cliente con la compra",
+    "leadDetail.wd_promises": "Promesas / acuerdos especiales durante la venta",
+    "leadDetail.wd_cancel": "Cancelar",
+    "leadDetail.wd_saving": "Guardando…",
+    "leadDetail.wd_saveDeal": "Guardar trato",
   },
 };

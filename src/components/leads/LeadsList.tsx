@@ -183,6 +183,7 @@ function LeadRemoveAction({
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleRelease = async () => {
     if (!reason.trim()) return;
@@ -194,14 +195,14 @@ function LeadRemoveAction({
       });
       if (error) throw error;
       toast({
-        title: "Leadet är tillbaka i poolen",
-        description: "Din anledning visas för nästa säljare som plockar upp det.",
+        title: t("leadDetail.ll_backInPoolTitle"),
+        description: t("leadDetail.ll_backInPoolDesc"),
       });
       setOpen(false);
       setReason("");
       onReleased();
     } catch (e: any) {
-      toast({ title: "Kunde inte ta bort", description: e.message, variant: "destructive" });
+      toast({ title: t("leadDetail.ll_couldNotRemove"), description: e.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -218,7 +219,7 @@ function LeadRemoveAction({
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setOpen(true)}>
             <Undo2 className="h-4 w-4 mr-2 text-muted-foreground" />
-            Ta bort från mina leads
+            {t("leadDetail.ll_removeFromMyLeads")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -226,30 +227,28 @@ function LeadRemoveAction({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Ta bort lead till poolen</DialogTitle>
+            <DialogTitle>{t("leadDetail.ll_removeDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Leadet frigörs så att en annan säljare kan plocka upp det. All
-              historik (samtal, anteckningar, mejl) sparas och följer med. Skriv
-              varför du släpper det – det visas för nästa säljare.
+              {t("leadDetail.ll_removeDialogDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <Label htmlFor="remove-reason">Anledning (visas för nästa säljare)</Label>
+            <Label htmlFor="remove-reason">{t("leadDetail.ll_reasonLabel")}</Label>
             <Textarea
               id="remove-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="T.ex. fel tajming, redan avtal med konkurrent, vill bli kontaktad senare..."
+              placeholder={t("leadDetail.ll_reasonPlaceholder")}
               rows={3}
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Avbryt
+              {t("leadDetail.ll_cancel")}
             </Button>
             <Button onClick={handleRelease} disabled={loading || !reason.trim()}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Lämna tillbaka
+              {t("leadDetail.ll_returnBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -794,7 +793,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                 onCheckedChange={setHideWorked}
               />
               <Label htmlFor="hide-worked" className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap">
-                Dölj bearbetade leads
+                {t("leadDetail.ll_hideWorked")}
               </Label>
             </div>
           </div>

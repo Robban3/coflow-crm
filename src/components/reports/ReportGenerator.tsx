@@ -348,7 +348,7 @@ export function ReportGenerator() {
             <Button variant="outline" onClick={() => setShowDialog(false)}>{t("reports.generator.cancel")}</Button>
             <Button onClick={generateReport} disabled={!selectedAnalysisId || isGenerating}>
               {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Generera rapport
+              {t("reports.generator.generate")}
             </Button>
           </DialogFooter>
         </DialogContent>

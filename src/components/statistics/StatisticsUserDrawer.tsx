@@ -49,13 +49,13 @@ export function StatisticsUserDrawer({ user, open, onClose }: Props) {
             <Card className="flex-1 border-border/50">
               <CardContent className="p-3 text-center">
                 <p className="text-2xl font-bold">{user.score}</p>
-                <p className="text-xs text-muted-foreground">Poäng</p>
+                <p className="text-xs text-muted-foreground">{t("statistics.score")}</p>
               </CardContent>
             </Card>
             <Card className="flex-1 border-border/50">
               <CardContent className="p-3 text-center">
                 <p className="text-2xl font-bold">{user.active_days}</p>
-                <p className="text-xs text-muted-foreground">Aktiva dagar</p>
+                <p className="text-xs text-muted-foreground">{t("statistics.activeDays")}</p>
               </CardContent>
             </Card>
             <Card className="flex-1 border-border/50">
@@ -63,7 +63,7 @@ export function StatisticsUserDrawer({ user, open, onClose }: Props) {
                 <p className="text-2xl font-bold">
                   {user.delta > 0 ? "+" : ""}{user.delta}%
                 </p>
-                <p className="text-xs text-muted-foreground">Trend</p>
+                <p className="text-xs text-muted-foreground">{t("statistics.trend")}</p>
               </CardContent>
             </Card>
           </div>
@@ -87,7 +87,7 @@ export function StatisticsUserDrawer({ user, open, onClose }: Props) {
           {user.last_activity_at && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground px-1">
               <CalendarDays className="h-3.5 w-3.5" />
-              Senaste aktivitet: {new Date(user.last_activity_at).toLocaleString("sv-SE")}
+              {t("statistics.lastActivity", { value: new Date(user.last_activity_at).toLocaleString("sv-SE") })}
             </div>
           )}
         </div>

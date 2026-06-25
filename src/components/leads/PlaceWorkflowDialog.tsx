@@ -793,7 +793,7 @@ export function PlaceWorkflowDialog({
               {/* Status Summary */}
               {(analysisResult || leadCreated || emailSent || contactExtracted) && (
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-muted-foreground">Status</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground">{t("leadDetail.pw_statusHeading")}</h4>
                   <div className="space-y-2">
                     {contactExtracted && (
                       <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
@@ -852,7 +852,7 @@ export function PlaceWorkflowDialog({
 
                   {/* Quick Insights */}
                   <div className="space-y-3">
-                    <h4 className="text-sm font-medium">Snabbinsikter</h4>
+                    <h4 className="text-sm font-medium">{t("leadDetail.pw_quickInsights")}</h4>
                     <div className="space-y-2">
                       {analysisResult.performance_score < 50 && (
                         <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/5 border border-red-500/10">
@@ -936,12 +936,12 @@ export function PlaceWorkflowDialog({
                     <div className="space-y-2">
                       <Label htmlFor="email" className="flex items-center gap-2">
                         <Mail className="h-3.5 w-3.5" />
-                        E-post *
+                        {t("leadDetail.pw_emailRequired")}
                       </Label>
                       <Input
                         id="email"
                         type="email"
-                        placeholder="kontakt@foretag.se"
+                        placeholder={t("leadDetail.pwx_emailPlaceholder")}
                         value={recipientEmail}
                         onChange={(e) => setRecipientEmail(e.target.value)}
                       />
@@ -963,7 +963,7 @@ export function PlaceWorkflowDialog({
                       <User className="h-3.5 w-3.5" />{t("leadDetail.ws_fieldContactPerson")}</Label>
                     <Input
                       id="contact"
-                      placeholder="Anna Andersson"
+                      placeholder={t("leadDetail.pwx_contactNamePlaceholder")}
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
                     />
@@ -1050,9 +1050,9 @@ export function PlaceWorkflowDialog({
                 <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
                   <CheckCircle2 className="h-12 w-12 text-emerald-500" />
                   <div>
-                    <p className="font-medium">Lead finns redan!</p>
+                    <p className="font-medium">{t("leadDetail.pw_leadAlreadyExists")}</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {leadFormData.companyName} är sparad som lead
+                      {t("leadDetail.pw_savedAsLead", { name: leadFormData.companyName })}
                     </p>
                   </div>
                 </div>
@@ -1133,7 +1133,7 @@ export function PlaceWorkflowDialog({
                           onChange={(e) =>
                             setLeadFormData((prev) => ({ ...prev, phone: e.target.value }))
                           }
-                          placeholder="08-xxx xx xx"
+                          placeholder={t("leadDetail.pw_phonePlaceholder")}
                         />
                       </div>
                     </div>

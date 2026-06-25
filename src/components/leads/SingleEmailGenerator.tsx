@@ -467,11 +467,11 @@ export function SingleEmailGenerator({
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <Car className="h-4 w-4 text-green-500 shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">Fordonsdata</p>
+                          <p className="text-sm font-medium truncate">{t("leadDetail.se_fleetDataTitle")}</p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {hasFleetData 
-                              ? `${fleetData?.vehicle_count} fordon` 
-                              : "Ingen data"}
+                            {hasFleetData
+                              ? t("leadDetail.se_vehiclesCount", { count: fleetData?.vehicle_count })
+                              : t("leadDetail.se_noData")}
                           </p>
                         </div>
                       </div>
@@ -494,11 +494,11 @@ export function SingleEmailGenerator({
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <Phone className="h-4 w-4 text-purple-500 shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">Telefonidata</p>
+                          <p className="text-sm font-medium truncate">{t("leadDetail.se_telephonyTitle")}</p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {hasTelephonyData 
-                              ? `${fleetData?.phone_operator || t("leadDetail.se2_unknownOperator")}` 
-                              : "Ingen data"}
+                            {hasTelephonyData
+                              ? `${fleetData?.phone_operator || t("leadDetail.se2_unknownOperator")}`
+                              : t("leadDetail.se_noData")}
                           </p>
                         </div>
                       </div>
@@ -524,8 +524,8 @@ export function SingleEmailGenerator({
                           <p className="text-sm font-medium truncate">{t("leadDetail.ac_geoTitle")}</p>
                           <p className="text-xs text-muted-foreground truncate">
                             {hasGeoData 
-                              ? `GEO: ${geoData?.geo_score}/100` 
-                              : "Ej analyserad"}
+                              ? `GEO: ${geoData?.geo_score}/100`
+                              : t("leadDetail.se_notAnalyzed")}
                           </p>
                         </div>
                       </div>
@@ -554,8 +554,8 @@ export function SingleEmailGenerator({
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
                             {hasSeoIntelligence 
-                              ? `Synlighet: ${seoData?.visibility_score}/100 (cachad)` 
-                              : "Ej analyserad (betald)"}
+                              ? `Synlighet: ${seoData?.visibility_score}/100 (cachad)`
+                              : t("leadDetail.se_notAnalyzedPaid")}
                           </p>
                         </div>
                       </div>
@@ -598,7 +598,7 @@ export function SingleEmailGenerator({
                 {selectedSources.length === 0 && (
                   <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-xs">
                     <p className="font-medium text-amber-700 dark:text-amber-400">
-                      ⚠️ Ingen datakälla vald
+                      ⚠️ {t("leadDetail.se_noSourceSelected")}
                     </p>
                     <p className="text-muted-foreground">{t("leadDetail.se2_selectSource")}</p>
                   </div>

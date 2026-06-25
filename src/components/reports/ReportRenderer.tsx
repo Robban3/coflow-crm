@@ -52,8 +52,8 @@ const scoreRingColor = (v: number | null) => {
 
 const scoreLabel = (v: number | null, t: TranslateFn) => {
   if (v === null) return t("reports.renderer.scoreNotCalculated");
-  if (v >= 80) return "Stark AI-synlighet";
-  if (v >= 50) return "Bra potential";
+  if (v >= 80) return t("reports.renderer.scoreStrong");
+  if (v >= 50) return t("reports.renderer.scoreGood");
   return t("reports.renderer.scoreLow");
 };
 
@@ -270,6 +270,7 @@ function ActionsSection({ content }: { content: any }) {
 }
 
 function CtaSection({ content, onBook }: { content: any; onBook?: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border bg-primary/5 p-8 md:p-10 text-center report-section report-cta">
       <h3 className="text-lg font-semibold mb-2 text-foreground">{content.heading}</h3>
@@ -277,7 +278,7 @@ function CtaSection({ content, onBook }: { content: any; onBook?: () => void }) 
         {content.description}
       </p>
       <Button size="lg" className="rounded-xl" onClick={onBook}>
-        {content.buttonText || "Kontakta oss"}
+        {content.buttonText || t("reports.renderer.contactUs")}
         <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
     </div>

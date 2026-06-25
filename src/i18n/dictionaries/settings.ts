@@ -350,6 +350,45 @@ Vi hjälper företag att fokusera på sin kärnverksamhet medan vi tar hand om I
     "settings.userAddedToTeam": "{email} har lagts till i teamet",
     "settings.autoAnalyzeEnabled": "Automatisk analys aktiverad",
     "settings.autoAnalyzeDisabled": "Automatisk analys inaktiverad",
+
+    // OrganizationDashboard — delete user dialog & toasts
+    "settings.deleteUserTitle": "Ta bort användare",
+    "settings.deleteUserConfirm": "Är du säker på att du vill ta bort",
+    "settings.deleteUserConfirmRest": "? Kontot raderas permanent och personen kan inte längre logga in. Deras leads frigörs och hamnar i poolen. Detta går inte att ångra.",
+    "settings.delete": "Ta bort",
+    "settings.userRemovedTitle": "Användare borttagen",
+    "settings.userRemovedDesc": "{name} har tagits bort.",
+    "settings.userRemoveErrorTitle": "Kunde inte ta bort",
+    "settings.cannotDeleteSelf": "Du kan inte ta bort dig själv",
+
+    // OrganizationDashboard — buttons (hardcoded)
+    "settings.saveDetails": "Spara uppgifter",
+
+    // SellerProfileForm — field labels
+    "settings.sellerFirstName": "Namn *",
+    "settings.sellerLastName": "Efternamn *",
+    "settings.sellerApplabbetEmail": "Applabbet-epost *",
+    "settings.sellerExternalEmail": "E-post utanför Applabbet *",
+    "settings.sellerAddress": "Adress *",
+    "settings.sellerPostalCode": "Postnummer *",
+    "settings.sellerCity": "Postort *",
+    "settings.sellerPersonnummer": "Personnummer *",
+    "settings.sellerCompanyForm": "Bolagsform *",
+    "settings.sellerExternalServiceLabel": "Vilken extern tjänst? (valfritt)",
+
+    // SellerProfileForm — radio options
+    "settings.sellerSoleProprietor": "Enskild firma",
+    "settings.sellerLimitedCompany": "Aktiebolag",
+    "settings.sellerExternalService": "Extern tjänst (t.ex. frilans/Finans)",
+
+    // SellerProfileForm — placeholders
+    "settings.sellerExternalEmailPlaceholder": "t.ex. namn@gmail.com",
+    "settings.sellerPersonnummerPlaceholder": "ÅÅÅÅMMDD-XXXX",
+    "settings.sellerExternalServicePlaceholder": "t.ex. Frilans Finans",
+
+    // SellerProfileForm — help & states
+    "settings.sellerPersonnummerLockedHelp": "Personnumret är låst när det väl är ifyllt. Kontakta en administratör om det behöver ändras.",
+    "settings.sellerSaving": "Sparar…",
   },
   en: {
     // Settings page — layout & tabs
@@ -700,6 +739,45 @@ We help companies focus on their core business while we take care of the IT.`,
     "settings.userAddedToTeam": "{email} has been added to the team",
     "settings.autoAnalyzeEnabled": "Automatic analysis enabled",
     "settings.autoAnalyzeDisabled": "Automatic analysis disabled",
+
+    // OrganizationDashboard — delete user dialog & toasts
+    "settings.deleteUserTitle": "Delete user",
+    "settings.deleteUserConfirm": "Are you sure you want to delete",
+    "settings.deleteUserConfirmRest": "? The account will be permanently deleted and the person can no longer log in. Their leads are released back into the pool. This cannot be undone.",
+    "settings.delete": "Delete",
+    "settings.userRemovedTitle": "User removed",
+    "settings.userRemovedDesc": "{name} has been removed.",
+    "settings.userRemoveErrorTitle": "Could not delete",
+    "settings.cannotDeleteSelf": "You cannot delete yourself",
+
+    // OrganizationDashboard — buttons (hardcoded)
+    "settings.saveDetails": "Save details",
+
+    // SellerProfileForm — field labels
+    "settings.sellerFirstName": "First name *",
+    "settings.sellerLastName": "Last name *",
+    "settings.sellerApplabbetEmail": "Applabbet email *",
+    "settings.sellerExternalEmail": "Email outside Applabbet *",
+    "settings.sellerAddress": "Address *",
+    "settings.sellerPostalCode": "Postal code *",
+    "settings.sellerCity": "City *",
+    "settings.sellerPersonnummer": "Personal ID number *",
+    "settings.sellerCompanyForm": "Company form *",
+    "settings.sellerExternalServiceLabel": "Which external service? (optional)",
+
+    // SellerProfileForm — radio options
+    "settings.sellerSoleProprietor": "Sole proprietorship",
+    "settings.sellerLimitedCompany": "Limited company",
+    "settings.sellerExternalService": "External service (e.g. freelance/Finans)",
+
+    // SellerProfileForm — placeholders
+    "settings.sellerExternalEmailPlaceholder": "e.g. name@gmail.com",
+    "settings.sellerPersonnummerPlaceholder": "YYYYMMDD-XXXX",
+    "settings.sellerExternalServicePlaceholder": "e.g. Frilans Finans",
+
+    // SellerProfileForm — help & states
+    "settings.sellerPersonnummerLockedHelp": "The personal ID number is locked once filled in. Contact an administrator if it needs to be changed.",
+    "settings.sellerSaving": "Saving…",
   },
   es: {
     // Settings page — layout & tabs
@@ -1050,5 +1128,44 @@ Ayudamos a las empresas a centrarse en su actividad principal mientras nosotros 
     "settings.userAddedToTeam": "{email} se ha añadido al equipo",
     "settings.autoAnalyzeEnabled": "Análisis automático activado",
     "settings.autoAnalyzeDisabled": "Análisis automático desactivado",
+
+    // OrganizationDashboard — delete user dialog & toasts
+    "settings.deleteUserTitle": "Eliminar usuario",
+    "settings.deleteUserConfirm": "¿Seguro que quieres eliminar a",
+    "settings.deleteUserConfirmRest": "? La cuenta se eliminará de forma permanente y la persona ya no podrá iniciar sesión. Sus leads se liberan y vuelven al pool. Esto no se puede deshacer.",
+    "settings.delete": "Eliminar",
+    "settings.userRemovedTitle": "Usuario eliminado",
+    "settings.userRemovedDesc": "{name} ha sido eliminado.",
+    "settings.userRemoveErrorTitle": "No se pudo eliminar",
+    "settings.cannotDeleteSelf": "No puedes eliminarte a ti mismo",
+
+    // OrganizationDashboard — buttons (hardcoded)
+    "settings.saveDetails": "Guardar datos",
+
+    // SellerProfileForm — field labels
+    "settings.sellerFirstName": "Nombre *",
+    "settings.sellerLastName": "Apellido *",
+    "settings.sellerApplabbetEmail": "Correo de Applabbet *",
+    "settings.sellerExternalEmail": "Correo fuera de Applabbet *",
+    "settings.sellerAddress": "Dirección *",
+    "settings.sellerPostalCode": "Código postal *",
+    "settings.sellerCity": "Localidad *",
+    "settings.sellerPersonnummer": "Número de identidad *",
+    "settings.sellerCompanyForm": "Forma jurídica *",
+    "settings.sellerExternalServiceLabel": "¿Qué servicio externo? (opcional)",
+
+    // SellerProfileForm — radio options
+    "settings.sellerSoleProprietor": "Empresario individual",
+    "settings.sellerLimitedCompany": "Sociedad anónima",
+    "settings.sellerExternalService": "Servicio externo (p. ej. freelance/Finans)",
+
+    // SellerProfileForm — placeholders
+    "settings.sellerExternalEmailPlaceholder": "p. ej. nombre@gmail.com",
+    "settings.sellerPersonnummerPlaceholder": "AAAAMMDD-XXXX",
+    "settings.sellerExternalServicePlaceholder": "p. ej. Frilans Finans",
+
+    // SellerProfileForm — help & states
+    "settings.sellerPersonnummerLockedHelp": "El número de identidad queda bloqueado una vez introducido. Contacta con un administrador si hay que cambiarlo.",
+    "settings.sellerSaving": "Guardando…",
   },
 };

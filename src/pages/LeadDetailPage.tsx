@@ -679,7 +679,7 @@ export default function LeadDetailPage() {
                 if (next) navigate(`/leads/${next}`);
               }}
               disabled={!getNextId(lead.id)}
-              title="Nästa lead"
+              title={t("leadDetail.ldp_nextLead")}
             >
               <ArrowRight className="h-5 w-5" />
             </Button>
@@ -1258,15 +1258,15 @@ export default function LeadDetailPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>{activityForm.type === 'note' ? 'Rubrik (valfritt)' : t("leadDetail.ldp_titleReq")}</Label>
+                <Label>{activityForm.type === 'note' ? t("leadDetail.ldp_titleOptional") : t("leadDetail.ldp_titleReq")}</Label>
                 <Input
                   value={activityForm.title}
                   onChange={(e) => setActivityForm(prev => ({ ...prev, title: e.target.value }))}
                   placeholder={
-                    activityForm.type === 'call' ? 'T.ex. Uppföljningssamtal' :
+                    activityForm.type === 'call' ? t("leadDetail.ldp_placeholderCall") :
                     activityForm.type === 'email' ? t("leadDetail.ldp_activityExample") :
-                    activityForm.type === 'meeting' ? 'T.ex. Presentation av tjänster' :
-                    'T.ex. Intern anteckning'
+                    activityForm.type === 'meeting' ? t("leadDetail.ldp_placeholderMeeting") :
+                    t("leadDetail.ldp_placeholderNote")
                   }
                 />
               </div>
