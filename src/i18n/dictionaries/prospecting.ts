@@ -3,6 +3,10 @@ import type { FeatureDictionary } from "../translations";
 export const prospectingDict: FeatureDictionary = {
   sv: {
     "prospecting.selectMarket": "Välj marknad",
+    "market.SE": "Sverige",
+    "market.US": "USA",
+    "market.DE": "Tyskland",
+    "market.ES": "Spanien",
     "prospecting.title": "Prospektering",
     "prospecting.draftsToReview": "{count} utkast att granska",
     "prospecting.subtitle": "Hitta nya leads, analysera automatiskt och skicka mail i bulk",
@@ -119,6 +123,10 @@ export const prospectingDict: FeatureDictionary = {
   },
   en: {
     "prospecting.selectMarket": "Select market",
+    "market.SE": "Sweden",
+    "market.US": "USA",
+    "market.DE": "Germany",
+    "market.ES": "Spain",
     "prospecting.title": "Prospecting",
     "prospecting.draftsToReview": "{count} drafts to review",
     "prospecting.subtitle": "Find new leads, analyze automatically and send emails in bulk",
@@ -235,6 +243,10 @@ export const prospectingDict: FeatureDictionary = {
   },
   es: {
     "prospecting.selectMarket": "Seleccionar mercado",
+    "market.SE": "Suecia",
+    "market.US": "EE. UU.",
+    "market.DE": "Alemania",
+    "market.ES": "España",
     "prospecting.title": "Prospección",
     "prospecting.draftsToReview": "{count} borradores por revisar",
     "prospecting.subtitle": "Encuentra nuevos leads, analiza automáticamente y envía correos en masa",
