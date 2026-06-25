@@ -39,6 +39,9 @@ verify_jwt = false
 [functions.lookup-org-number]
 verify_jwt = false
 
+[functions.bolagsverket-lookup]
+verify_jwt = false
+
 [functions.analyze-seo]
 verify_jwt = false
 
