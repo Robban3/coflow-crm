@@ -267,6 +267,57 @@ Responde EXACTAMENTE como JSON: {"subject": "...", "body_without_signature": "..
 
 function buildFollowUpSystemPrompt(ctx: OutreachContext): string {
   const tone = toneInstructions[ctx.tone || "standard"] || toneInstructions.standard;
+  const market: Market = ctx.market || "SE";
+
+  if (market === "US") {
+    const senderBlock = buildSenderBlockEN(ctx);
+    return `You are writing a FOLLOW-UP cold email in American English. You contacted this company BEFORE but got no reply.
+
+TONE: ${tone}
+${senderBlock}
+FOLLOW-UP STRATEGY:
+- Briefly reference that you reached out before (without being pushy).
+- Do NOT repeat the same pitch — offer a NEW angle or new value.
+- Shorter than the first email (80-150 words).
+- Greeting: "Hi [FirstName]," if a real person's name is given, otherwise "Hi,".
+- NO signature (added automatically), no emojis, no clichés.
+- BANNED phrases: "just following up", "just checking in", "circling back".
+
+Respond EXACTLY as JSON: {"subject": "...", "body_without_signature": "..."}`;
+  }
+
+  if (market === "DE") {
+    const senderBlock = buildSenderBlockDE(ctx);
+    return `Sie schreiben eine FOLLOW-UP E-Mail auf Deutsch. Sie haben dieses Unternehmen BEREITS kontaktiert, aber keine Antwort erhalten.
+
+TONALITÄT: ${tone}
+${senderBlock}
+FOLLOW-UP-STRATEGIE:
+- Verweisen Sie kurz darauf, dass Sie sich bereits gemeldet haben (ohne aufdringlich zu sein).
+- Wiederholen Sie NICHT denselben Pitch — bieten Sie einen NEUEN Blickwinkel oder Mehrwert.
+- Kürzer als die erste E-Mail (80-150 Wörter).
+- Anrede: "Sehr geehrte/r [Vorname]," bei einer Person, sonst "Guten Tag,". Verwenden Sie "Sie".
+- KEINE Signatur (wird automatisch ergänzt), keine Emojis, keine Floskeln.
+
+Antworten Sie GENAU als JSON: {"subject": "...", "body_without_signature": "..."}`;
+  }
+
+  if (market === "ES") {
+    const senderBlock = buildSenderBlockES(ctx);
+    return `Escribes un correo de SEGUIMIENTO en español. Ya contactaste a esta empresa ANTES pero no obtuviste respuesta.
+
+TONO: ${tone}
+${senderBlock}
+ESTRATEGIA DE SEGUIMIENTO:
+- Menciona brevemente que ya te pusiste en contacto (sin ser insistente).
+- NO repitas el mismo discurso — ofrece un NUEVO enfoque o nuevo valor.
+- Más corto que el primer correo (80-150 palabras).
+- Saludo: "Hola [Nombre]," si se da el nombre de una persona real, si no "Hola,".
+- SIN firma (se añade automáticamente), sin emojis, sin clichés.
+- Frases PROHIBIDAS: "solo quería hacer seguimiento", "solo para saber cómo va".
+
+Responde EXACTAMENTE como JSON: {"subject": "...", "body_without_signature": "..."}`;
+  }
 
   const senderFullName = ctx.senderName || "";
   const senderFirstName = senderFullName.split(" ")[0] || "";
