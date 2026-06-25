@@ -221,8 +221,8 @@ Webbanalys resultat:
 ` : "Ingen webbanalys genomförd ännu.";
 
             // Determine sequence market for language + tone
-            const market: "SE" | "US" | "DE" =
-              (leadSequence.sequence?.market as "SE" | "US" | "DE") || "SE";
+            const market: "SE" | "US" | "DE" | "ES" =
+              (leadSequence.sequence?.market as "SE" | "US" | "DE" | "ES") || "SE";
 
             // Heuristic: skip a Swedish saved signature when sending in English/German
             const sigText = (profile?.email_signature || "").toLowerCase();
@@ -238,10 +238,19 @@ Webbanalys resultat:
 Sender:
 - Name: ${profile.full_name || ""}
 - Company: ${profile.company_name || ""}
-${useSavedSignature ? `Saved signature (in ${market === "SE" ? "Swedish" : market === "US" ? "English" : "German"}, may be appended verbatim): ${profile.email_signature}` : "(No localized signature available — close the body without a signature; one will be appended automatically.)"}
+${useSavedSignature ? `Saved signature (in ${market === "SE" ? "Swedish" : market === "US" ? "English" : market === "ES" ? "Spanish" : "German"}, may be appended verbatim): ${profile.email_signature}` : "(No localized signature available — close the body without a signature; one will be appended automatically.)"}
 ` : "";
 
-            const systemPromptByMarket: Record<"SE" | "US" | "DE", string> = {
+            const systemPromptByMarket: Record<"SE" | "US" | "DE" | "ES", string> = {
+              ES: `Eres un comercial profesional que escribe correos de prospección personalizados en español.
+Tus correos deben ser:
+- Cortos y concisos (máx. 150 palabras)
+- Personales, basados en la empresa y la situación del destinatario
+- Profesionales pero cercanos
+- Centrados en el valor para el destinatario
+- Sin clichés ni lenguaje de venta agresivo
+
+${signatureContext}`,
               SE: `Du är en professionell säljare som skriver personliga outreach-mail på svenska.
 Dina mail ska vara:
 - Korta och koncisa (max 150 ord)
@@ -282,7 +291,22 @@ ${signatureContext}`,
 
             const stepNumber = currentStep.step_order;
 
-            const userPromptByMarket: Record<"SE" | "US" | "DE", string> = {
+            const userPromptByMarket: Record<"SE" | "US" | "DE" | "ES", string> = {
+              ES: `Este es el correo ${stepNumber} de ${totalSteps} en una secuencia de prospección.
+
+${stepNumber === 1 ? "Este es el primer contacto — preséntate y presenta tu oferta según sus necesidades." :
+  stepNumber === totalSteps ? "Este es el último correo de la secuencia — haz un último intento de conectar." :
+  "Este es un seguimiento — haz referencia a los intentos de contacto anteriores y aporta nuevo valor."}
+
+${currentStep.email_prompt ? `Instrucciones adicionales: ${currentStep.email_prompt}` : ""}
+
+Información del lead:
+${leadContext}
+
+${analysisContext}
+
+Genera un correo con asunto y cuerpo. Formatea la respuesta como JSON:
+{"subject": "Asunto aquí", "body": "Texto del correo aquí"}`,
               SE: `Detta är mail ${stepNumber} av ${totalSteps} i en outreach-sekvens.
 
 ${stepNumber === 1 ? "Detta är första kontakten - presentera dig och ditt erbjudande baserat på deras behov." :
@@ -372,10 +396,11 @@ Generieren Sie eine E-Mail mit Betreffzeile und Text. Antworten Sie als JSON:
 
             // Append signature — localized for the sequence's market.
             // Skip a Swedish saved signature when sending in English/German.
-            const closingByMarket: Record<"SE" | "US" | "DE", string> = {
+            const closingByMarket: Record<"SE" | "US" | "DE" | "ES", string> = {
               SE: "Med vänlig hälsning,",
               US: "Best regards,",
               DE: "Mit freundlichen Grüßen,",
+              ES: "Un saludo,",
             };
             if (useSavedSignature) {
               emailContent.body += `\n\n${profile!.email_signature}`;

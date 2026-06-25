@@ -8,7 +8,7 @@
 
 // ── helpers ──────────────────────────────────────────────────────────
 
-export type Market = "SE" | "US" | "DE";
+export type Market = "SE" | "US" | "DE" | "ES";
 
 export interface OutreachContext {
   companyName?: string;
@@ -92,6 +92,7 @@ export function buildOutreachSystemPrompt(ctx: OutreachContext): string {
   // Non-Swedish markets use a streamlined market-specific prompt
   if (market === "US") return buildUSSystemPrompt(ctx);
   if (market === "DE") return buildDESystemPrompt(ctx);
+  if (market === "ES") return buildESSystemPrompt(ctx);
 
   const tone = toneInstructions[ctx.tone || "standard"] || toneInstructions.standard;
 
@@ -233,6 +234,36 @@ REGELN:
 Antworten Sie GENAU als JSON: {"subject": "...", "body_without_signature": "..."}`;
 }
 
+function buildSenderBlockES(ctx: OutreachContext): string {
+  const firstName = (ctx.senderName || "").split(" ")[0] || "";
+  const company = ctx.senderCompany || "";
+  if (!firstName && !company) return "";
+  let s = `\nREMITENTE (usa EXACTAMENTE estos datos):`;
+  if (firstName) s += `\nNombre: ${firstName}`;
+  if (company) s += `\nEmpresa: ${company}`;
+  s += `\nIMPORTANTE: Usa SOLO el nombre de pila. Nunca inventes nombres ni empresas.\n`;
+  return s;
+}
+
+function buildESSystemPrompt(ctx: OutreachContext): string {
+  const senderBlock = buildSenderBlockES(ctx);
+  const serviceSection = ctx.serviceProfile?.description
+    ? `\nREPRESENTAS A:\nSector: ${ctx.serviceProfile.industry}\nServicio: ${ctx.serviceProfile.description}\n`
+    : "";
+
+  return `Eres comercial en una agencia web europea. Escribe un correo en frío corto, directo y sin tono de venta agresivo, en español. Máximo 5 frases. Empieza con una observación concreta sobre su sitio web. Nunca empieces con "Espero que este correo te encuentre bien". Sé específico y cercano.
+${serviceSection}${senderBlock}
+REGLAS:
+- Máximo 5 frases en el cuerpo.
+- Empieza con una observación concreta sobre su web (usa puntuaciones/cifras si se indican abajo).
+- No empieces con "Hola [nombre]" — busca una apertura creativa basada en la observación.
+- Saludo: "Hola [Nombre]," si se da el nombre de una persona real, si no "Hola,".
+- Sin emojis, sin clichés, sin "espero que estés bien".
+- SIN firma, SIN nombre de cierre — se añade automáticamente.
+
+Responde EXACTAMENTE como JSON: {"subject": "...", "body_without_signature": "..."}`;
+}
+
 
 function buildFollowUpSystemPrompt(ctx: OutreachContext): string {
   const tone = toneInstructions[ctx.tone || "standard"] || toneInstructions.standard;
@@ -286,6 +317,8 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
         ? "Write a FOLLOW-UP email. You contacted them before but got no reply.\n"
         : market === "DE"
         ? "Schreiben Sie eine FOLLOW-UP E-Mail. Sie haben den Empfänger bereits kontaktiert, aber keine Antwort erhalten.\n"
+        : market === "ES"
+        ? "Escribe un correo de SEGUIMIENTO. Ya los contactaste antes pero no obtuviste respuesta.\n"
         : "Skriv ETT UPPFÖLJNINGSMAIL. Du har kontaktat dem förut men inte fått svar.\n",
     );
   } else {
@@ -294,6 +327,8 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
         ? "Write ONE outreach email based on the data below.\n"
         : market === "DE"
         ? "Schreiben Sie EINE Outreach-E-Mail basierend auf den folgenden Daten.\n"
+        : market === "ES"
+        ? "Escribe UN correo de prospección basado en los datos siguientes.\n"
         : "Skriv ETT outreach-mail baserat på nedan.\n",
     );
   }
@@ -351,6 +386,8 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
       ? { performance: "Performance", seo: "SEO", a11y: "Accessibility", bp: "Best Practices" }
       : market === "DE"
       ? { performance: "Performance", seo: "SEO", a11y: "Barrierefreiheit", bp: "Best Practices" }
+      : market === "ES"
+      ? { performance: "Rendimiento", seo: "SEO", a11y: "Accesibilidad", bp: "Buenas prácticas" }
       : { performance: "Prestanda", seo: "SEO", a11y: "Tillgänglighet", bp: "Best Practices" };
 
     const analyzedScores = [
@@ -365,6 +402,8 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
         ? "Website analysis for this company (use these numbers as a specific opening insight — praise strengths, point out the bottleneck):"
         : market === "DE"
         ? "Website-Analyse für dieses Unternehmen (verwenden Sie diese Werte als konkreten Einstieg — Stärken loben, Engpass benennen):"
+        : market === "ES"
+        ? "Análisis del sitio web de esta empresa (usa estas cifras como apertura concreta — elogia los puntos fuertes, señala el cuello de botella):"
         : "ANALYSRESULTAT (använd dessa siffror direkt i mailet – beröm det som är bra, peka ut flaskhalsen):";
       parts.push(intro);
       for (const s of analyzedScores) {
@@ -490,12 +529,13 @@ export interface ProfileSignature {
   full_name?: string | null;
 }
 
-export type SignatureMarket = "SE" | "US" | "DE";
+export type SignatureMarket = "SE" | "US" | "DE" | "ES";
 
 const SIGNATURE_CLOSING: Record<SignatureMarket, string> = {
   SE: "Med vänlig hälsning,",
   US: "Best regards,",
   DE: "Mit freundlichen Grüßen,",
+  ES: "Un saludo,",
 };
 
 const SIGNATURE_FALLBACK_NAME = "CoFlow";

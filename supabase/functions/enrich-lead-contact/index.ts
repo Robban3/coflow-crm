@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-type Market = "SE" | "US" | "DE";
+type Market = "SE" | "US" | "DE" | "ES";
 
 // Domains to exclude - belong to scraping/utility sites, not the company
 const EXCLUDED_EMAIL_DOMAINS = [
@@ -57,6 +57,12 @@ function extractPhone(text: string, market: Market): string | null {
         /\b(\+49[\s-]?[0-9][\s-]?[0-9]{2,4}[\s-]?[0-9]{2,4}[\s-]?[0-9]{2,4})\b/,
         /\b(0[1-9][0-9]{1,4}[\s\-/]?[0-9]{3,8})\b/,
       ]
+    : market === "ES"
+    ? [
+        /(?:Teléfono|Telefono|Tel|Tlf|Móvil|Movil|Phone)[:\s]*([+]?[0-9\-\s()]{7,20})/i,
+        /\b(\+34[\s-]?[0-9]{2,3}[\s-]?[0-9]{2,3}[\s-]?[0-9]{2,3})\b/,
+        /\b([6789][0-9]{2}[\s-]?[0-9]{3}[\s-]?[0-9]{3})\b/,
+      ]
     : [
         /(?:Telefon|Tel|Tfn|Phone)[:\s]*([+]?[0-9\-\s()]{7,20})/i,
         /\b(\+46[\s-]?[0-9][\s-]?[0-9]{2,3}[\s-]?[0-9]{2}[\s-]?[0-9]{2})\b/,
@@ -76,6 +82,7 @@ const CONTACT_PATHS_BY_MARKET: Record<Market, string[]> = {
   SE: ["/kontakt", "/kontakta-oss", "/om-oss", "/contact"],
   US: ["/contact", "/contact-us", "/about", "/about-us", "/team"],
   DE: ["/kontakt", "/kontakt-aufnehmen", "/uber-uns", "/ueber-uns", "/impressum"],
+  ES: ["/contacto", "/contact", "/sobre-nosotros", "/quienes-somos", "/aviso-legal"],
 };
 
 function normalizeUrl(input: string): string {
@@ -104,6 +111,8 @@ const EXTRACTION_PROMPTS: Record<Market, string> = {
     "Extract all contact information from this company page including email addresses, phone numbers, person names with titles or roles. Return as structured JSON.",
   DE:
     "Extract all contact information from this German company page including email addresses, phone numbers, person names with titles or roles. Return as structured JSON.",
+  ES:
+    "Extract all contact information from this Spanish company page including email addresses, phone numbers, person names with titles or roles. Return as structured JSON.",
 };
 
 const EXTRACTION_SCHEMA = {
@@ -232,7 +241,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const market: Market = marketInput === "US" || marketInput === "DE" ? marketInput : "SE";
+    const market: Market = marketInput === "US" || marketInput === "DE" || marketInput === "ES" ? marketInput : "SE";
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
     const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },

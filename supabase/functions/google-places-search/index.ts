@@ -60,10 +60,10 @@ serve(async (req) => {
 
     // Normalize market (default SE)
     const marketUpper = (marketRaw || "SE").toString().toUpperCase();
-    const market: "SE" | "US" | "DE" =
-      marketUpper === "US" || marketUpper === "DE" ? marketUpper : "SE";
+    const market: "SE" | "US" | "DE" | "ES" =
+      marketUpper === "US" || marketUpper === "DE" || marketUpper === "ES" ? marketUpper : "SE";
 
-    const MARKET_CONFIG: Record<"SE" | "US" | "DE", {
+    const MARKET_CONFIG: Record<"SE" | "US" | "DE" | "ES", {
       regionCode: string;
       languageCode: string;
       countryName: string;
@@ -72,6 +72,7 @@ serve(async (req) => {
       SE: { regionCode: "SE", languageCode: "sv", countryName: "Sverige", countryAliases: ["sverige", "sweden"] },
       US: { regionCode: "US", languageCode: "en", countryName: "USA", countryAliases: ["usa", "united states", "u.s.", "us"] },
       DE: { regionCode: "DE", languageCode: "de", countryName: "Deutschland", countryAliases: ["deutschland", "germany"] },
+      ES: { regionCode: "ES", languageCode: "es", countryName: "España", countryAliases: ["españa", "espana", "spain"] },
     };
     const cfg = MARKET_CONFIG[market];
 

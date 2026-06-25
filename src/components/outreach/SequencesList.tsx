@@ -52,6 +52,7 @@ const MARKET_STEP_DELAYS: Record<Market, number[]> = {
   SE: [0, 4, 9],
   US: [0, 3, 7],
   DE: [0, 5, 12],
+  ES: [0, 4, 9],
 };
 
 function suggestedDelay(market: Market, stepNumber: number): number {

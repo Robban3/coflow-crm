@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type Market = "SE" | "US" | "DE";
+export type Market = "SE" | "US" | "DE" | "ES";
 
 const STORAGE_KEY = "coflow_selected_market";
 const DEFAULT_MARKET: Market = "SE";
 
 function isMarket(value: unknown): value is Market {
-  return value === "SE" || value === "US" || value === "DE";
+  return value === "SE" || value === "US" || value === "DE" || value === "ES";
 }
 
 function readStoredMarket(): Market {
@@ -64,43 +64,49 @@ export const MARKET_LOCATION_PLACEHOLDER: Record<Market, string> = {
   SE: "Stad eller kommun",
   US: "Stad eller zip-kod",
   DE: "Stadt oder PLZ",
+  ES: "Ciudad o código postal",
 };
 
 export const MARKET_CURRENCY: Record<Market, { code: string; symbol: string; position: "prefix" | "suffix" }> = {
   SE: { code: "SEK", symbol: "kr", position: "suffix" },
   US: { code: "USD", symbol: "$", position: "prefix" },
   DE: { code: "EUR", symbol: "€", position: "suffix" },
+  ES: { code: "EUR", symbol: "€", position: "suffix" },
 };
 
 export const MARKET_PHONE_PREFIX: Record<Market, string> = {
   SE: "+46",
   US: "+1",
   DE: "+49",
+  ES: "+34",
 };
 
 export const MARKET_AI_LANGUAGE: Record<Market, string> = {
   SE: "svenska",
   US: "amerikansk engelska",
   DE: "tyska",
+  ES: "spanska",
 };
 
 export const MARKET_LABEL: Record<Market, string> = {
   SE: "Sverige",
   US: "USA",
   DE: "Tyskland",
+  ES: "Spanien",
 };
 
 export const MARKET_FLAG: Record<Market, string> = {
   SE: "🇸🇪",
   US: "🇺🇸",
   DE: "🇩🇪",
+  ES: "🇪🇸",
 };
 
 /** Format a numeric amount according to the market's currency conventions. */
 export function formatMarketCurrency(amount: number, market: Market): string {
   const { symbol, position } = MARKET_CURRENCY[market];
   const rounded = Math.round(amount).toLocaleString(
-    market === "SE" ? "sv-SE" : market === "DE" ? "de-DE" : "en-US",
+    market === "SE" ? "sv-SE" : market === "DE" ? "de-DE" : market === "ES" ? "es-ES" : "en-US",
   );
   return position === "prefix" ? `${symbol}${rounded}` : `${rounded} ${symbol}`;
 }

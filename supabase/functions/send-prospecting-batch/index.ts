@@ -161,8 +161,12 @@ Deno.serve(async (req) => {
         const bodyLooksGerman =
           / (und|der|die|das|für|mit|ist|sehr|geehrte)\b/.test(bodyLower) ||
           bodyLower.includes("guten tag");
-        const draftMarket: "SE" | "US" | "DE" =
-          bodyLooksSwedish ? "SE" : bodyLooksGerman ? "DE" : "US";
+        const bodyLooksSpanish =
+          / (y|el|la|los|las|para|con|una|que|tu|su|hola)\b/.test(bodyLower) ||
+          bodyLower.includes("hola ") ||
+          bodyLower.includes("un saludo");
+        const draftMarket: "SE" | "US" | "DE" | "ES" =
+          bodyLooksSwedish ? "SE" : bodyLooksGerman ? "DE" : bodyLooksSpanish ? "ES" : "US";
 
         const sigLooksSwedish = (text: string) => {
           const t = text.toLowerCase();
@@ -187,6 +191,7 @@ Deno.serve(async (req) => {
             SE: "Med vänlig hälsning,",
             US: "Best regards,",
             DE: "Mit freundlichen Grüßen,",
+            ES: "Un saludo,",
           } as const;
           const senderName = profile?.sender_display_name || profile?.full_name || "";
           sigParts.push(`${closingByMarket[draftMarket]}<br>${senderName}`);

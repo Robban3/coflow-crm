@@ -47,8 +47,8 @@ serve(async (req) => {
     } = validation.data;
 
     const marketRaw = (rawBody as { market?: string })?.market;
-    const market: "SE" | "US" | "DE" =
-      marketRaw === "US" || marketRaw === "DE" ? marketRaw : "SE";
+    const market: "SE" | "US" | "DE" | "ES" =
+      marketRaw === "US" || marketRaw === "DE" || marketRaw === "ES" ? marketRaw : "SE";
 
     console.log("Analysis outreach request:", { url, performanceScore, seoScore, tone, seoVisibilityScore });
 
