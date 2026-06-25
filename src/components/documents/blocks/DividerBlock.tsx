@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Props {
   block: DocumentBlock;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function DividerBlockRenderer({ block, readOnly, structureLocked, onChange }: Props) {
+  const { t } = useTranslation();
   const config = block.config as DividerBlockConfig;
 
   return (
@@ -35,9 +37,9 @@ export function DividerBlockRenderer({ block, readOnly, structureLocked, onChang
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="solid">Heldragen</SelectItem>
-              <SelectItem value="dashed">Streckad</SelectItem>
-              <SelectItem value="dotted">Prickad</SelectItem>
+              <SelectItem value="solid">{t("offers.divider.solid")}</SelectItem>
+              <SelectItem value="dashed">{t("offers.divider.dashed")}</SelectItem>
+              <SelectItem value="dotted">{t("offers.divider.dotted")}</SelectItem>
             </SelectContent>
           </Select>
         </div>

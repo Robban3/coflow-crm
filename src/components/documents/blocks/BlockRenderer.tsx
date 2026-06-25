@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { type DocumentBlock } from "./types";
 import { TextBlockRenderer } from "./TextBlock";
 import { ImageBlockRenderer } from "./ImageBlock";
@@ -23,9 +24,10 @@ const renderers: Record<string, React.FC<BlockRendererProps>> = {
 };
 
 export function BlockRenderer({ block, readOnly, structureLocked, onChange }: BlockRendererProps) {
+  const { t } = useTranslation();
   const Component = renderers[block.type];
   if (!Component) {
-    return <div className="text-muted-foreground text-sm p-2">Okänd blocktyp: {block.type}</div>;
+    return <div className="text-muted-foreground text-sm p-2">{t("offers.unknownBlockType")}: {block.type}</div>;
   }
   return <Component block={block} readOnly={readOnly} structureLocked={structureLocked} onChange={onChange} />;
 }

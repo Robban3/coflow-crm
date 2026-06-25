@@ -35,10 +35,10 @@ export function ImageBlockRenderer({ block, readOnly, onChange }: Props) {
       <div className="space-y-3">
         <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 flex flex-col items-center gap-2">
           <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">Ange en bild-URL</p>
+          <p className="text-sm text-muted-foreground">{t("offers.image.enterUrl")}</p>
         </div>
         <Input
-          placeholder="Bild-URL (https://...)"
+          placeholder={t("offers.image.urlPlaceholder")}
           value={config.url}
           onChange={(e) => onChange?.({ ...config, url: e.target.value })}
         />

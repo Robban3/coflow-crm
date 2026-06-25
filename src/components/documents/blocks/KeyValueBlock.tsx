@@ -83,7 +83,7 @@ export function KeyValueBlockRenderer({ block, readOnly, structureLocked, onChan
         </div>
       ))}
       <Button variant="outline" size="sm" onClick={addPair}>
-        <Plus className="h-3.5 w-3.5 mr-1" /> Lägg till rad
+        <Plus className="h-3.5 w-3.5 mr-1" /> {t("offers.addRow")}
       </Button>
     </div>
   );

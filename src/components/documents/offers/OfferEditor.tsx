@@ -346,7 +346,7 @@ export function OfferEditor() {
                   setRecipientEmail(e.target.value);
                   setDirty(true);
                 }}
-                placeholder="mottagare@foretag.se"
+                placeholder={t("offers.editor.emailPlaceholder")}
               />
             </div>
           </div>

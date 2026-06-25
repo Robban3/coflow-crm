@@ -41,8 +41,8 @@ export function TemplatePickerDialog({
   });
 
   const typeLabels: Record<string, string> = {
-    offer: "Offert",
-    contract: "Avtal",
+    offer: t("offers.templatePicker.typeOffer"),
+    contract: t("offers.templatePicker.typeContract"),
     other: t("templates.list.typeOther"),
   };
 

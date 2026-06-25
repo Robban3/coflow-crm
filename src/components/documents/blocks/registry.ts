@@ -26,7 +26,7 @@ export function getAllBlockEntries(): BlockRegistryEntry[] {
 // ---- Register core blocks ----
 registerBlock({
   type: "text",
-  label: "Text",
+  label: "offers.block.text",
   icon: "Type",
   defaultConfig: (): TextBlockConfig => ({
     level: "p",
@@ -36,7 +36,7 @@ registerBlock({
 
 registerBlock({
   type: "image",
-  label: "Bild",
+  label: "offers.block.image",
   icon: "Image",
   defaultConfig: (): ImageBlockConfig => ({
     url: "",
@@ -48,7 +48,7 @@ registerBlock({
 
 registerBlock({
   type: "divider",
-  label: "Avdelare",
+  label: "offers.block.divider",
   icon: "Minus",
   defaultConfig: (): DividerBlockConfig => ({
     style: "solid",
@@ -57,7 +57,7 @@ registerBlock({
 
 registerBlock({
   type: "article_table",
-  label: "Artikeltabell",
+  label: "offers.block.articleTable",
   icon: "Table",
   defaultConfig: (): ArticleTableBlockConfig => ({
     rows: [],
@@ -67,7 +67,7 @@ registerBlock({
 
 registerBlock({
   type: "key_value",
-  label: "Nyckel-värde",
+  label: "offers.block.keyValue",
   icon: "List",
   defaultConfig: (): KeyValueBlockConfig => ({
     pairs: [{ label: "", value: "" }],
@@ -76,7 +76,7 @@ registerBlock({
 
 registerBlock({
   type: "spacer",
-  label: "Mellanrum",
+  label: "offers.block.spacer",
   icon: "Space",
   defaultConfig: (): SpacerBlockConfig => ({
     height: 32,

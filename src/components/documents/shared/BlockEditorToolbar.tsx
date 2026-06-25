@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, Type, Images, Minus, Table, List, Space } from "lucide-react";
 import { type BlockType } from "../blocks/types";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 const iconMap: Record<string, React.ReactNode> = {
   Type: <Type className="h-4 w-4" />,
@@ -23,20 +24,21 @@ interface BlockEditorToolbarProps {
 }
 
 export function BlockEditorToolbar({ onAddBlock }: BlockEditorToolbarProps) {
+  const { t } = useTranslation();
   const entries = getAllBlockEntries();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm">
-          <Plus className="h-4 w-4 mr-1" /> Lägg till block
+          <Plus className="h-4 w-4 mr-1" /> {t("offers.toolbar.addBlock")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {entries.map((entry) => (
           <DropdownMenuItem key={entry.type} onClick={() => onAddBlock(entry.type)}>
             {iconMap[entry.icon] || null}
-            <span className="ml-2">{entry.label}</span>
+            <span className="ml-2">{t(entry.label)}</span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

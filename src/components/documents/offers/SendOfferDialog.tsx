@@ -87,7 +87,7 @@ export function SendOfferDialog({
           </div>
           <div>
             <Label>{t("templates.sendOffer.email")}</Label>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="kontakt@foretag.se" />
+            <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder={t("offers.send.emailPlaceholder")} />
           </div>
           <div>
             <Label>{t("templates.sendOffer.message")}</Label>

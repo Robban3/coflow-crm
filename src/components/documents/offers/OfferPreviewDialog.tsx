@@ -130,10 +130,10 @@ export function OfferPreviewDialog({ open, onClose, doc, blocks }: OfferPreviewD
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
         <DialogHeader className="sticky top-0 z-10 bg-background border-b p-4 flex flex-row items-center justify-between">
-          <DialogTitle className="text-base">Förhandsvisning</DialogTitle>
+          <DialogTitle className="text-base">{t("offers.preview.title")}</DialogTitle>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" onClick={handlePrint} disabled={resolving}>
-              <Download className="h-4 w-4 mr-1" /> Spara som PDF
+              <Download className="h-4 w-4 mr-1" /> {t("offers.preview.saveAsPdf")}
             </Button>
             <Button size="sm" variant="ghost" onClick={onClose}>
               <X className="h-4 w-4" />
@@ -161,9 +161,9 @@ export function OfferPreviewDialog({ open, onClose, doc, blocks }: OfferPreviewD
 
             {/* Meta */}
             <div className="meta text-sm text-muted-foreground mb-6 space-y-1">
-              {doc.recipient_name && <p>Till: <span className="text-foreground">{doc.recipient_name}</span></p>}
+              {doc.recipient_name && <p>{t("offers.preview.to")} <span className="text-foreground">{doc.recipient_name}</span></p>}
               {doc.valid_until && (
-                <p>Giltig t.o.m: <span className="text-foreground">{format(new Date(doc.valid_until), "d MMMM yyyy", { locale: sv })}</span></p>
+                <p>{t("offers.preview.validUntil")} <span className="text-foreground">{format(new Date(doc.valid_until), "d MMMM yyyy", { locale: sv })}</span></p>
               )}
             </div>
 
@@ -180,16 +180,16 @@ export function OfferPreviewDialog({ open, onClose, doc, blocks }: OfferPreviewD
             {resolvedBlocks.some((b) => b.type === "article_table") && (
               <div className="totals mt-8 text-right">
                 <div className="row flex justify-end gap-8 text-sm">
-                  <span className="label text-muted-foreground">Netto</span>
+                  <span className="label text-muted-foreground">{t("offers.preview.net")}</span>
                   <span>{totals.subtotal.toLocaleString("sv-SE")} kr</span>
                 </div>
                 <div className="row flex justify-end gap-8 text-sm">
-                  <span className="label text-muted-foreground">Moms</span>
+                  <span className="label text-muted-foreground">{t("offers.preview.vat")}</span>
                   <span>{totals.vat_total.toLocaleString("sv-SE")} kr</span>
                 </div>
                 <Separator className="my-2 ml-auto w-48" />
                 <div className="grand flex justify-end gap-8 text-lg font-bold">
-                  <span>Totalt</span>
+                  <span>{t("offers.preview.total")}</span>
                   <span>{totals.total.toLocaleString("sv-SE")} {doc.currency || "SEK"}</span>
                 </div>
               </div>

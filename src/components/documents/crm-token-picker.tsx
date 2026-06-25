@@ -49,16 +49,16 @@ export function CrmTokenPicker({ onSelect }: CrmTokenPickerProps) {
         <div className="max-h-64 overflow-y-auto p-1">
           {CRM_TOKEN_GROUPS.map((group) => {
             const filteredTokens = group.tokens.filter(
-              (t) =>
+              (tk) =>
                 !search ||
-                t.label.toLowerCase().includes(lowerSearch) ||
-                t.token.toLowerCase().includes(lowerSearch)
+                t(tk.labelKey).toLowerCase().includes(lowerSearch) ||
+                tk.token.toLowerCase().includes(lowerSearch)
             );
             if (filteredTokens.length === 0) return null;
             return (
               <div key={group.group}>
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-2 pb-1">
-                  {group.label}
+                  {t(group.labelKey)}
                 </p>
                 {filteredTokens.map((token) => (
                   <button
@@ -71,7 +71,7 @@ export function CrmTokenPicker({ onSelect }: CrmTokenPickerProps) {
                       setSearch("");
                     }}
                   >
-                    <span>{token.label}</span>
+                    <span>{t(token.labelKey)}</span>
                     <code className="text-[10px] text-muted-foreground font-mono">
                       {token.placeholder}
                     </code>

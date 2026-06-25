@@ -338,7 +338,7 @@ export function OffersList() {
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">
                             {offer.docNumber ? `#${offer.docNumber}` : ""}
                             {offer.isLegacy && (
-                              <span className="ml-1 text-muted-foreground/60">· Klassisk</span>
+                              <span className="ml-1 text-muted-foreground/60">· {t("offers.list.legacy")}</span>
                             )}
                             <span className="md:hidden">
                               {offer.recipient && ` · ${offer.recipient}`}
@@ -350,7 +350,7 @@ export function OffersList() {
                     <td className="px-4 py-3.5 hidden md:table-cell">
                       <span className="text-foreground/80 truncate block max-w-[200px]">
                         {offer.recipient || (
-                          <span className="text-muted-foreground/50 italic">Ej angiven</span>
+                          <span className="text-muted-foreground/50 italic">{t("offers.list.noRecipient")}</span>
                         )}
                       </span>
                     </td>
@@ -376,7 +376,7 @@ export function OffersList() {
       ) : allOffers.length > 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <Search className="h-8 w-8 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Inga offerter matchar din sökning</p>
+          <p className="text-sm">{t("offers.list.noMatch")}</p>
         </div>
       ) : (
         <div className="rounded-xl border bg-card">
@@ -384,13 +384,13 @@ export function OffersList() {
             <div className="h-14 w-14 rounded-2xl bg-muted/60 flex items-center justify-center mb-4">
               <FileText className="h-7 w-7 text-muted-foreground/50" />
             </div>
-            <h3 className="font-semibold text-lg mb-1">Inga offerter ännu</h3>
+            <h3 className="font-semibold text-lg mb-1">{t("offers.list.emptyTitle")}</h3>
             <p className="text-sm text-muted-foreground max-w-sm mb-6">
-              Skapa din första offert genom att välja en mall. Du kan hantera mallar under Inställningar.
+              {t("offers.list.emptyDesc")}
             </p>
             <Button onClick={() => setShowPicker(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Skapa offert
+              {t("offers.list.createOffer")}
             </Button>
           </div>
         </div>
