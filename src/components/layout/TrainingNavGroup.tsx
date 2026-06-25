@@ -4,6 +4,7 @@ import { GraduationCap, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { pickLocalized } from "@/lib/localized";
 import { useTrainingAccess } from "@/hooks/useTrainingAccess";
 import { useTrainingCategories } from "@/hooks/useTrainingCategories";
 
@@ -20,7 +21,7 @@ interface Props {
  * Returns null unless the current organization has the training feature enabled.
  */
 export function TrainingNavGroup({ variant, collapsed, onNavigate }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const location = useLocation();
   const { canView } = useTrainingAccess();
   const { categories } = useTrainingCategories();
@@ -83,7 +84,7 @@ export function TrainingNavGroup({ variant, collapsed, onNavigate }: Props) {
                     onClick={onNavigate}
                     className={cn(rowClass(active), "py-2 text-sm")}
                   >
-                    <span className="truncate">{c.name}</span>
+                    <span className="truncate">{pickLocalized(language, c.name, c.name_en, c.name_es)}</span>
                   </Link>
                 </li>
               );
