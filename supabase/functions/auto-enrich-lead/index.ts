@@ -7,6 +7,7 @@ import {
 } from "../_shared/outreach-prompt.ts";
 import { fetchWithRetry } from "../_shared/http.ts";
 import { lookupByOrgNumber } from "../_shared/bolagsverket.ts";
+import { findOrgNumberByName } from "../_shared/orgnr-lookup.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -127,6 +128,47 @@ function extractContactName(text: string): string | null {
   return null;
 }
 
+// Sweden-only: Bolagsverket covers Swedish companies, so the official-data step
+// must not touch US/DE/ES leads. A present org number is itself a Swedish
+// signal; otherwise we treat an empty/Swedish country as SE (the default market).
+function isSwedishMarket(lead: Record<string, unknown>): boolean {
+  const country = (lead.country as string | null)?.trim().toLowerCase();
+  return !country || ["se", "sverige", "sweden"].includes(country);
+}
+
+// Resolve the lead's org number for the Swedish market: use what's stored, else
+// look it up for free in our own company_registry by name, else fall back to a
+// Firecrawl web search. Returns null if it can't be resolved.
+async function resolveSwedishOrgNumber(
+  lead: Record<string, unknown>,
+  supabase: ReturnType<typeof supabaseAdmin>,
+): Promise<string | null> {
+  const existing = (lead.org_number as string | null)?.trim();
+  if (existing) return existing;
+
+  // Name-based resolution only makes sense for the Swedish market.
+  if (!isSwedishMarket(lead)) return null;
+  const name = (lead.company_name as string | null)?.trim();
+  if (!name) return null;
+
+  // 1) Free: exact name hit in our own registry (CSV / earlier enrichment).
+  const { data: reg } = await supabase
+    .from("company_registry")
+    .select("org_number")
+    .ilike("company_name", name)
+    .limit(1)
+    .maybeSingle();
+  if (reg?.org_number) {
+    console.log("[auto-enrich] STEP 0 – org number from registry:", reg.org_number);
+    return reg.org_number;
+  }
+
+  // 2) Last resort: Firecrawl web search (costs credits).
+  const found = await findOrgNumberByName(name);
+  if (found) console.log("[auto-enrich] STEP 0 – org number from Firecrawl:", found);
+  return found;
+}
+
 // ── STEP 0: Official company data from Bolagsverket ──────────────────
 // Authoritative, free registry data keyed on org number. Complements the
 // website crawl: it fills legal form / industry (SNI) / address / status into
@@ -138,8 +180,17 @@ async function stepBolagsverket(
   supabase: ReturnType<typeof supabaseAdmin>,
   errors: string[],
 ): Promise<void> {
-  const orgNumber = (lead.org_number as string | null)?.trim();
+  // Swedish leads that already have an org number always qualify; others only if
+  // we can resolve one (which is itself gated to the Swedish market).
+  if ((lead.org_number as string | null)?.trim() ? false : !isSwedishMarket(lead)) return;
+
+  const orgNumber = await resolveSwedishOrgNumber(lead, supabase);
   if (!orgNumber) return;
+
+  // Persist a newly-resolved org number back onto the lead.
+  if (!(lead.org_number as string | null)?.trim()) {
+    await supabase.from("leads").update({ org_number: orgNumber }).eq("id", lead.id);
+  }
 
   console.log("[auto-enrich] STEP 0 – Bolagsverket lookup START", orgNumber);
   try {
