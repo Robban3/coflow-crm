@@ -2,10 +2,11 @@ import { Send, PenSquare } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { ExplainPanel, HighlightButton } from "../sandboxUi";
-import { sampleEmails } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxMail() {
   const { t } = useTranslation();
+  const { sampleEmails } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.mail.explain")}</ExplainPanel>

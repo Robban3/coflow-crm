@@ -2,10 +2,11 @@ import { Search, Download } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { ExplainPanel, HighlightButton, SandboxButton } from "../sandboxUi";
-import { prospectingResults } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxProspecting() {
   const { t } = useTranslation();
+  const { prospectingResults } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.prospecting.explain")}</ExplainPanel>

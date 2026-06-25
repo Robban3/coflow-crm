@@ -2,16 +2,11 @@ import { Plus } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { ExplainPanel, HighlightButton } from "../sandboxUi";
-import { sampleTasks } from "../sandboxData";
-
-const prioTone: Record<string, string> = {
-  Brådskande: "bg-destructive/15 text-destructive",
-  Hög: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
-  Normal: "bg-muted text-muted-foreground",
-};
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxTasks() {
   const { t } = useTranslation();
+  const { sampleTasks } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.tasks.explain")}</ExplainPanel>
@@ -33,7 +28,7 @@ export function SandboxTasks() {
               {task.title}
             </span>
             <span className="text-xs text-muted-foreground hidden sm:inline">{task.due}</span>
-            <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", prioTone[task.priority])}>
+            <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", task.prioTone)}>
               {task.priority}
             </span>
           </div>

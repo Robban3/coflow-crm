@@ -1,10 +1,11 @@
 import { FilePlus, FileBarChart } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { ExplainPanel, HighlightButton } from "../sandboxUi";
-import { sampleReports } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxReports() {
   const { t } = useTranslation();
+  const { sampleReports } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.reports.explain")}</ExplainPanel>

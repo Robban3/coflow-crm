@@ -1,10 +1,11 @@
 import { Phone, PhoneOff, PhoneForwarded, CalendarCheck } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { ExplainPanel, HighlightButton, SandboxButton } from "../sandboxUi";
-import { powerCallLead as lead } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxPowerCall() {
   const { t } = useTranslation();
+  const { powerCallLead: lead } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.powercall.explain")}</ExplainPanel>

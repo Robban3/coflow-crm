@@ -1,10 +1,11 @@
 import { Search, BarChart3, Mail, Plus } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { ExplainPanel, HighlightButton, SandboxButton } from "../sandboxUi";
-import { sampleStats } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxDashboard() {
   const { t } = useTranslation();
+  const { sampleStats } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.dashboard.explain")}</ExplainPanel>

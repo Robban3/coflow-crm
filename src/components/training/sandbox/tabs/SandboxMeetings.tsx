@@ -1,10 +1,11 @@
 import { CalendarPlus, Clock, Link2 } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { ExplainPanel, HighlightButton } from "../sandboxUi";
-import { sampleMeetings } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxMeetings() {
   const { t } = useTranslation();
+  const { sampleMeetings } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.meetings.explain")}</ExplainPanel>

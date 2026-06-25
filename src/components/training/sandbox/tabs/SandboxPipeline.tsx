@@ -1,9 +1,10 @@
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { ExplainPanel } from "../sandboxUi";
-import { pipelineStages } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxPipeline() {
   const { t } = useTranslation();
+  const { pipelineStages } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.pipeline.explain")}</ExplainPanel>

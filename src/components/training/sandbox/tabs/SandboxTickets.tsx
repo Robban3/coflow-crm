@@ -2,16 +2,11 @@ import { Plus } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { ExplainPanel, HighlightButton } from "../sandboxUi";
-import { sampleTickets } from "../sandboxData";
-
-const statusTone: Record<string, string> = {
-  Öppen: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
-  Pågående: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
-  Löst: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
-};
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxTickets() {
   const { t } = useTranslation();
+  const { sampleTickets } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.tickets.explain")}</ExplainPanel>
@@ -25,7 +20,7 @@ export function SandboxTickets() {
           <div key={tk.title} className="rounded-xl border border-border bg-card p-4 space-y-2">
             <div className="flex items-start justify-between gap-2">
               <span className="font-medium text-sm">{tk.title}</span>
-              <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium shrink-0", statusTone[tk.status])}>
+              <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium shrink-0", tk.statusTone)}>
                 {tk.status}
               </span>
             </div>

@@ -1,10 +1,11 @@
 import { CalendarRange, Trophy } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { ExplainPanel, HighlightButton } from "../sandboxUi";
-import { statsKpis, leaderboard } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxStatistics() {
   const { t } = useTranslation();
+  const { statsKpis, leaderboard } = useSandboxData();
   const top = Math.max(...leaderboard.map((l) => l.points));
 
   return (

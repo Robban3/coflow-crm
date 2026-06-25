@@ -2,7 +2,7 @@ import { Globe, ScanSearch } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { ExplainPanel, HighlightButton } from "../sandboxUi";
-import { webAnalysisSite, webAnalysisScores, webAnalysisFindings } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 function scoreTone(v: number) {
   if (v >= 80) return "text-emerald-600 dark:text-emerald-400";
@@ -12,6 +12,7 @@ function scoreTone(v: number) {
 
 export function SandboxWebAnalysis() {
   const { t } = useTranslation();
+  const { webAnalysisSite, webAnalysisScores, webAnalysisFindings } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.webanalysis.explain")}</ExplainPanel>

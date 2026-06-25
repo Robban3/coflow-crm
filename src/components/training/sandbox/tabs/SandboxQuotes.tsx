@@ -1,12 +1,13 @@
 import { Plus, Send } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { ExplainPanel, HighlightButton, SandboxButton } from "../sandboxUi";
-import { quoteSample } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 const kr = (n: number) => `${n.toLocaleString("sv-SE")} kr`;
 
 export function SandboxQuotes() {
   const { t } = useTranslation();
+  const { quoteSample } = useSandboxData();
   const total = quoteSample.lines.reduce((sum, l) => sum + l.qty * l.price, 0);
 
   return (

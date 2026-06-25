@@ -2,10 +2,11 @@ import { Plus, Telescope } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { ExplainPanel, HighlightButton, SandboxButton } from "../sandboxUi";
-import { sampleLeads, statusTone } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxLeads() {
   const { t } = useTranslation();
+  const { sampleLeads } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.leads.explain")}</ExplainPanel>
@@ -34,7 +35,7 @@ export function SandboxLeads() {
                 <td className="px-4 py-3">{l.contact}</td>
                 <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{l.email}</td>
                 <td className="px-4 py-3">
-                  <span className={cn("inline-block px-2 py-0.5 rounded-full text-xs font-medium", statusTone[l.status])}>
+                  <span className={cn("inline-block px-2 py-0.5 rounded-full text-xs font-medium", l.statusTone)}>
                     {l.status}
                   </span>
                 </td>

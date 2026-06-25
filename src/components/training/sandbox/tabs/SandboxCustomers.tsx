@@ -1,10 +1,11 @@
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { ExplainPanel } from "../sandboxUi";
-import { sampleCustomers } from "../sandboxData";
+import { useSandboxData } from "../sandboxData";
 
 export function SandboxCustomers() {
   const { t } = useTranslation();
+  const { sampleCustomers } = useSandboxData();
   return (
     <div className="space-y-5">
       <ExplainPanel>{t("training.sandbox.customers.explain")}</ExplainPanel>
