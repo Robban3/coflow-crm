@@ -64,16 +64,33 @@ async function getToken(): Promise<string> {
     );
   }
 
-  const body = new URLSearchParams({ grant_type: "client_credentials", scope });
-  const res = await fetchWithRetry(tokenUrl, {
-    method: "POST",
-    headers: {
+  // RFC 6749 §4.4 client-credentials grant. The spec allows two ways to pass the
+  // client credentials: HTTP Basic (recommended, §2.3.1) or as body params. We try
+  // Basic first and fall back to body params on a 400/401 so an auth-method mismatch
+  // on the server doesn't break the first real call.
+  async function requestToken(useBasic: boolean): Promise<Response> {
+    const params: Record<string, string> = { grant_type: "client_credentials", scope };
+    const headers: Record<string, string> = {
       "Content-Type": "application/x-www-form-urlencoded",
-      // HTTP Basic auth with client id/secret (standard for client_credentials).
-      Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-    },
-    body: body.toString(),
-  });
+      Accept: "application/json",
+    };
+    if (useBasic) {
+      headers.Authorization = `Basic ${btoa(`${clientId}:${clientSecret}`)}`;
+    } else {
+      params.client_id = clientId!;
+      params.client_secret = clientSecret!;
+    }
+    return await fetchWithRetry(tokenUrl!, {
+      method: "POST",
+      headers,
+      body: new URLSearchParams(params).toString(),
+    });
+  }
+
+  let res = await requestToken(true);
+  if (res.status === 400 || res.status === 401) {
+    res = await requestToken(false);
+  }
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
     throw new Error(`Bolagsverket token error ${res.status}: ${txt.slice(0, 300)}`);
