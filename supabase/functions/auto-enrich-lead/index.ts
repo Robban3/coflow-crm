@@ -6,6 +6,7 @@ import {
   type OutreachContext,
 } from "../_shared/outreach-prompt.ts";
 import { fetchWithRetry } from "../_shared/http.ts";
+import { lookupByOrgNumber } from "../_shared/bolagsverket.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -124,6 +125,60 @@ function extractContactName(text: string): string | null {
     if (inContactSection && lower.startsWith("#")) inContactSection = false;
   }
   return null;
+}
+
+// ── STEP 0: Official company data from Bolagsverket ──────────────────
+// Authoritative, free registry data keyed on org number. Complements the
+// website crawl: it fills legal form / industry (SNI) / address / status into
+// company_registry (the same table the bulk CSV import uses) so the lead view
+// can show it. Best-effort and non-fatal — a missing or unknown org number must
+// never block the rest of the enrichment.
+async function stepBolagsverket(
+  lead: Record<string, unknown>,
+  supabase: ReturnType<typeof supabaseAdmin>,
+  errors: string[],
+): Promise<void> {
+  const orgNumber = (lead.org_number as string | null)?.trim();
+  if (!orgNumber) return;
+
+  console.log("[auto-enrich] STEP 0 – Bolagsverket lookup START", orgNumber);
+  try {
+    const result = await lookupByOrgNumber(orgNumber);
+    if (!result.ok || !result.normalized) {
+      console.log("[auto-enrich] STEP 0 – no data:", result.error);
+      return;
+    }
+    const c = result.normalized;
+    // sni_* columns are TEXT in company_registry (the CSV import joins them too).
+    const row = {
+      org_number: c.org_number || orgNumber.replace(/\D/g, ""),
+      company_name: c.company_name || (lead.company_name as string) || "",
+      legal_form: c.legal_form,
+      company_form: c.legal_form,
+      registration_date: c.registration_date,
+      address: c.address,
+      postal_code: c.postal_code,
+      city: c.city,
+      sni_codes: c.sni_codes.length ? c.sni_codes.join(", ") : null,
+      sni_descriptions: c.sni_descriptions.length ? c.sni_descriptions.join("; ") : null,
+    };
+    const { error } = await supabase
+      .from("company_registry")
+      .upsert(row, { onConflict: "org_number" });
+    if (error) {
+      errors.push(`bolagsverket: ${error.message}`);
+      console.error("[auto-enrich] STEP 0 – upsert error:", error.message);
+      return;
+    }
+    // Backfill the lead's company name if it was empty.
+    if (c.company_name && !(lead.company_name as string)?.trim()) {
+      await supabase.from("leads").update({ company_name: c.company_name }).eq("id", lead.id);
+    }
+    console.log("[auto-enrich] STEP 0 DONE –", c.company_name, c.legal_form, c.sni_codes.length, "SNI");
+  } catch (e) {
+    errors.push(`bolagsverket: ${(e as Error).message}`);
+    console.error("[auto-enrich] STEP 0 – failed:", (e as Error).message);
+  }
 }
 
 // ── STEP 1: Firecrawl deep crawl ─────────────────────────────────────
@@ -608,6 +663,22 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── Guard: already processing (unless manual) ──
+    const currentStatus = lead.enrichment_status as string | null;
+    if (!isManual && (currentStatus === "processing" || currentStatus === "ready")) {
+      console.log(`[auto-enrich] SKIP – already '${currentStatus}'`);
+      return new Response(
+        JSON.stringify({ success: true, leadId, status: currentStatus, reason: "already_done" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // Collect non-fatal step errors from here on.
+    const errors: string[] = [];
+
+    // ── STEP 0: Official Bolagsverket company data (runs regardless of website) ──
+    await stepBolagsverket(lead, supabase, errors);
+
     // ── Guard: need website ──
     const website = (lead.website as string)?.trim();
     if (!website) {
@@ -615,16 +686,6 @@ Deno.serve(async (req) => {
       await supabase.from("leads").update({ enrichment_status: "skipped", enrichment_error: "Ingen webbplats angiven" }).eq("id", leadId);
       return new Response(
         JSON.stringify({ success: true, leadId, status: "skipped", reason: "no_website" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    // ── Guard: already processing (unless manual) ──
-    const currentStatus = lead.enrichment_status as string | null;
-    if (!isManual && (currentStatus === "processing" || currentStatus === "ready")) {
-      console.log(`[auto-enrich] SKIP – already '${currentStatus}'`);
-      return new Response(
-        JSON.stringify({ success: true, leadId, status: currentStatus, reason: "already_done" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -704,7 +765,6 @@ Deno.serve(async (req) => {
 
     console.log(`[auto-enrich] Sender resolved: name=${senderName || "NONE"} company=${senderCompany || "NONE"} userId=${senderUserId || "NONE"}`);
 
-    const errors: string[] = [];
     const remainingMs = () => Math.max(deadline - Date.now(), 2000);
 
     // ═══ STEP 1 + 2: Firecrawl + PageSpeed in parallel ═══

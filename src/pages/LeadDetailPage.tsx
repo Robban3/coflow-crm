@@ -191,12 +191,17 @@ export default function LeadDetailPage() {
       if (leadRes.error || !leadRes.data) throw new Error('Lead not found');
       const leadData = leadRes.data as Lead;
 
-      const [analysesRes, urlAnalyses, tasksRes, fleetDataRes, seoAnalysesRes] = await Promise.all([
+      const orgDigits = leadData.org_number ? leadData.org_number.replace(/\D/g, '') : null;
+
+      const [analysesRes, urlAnalyses, tasksRes, fleetDataRes, seoAnalysesRes, companyRegistryRes] = await Promise.all([
         supabase.from('web_analyses').select('id, url, performance_score, accessibility_score, seo_score, best_practices_score, analyzed_by, created_at').eq('lead_id', id).order('created_at', { ascending: false }).limit(20),
         leadData.website ? webAnalysisApi.findAnalysesByUrl(leadData.website) : Promise.resolve([]),
         supabase.from('tasks').select('id, title, description, status, priority, due_date, assigned_to, created_at').eq('lead_id', id).in('status', ['todo', 'in_progress']).order('due_date', { ascending: true }).limit(100),
         supabase.from('lead_fleet_data').select('vehicle_count, phone_subscription_count, phone_operator, leasing_company, vehicles, phone_numbers').eq('lead_id', id).maybeSingle(),
         supabase.from('seo_analyses').select('visibility_score, ai_summary, ai_opportunities, primary_keywords, estimated_keywords, raw_data').eq('lead_id', id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        orgDigits
+          ? supabase.from('company_registry').select('company_name, legal_form, company_form, city, postal_code, address, sni_codes, sni_descriptions, registration_date').eq('org_number', orgDigits).maybeSingle()
+          : Promise.resolve({ data: null }),
       ]);
 
       // Merge analyses
@@ -244,7 +249,7 @@ export default function LeadDetailPage() {
         raw_data: rawData || null,
       } : null;
 
-      return { lead: leadData, analyses: allAnalyses, tasks: (tasksRes.data || []) as Task[], fleetData, seoData };
+      return { lead: leadData, analyses: allAnalyses, tasks: (tasksRes.data || []) as Task[], fleetData, seoData, companyRegistry: companyRegistryRes.data ?? null };
     },
     enabled: !!id,
   });
@@ -254,6 +259,7 @@ export default function LeadDetailPage() {
   const tasks = leadQueryData?.tasks ?? [];
   const fleetData = leadQueryData?.fleetData ?? null;
   const seoData = leadQueryData?.seoData ?? null;
+  const companyRegistry = leadQueryData?.companyRegistry ?? null;
 
   // Check for existing growth report for this lead
   const { data: existingGrowthReport } = useQuery({
@@ -884,6 +890,44 @@ export default function LeadDetailPage() {
                         <p className="font-medium">{lead.org_number || "-"}</p>
                       </div>
                     </div>
+                    {/* Official company data from Bolagsverket (via company_registry) */}
+                    {companyRegistry && (
+                      <div className="sm:col-span-2">
+                        <div className="rounded-lg border bg-muted/30 p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                            <p className="text-sm font-semibold">Officiell företagsinformation</p>
+                            <span className="text-xs text-muted-foreground">· Bolagsverket</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            {companyRegistry.legal_form && (
+                              <div>
+                                <p className="text-xs text-muted-foreground">Juridisk form</p>
+                                <p className="font-medium">{companyRegistry.legal_form}</p>
+                              </div>
+                            )}
+                            {(companyRegistry.postal_code || companyRegistry.city) && (
+                              <div>
+                                <p className="text-xs text-muted-foreground">Ort</p>
+                                <p className="font-medium">{[companyRegistry.postal_code, companyRegistry.city].filter(Boolean).join(' ')}</p>
+                              </div>
+                            )}
+                            {companyRegistry.registration_date && (
+                              <div>
+                                <p className="text-xs text-muted-foreground">Registrerad</p>
+                                <p className="font-medium">{companyRegistry.registration_date}</p>
+                              </div>
+                            )}
+                            {(companyRegistry.sni_descriptions || companyRegistry.sni_codes) && (
+                              <div className="sm:col-span-2">
+                                <p className="text-xs text-muted-foreground">Bransch (SNI)</p>
+                                <p className="font-medium">{companyRegistry.sni_descriptions || companyRegistry.sni_codes}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {/* Enrich button when missing website or email */}
                     {(!lead.website || !lead.email) && (
                       <div className="sm:col-span-2">
