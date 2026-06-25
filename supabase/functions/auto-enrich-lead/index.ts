@@ -206,6 +206,7 @@ async function stepBolagsverket(
       company_name: c.company_name || (lead.company_name as string) || "",
       legal_form: c.legal_form,
       company_form: c.legal_form,
+      status: c.status,
       registration_date: c.registration_date,
       address: c.address,
       postal_code: c.postal_code,

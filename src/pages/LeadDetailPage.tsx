@@ -200,7 +200,7 @@ export default function LeadDetailPage() {
         supabase.from('lead_fleet_data').select('vehicle_count, phone_subscription_count, phone_operator, leasing_company, vehicles, phone_numbers').eq('lead_id', id).maybeSingle(),
         supabase.from('seo_analyses').select('visibility_score, ai_summary, ai_opportunities, primary_keywords, estimated_keywords, raw_data').eq('lead_id', id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         orgDigits
-          ? supabase.from('company_registry').select('company_name, legal_form, company_form, city, postal_code, address, sni_codes, sni_descriptions, registration_date').eq('org_number', orgDigits).maybeSingle()
+          ? supabase.from('company_registry').select('company_name, legal_form, company_form, city, postal_code, address, sni_codes, sni_descriptions, registration_date, status').eq('org_number', orgDigits).maybeSingle()
           : Promise.resolve({ data: null }),
       ]);
 
@@ -898,6 +898,19 @@ export default function LeadDetailPage() {
                             <Building2 className="h-4 w-4 text-muted-foreground" />
                             <p className="text-sm font-semibold">Officiell företagsinformation</p>
                             <span className="text-xs text-muted-foreground">· Bolagsverket</span>
+                            {companyRegistry.status && (
+                              <span
+                                className={`ml-auto text-xs font-medium px-2 py-0.5 rounded-full ${
+                                  companyRegistry.status === "Avregistrerad"
+                                    ? "bg-destructive/15 text-destructive"
+                                    : companyRegistry.status === "Aktiv"
+                                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                                      : "bg-muted text-muted-foreground"
+                                }`}
+                              >
+                                {companyRegistry.status}
+                              </span>
+                            )}
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                             {companyRegistry.legal_form && (
