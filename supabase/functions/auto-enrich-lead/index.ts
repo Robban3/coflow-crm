@@ -223,9 +223,13 @@ async function stepBolagsverket(
       console.error("[auto-enrich] STEP 0 – upsert error:", error.message);
       return;
     }
-    // Backfill the lead's company name if it was empty.
-    if (c.company_name && !(lead.company_name as string)?.trim()) {
-      await supabase.from("leads").update({ company_name: c.company_name }).eq("id", lead.id);
+    // Backfill lead fields from the official record: company name (if empty) and
+    // the company status (so prospecting lists can flag deregistered companies).
+    const leadUpdate: Record<string, unknown> = {};
+    if (c.company_name && !(lead.company_name as string)?.trim()) leadUpdate.company_name = c.company_name;
+    if (c.status) leadUpdate.company_status = c.status;
+    if (Object.keys(leadUpdate).length) {
+      await supabase.from("leads").update(leadUpdate).eq("id", lead.id);
     }
     console.log("[auto-enrich] STEP 0 DONE –", c.company_name, c.legal_form, c.sni_codes.length, "SNI");
   } catch (e) {

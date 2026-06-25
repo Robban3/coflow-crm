@@ -32,6 +32,7 @@ interface QueueLead {
   auto_draft_generated: boolean | null;
   business_summary: string | null;
   business_fit_score: number | null;
+  company_status: string | null;
 }
 
 const STATUS_CONFIG: Record<EnrichmentStatus, { icon: React.ReactNode; className: string }> = {
@@ -69,7 +70,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
       if (!orgId) return [];
       let q = supabase
         .from("leads")
-        .select("id, company_name, website, prospecting_source, enrichment_status, enrichment_error, created_at, auto_draft_generated, business_summary, business_fit_score, created_by")
+        .select("id, company_name, website, prospecting_source, enrichment_status, enrichment_error, created_at, auto_draft_generated, business_summary, business_fit_score, company_status, created_by")
         .eq("organization_id", orgId)
         .eq("imported_via_prospecting", true)
         .in("enrichment_status", ["pending", "processing", "failed", "skipped"])
@@ -80,7 +81,7 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
       }
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as QueueLead[];
+      return (data ?? []) as unknown as QueueLead[];
     },
     enabled: !!orgId,
     refetchInterval: autoRefresh ? 8000 : false,
@@ -320,6 +321,11 @@ export default function ProspectingQueueTab({ draftCount = 0, onGoToReview }: { 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm truncate">{lead.company_name || t("prospecting.q_unknownCompany")}</span>
+                      {lead.company_status === "Avregistrerad" && (
+                        <Badge variant="destructive" className="text-xs shrink-0">
+                          {t("prospecting.q_deregistered")}
+                        </Badge>
+                      )}
                       <Badge variant="outline" className="text-xs shrink-0">
                         {sourceLabel(lead.prospecting_source, t)}
                       </Badge>

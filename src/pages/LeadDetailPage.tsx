@@ -919,6 +919,12 @@ export default function LeadDetailPage() {
                                 <p className="font-medium">{companyRegistry.legal_form}</p>
                               </div>
                             )}
+                            {companyRegistry.address && (
+                              <div>
+                                <p className="text-xs text-muted-foreground">Adress</p>
+                                <p className="font-medium">{companyRegistry.address}</p>
+                              </div>
+                            )}
                             {(companyRegistry.postal_code || companyRegistry.city) && (
                               <div>
                                 <p className="text-xs text-muted-foreground">Ort</p>
