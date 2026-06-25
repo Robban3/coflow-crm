@@ -156,6 +156,36 @@ export const statisticsDict: FeatureDictionary = {
 
     // TodaySnapshot
     "statistics.vsLast": "vs förra {day} ({count})",
+
+    // SalespeoplePage
+    "statistics.salespeople": "Säljare",
+    "statistics.salespeopleNoAccess": "Endast administratörer har åtkomst till denna sida.",
+    "statistics.salespeopleSubtitle": "Alla säljare och deras uppgifter. {filled} av {total} har fyllt i.",
+    "statistics.overview": "Översikt",
+    "statistics.salespeopleClickHint": "Klicka på en säljare för att se alla uppgifter.",
+    "statistics.noSalespeople": "Inga säljare hittades.",
+    "statistics.name": "Namn",
+    "statistics.applabbetEmail": "Applabbet-epost",
+    "statistics.status": "Status",
+    "statistics.filled": "Ifylld",
+    "statistics.missing": "Saknas",
+    "statistics.show": "Visa",
+    "statistics.externalEmail": "E-post utanför Applabbet",
+    "statistics.address": "Adress",
+    "statistics.postalCode": "Postnummer",
+    "statistics.city": "Postort",
+    "statistics.personalNumber": "Personnummer",
+    "statistics.companyForm": "Bolagsform",
+    "statistics.externalService": "Extern tjänst",
+    "statistics.companyFormSoleTrader": "Enskild firma",
+    "statistics.companyFormLimited": "Aktiebolag",
+
+    // Chart series / source labels
+    "statistics.seriesSent": "Skickade",
+    "statistics.seriesReply": "Svar",
+    "statistics.replyRate": "Svarsfrekvens",
+    "statistics.sourceOutreach": "Outreach",
+    "statistics.sourceAutoEnrich": "Auto-enrich",
   },
   en: {
     "statistics.title": "Statistics",
@@ -312,6 +342,36 @@ export const statisticsDict: FeatureDictionary = {
 
     // TodaySnapshot
     "statistics.vsLast": "vs last {day} ({count})",
+
+    // SalespeoplePage
+    "statistics.salespeople": "Salespeople",
+    "statistics.salespeopleNoAccess": "Only administrators have access to this page.",
+    "statistics.salespeopleSubtitle": "All salespeople and their details. {filled} of {total} have filled in.",
+    "statistics.overview": "Overview",
+    "statistics.salespeopleClickHint": "Click on a salesperson to see all details.",
+    "statistics.noSalespeople": "No salespeople found.",
+    "statistics.name": "Name",
+    "statistics.applabbetEmail": "Applabbet email",
+    "statistics.status": "Status",
+    "statistics.filled": "Filled in",
+    "statistics.missing": "Missing",
+    "statistics.show": "Show",
+    "statistics.externalEmail": "Email outside Applabbet",
+    "statistics.address": "Address",
+    "statistics.postalCode": "Postal code",
+    "statistics.city": "City",
+    "statistics.personalNumber": "Personal number",
+    "statistics.companyForm": "Company form",
+    "statistics.externalService": "External service",
+    "statistics.companyFormSoleTrader": "Sole trader",
+    "statistics.companyFormLimited": "Limited company",
+
+    // Chart series / source labels
+    "statistics.seriesSent": "Sent",
+    "statistics.seriesReply": "Replies",
+    "statistics.replyRate": "Reply rate",
+    "statistics.sourceOutreach": "Outreach",
+    "statistics.sourceAutoEnrich": "Auto-enrich",
   },
   es: {
     "statistics.title": "Estadísticas",
@@ -468,5 +528,35 @@ export const statisticsDict: FeatureDictionary = {
 
     // TodaySnapshot
     "statistics.vsLast": "vs {day} pasado ({count})",
+
+    // SalespeoplePage
+    "statistics.salespeople": "Comerciales",
+    "statistics.salespeopleNoAccess": "Solo los administradores tienen acceso a esta página.",
+    "statistics.salespeopleSubtitle": "Todos los comerciales y sus datos. {filled} de {total} han completado.",
+    "statistics.overview": "Resumen",
+    "statistics.salespeopleClickHint": "Haz clic en un comercial para ver todos los datos.",
+    "statistics.noSalespeople": "No se encontraron comerciales.",
+    "statistics.name": "Nombre",
+    "statistics.applabbetEmail": "Correo de Applabbet",
+    "statistics.status": "Estado",
+    "statistics.filled": "Completado",
+    "statistics.missing": "Falta",
+    "statistics.show": "Ver",
+    "statistics.externalEmail": "Correo fuera de Applabbet",
+    "statistics.address": "Dirección",
+    "statistics.postalCode": "Código postal",
+    "statistics.city": "Ciudad",
+    "statistics.personalNumber": "Número personal",
+    "statistics.companyForm": "Forma jurídica",
+    "statistics.externalService": "Servicio externo",
+    "statistics.companyFormSoleTrader": "Empresario individual",
+    "statistics.companyFormLimited": "Sociedad anónima",
+
+    // Chart series / source labels
+    "statistics.seriesSent": "Enviados",
+    "statistics.seriesReply": "Respuestas",
+    "statistics.replyRate": "Tasa de respuesta",
+    "statistics.sourceOutreach": "Outreach",
+    "statistics.sourceAutoEnrich": "Auto-enrich",
   },
 };

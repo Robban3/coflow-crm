@@ -695,7 +695,7 @@ export function OrganizationDashboard() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={member.role === "admin" ? "default" : "secondary"}>
-                            {member.role === "admin" ? "Admin" : t("settings.roleUser")}
+                            {member.role === "admin" ? t("settings.roleAdmin") : t("settings.roleUser")}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">

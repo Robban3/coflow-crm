@@ -32,7 +32,7 @@ export function PersonalProgress({
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Target className="h-4 w-4 text-muted-foreground" />
-          Min prestation
+          {t("statistics.myPerformance")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

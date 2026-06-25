@@ -373,12 +373,12 @@ export function EmailSignatureSettings() {
 
           {/* Tone Preview */}
           <div className="space-y-2">
-            <Label>Exempel på {selectedTone.label.toLowerCase()} ton:</Label>
+            <Label>{t("settings.toneExampleLabel", { tone: selectedTone.label.toLowerCase() })}</Label>
             <div className="p-4 rounded-lg border bg-muted/30">
               <p className="text-sm whitespace-pre-wrap">{selectedTone.example}</p>
             </div>
             <p className="text-xs text-muted-foreground">
-              Detta är ett exempel. Faktiska mail anpassas efter varje leads analysresultat.
+              {t("settings.toneExampleHelp")}
             </p>
           </div>
 
@@ -386,12 +386,12 @@ export function EmailSignatureSettings() {
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sparar...
+                {t("settings.saving")}
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                Spara tonalitet
+                {t("settings.saveTone")}
               </>
             )}
           </Button>

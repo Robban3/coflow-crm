@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Award, TrendingUp, TrendingDown, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import type { LeaderboardEntry } from "@/pages/StatisticsPage";
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function StatisticsLeaderboard({ entries, weights, onUserClick, top3UserIds }: Props) {
+  const { t } = useTranslation();
   const sortedEntries = [...entries].sort((a, b) => b.score - a.score);
 
   // Determine prestige ring for a user
@@ -31,15 +33,15 @@ export function StatisticsLeaderboard({ entries, weights, onUserClick, top3UserI
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Award className="h-4 w-4 text-amber-500" />
-            Leaderboard
+            {t("statistics.leaderboard")}
           </CardTitle>
           <Tooltip>
             <TooltipTrigger>
               <Info className="h-4 w-4 text-muted-foreground" />
             </TooltipTrigger>
             <TooltipContent className="max-w-xs text-xs">
-              <p className="font-semibold mb-1">Poängmodell</p>
-              <p>Mail × {weights.emails}, Samtal × {weights.calls}, Möten × {weights.meetings}, Dokument × {weights.documents}, Uppgifter × {weights.tasks}</p>
+              <p className="font-semibold mb-1">{t("statistics.scoreModel")}</p>
+              <p>{t("statistics.scoreModelDesc", { emails: weights.emails, calls: weights.calls, meetings: weights.meetings, documents: weights.documents, tasks: weights.tasks })}</p>
             </TooltipContent>
           </Tooltip>
         </div>

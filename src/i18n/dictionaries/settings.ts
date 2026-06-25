@@ -389,6 +389,25 @@ Vi hjälper företag att fokusera på sin kärnverksamhet medan vi tar hand om I
     // SellerProfileForm — help & states
     "settings.sellerPersonnummerLockedHelp": "Personnumret är låst när det väl är ifyllt. Kontakta en administratör om det behöver ändras.",
     "settings.sellerSaving": "Sparar…",
+
+    // SellerProfileSettings — card & toasts
+    "settings.sellerCardTitle": "Mina uppgifter",
+    "settings.sellerCardDesc": "Dina personuppgifter. De är privata och syns bara för dig och administratörer. Uppdatera om något ändras (t.ex. om du flyttar).",
+    "settings.sellerResetErrorTitle": "Kunde inte återställa",
+    "settings.sellerSaveErrorTitle": "Kunde inte spara",
+    "settings.sellerSavedTitle": "Sparat",
+    "settings.sellerSavedDesc": "Dina uppgifter är uppdaterade.",
+    "settings.sellerTestToolNote": "Testverktyg: nollställ din profil för att se first-login-popupen igen.",
+    "settings.sellerResetButton": "Återställ test (visa popupen igen)",
+
+    // SellerProfileGate — first-login popup
+    "settings.sellerGateSaveErrorTitle": "Kunde inte spara",
+    "settings.sellerGateThankTitle": "Tack!",
+    "settings.sellerGateThankDesc": "Dina uppgifter är sparade.",
+    "settings.sellerGateWelcomeTitle": "Välkommen! Fyll i dina uppgifter",
+    "settings.sellerGateWelcomeDesc": "Innan du fortsätter behöver vi dina uppgifter. De är privata och syns bara för dig och administratörer. Du kan ändra dem senare under Inställningar.",
+    "settings.sellerGateSubmit": "Spara och fortsätt",
+    "settings.sellerGateNudge": "Försök inte! Fyll i alla uppgifter!",
   },
   en: {
     // Settings page — layout & tabs
@@ -778,6 +797,25 @@ We help companies focus on their core business while we take care of the IT.`,
     // SellerProfileForm — help & states
     "settings.sellerPersonnummerLockedHelp": "The personal ID number is locked once filled in. Contact an administrator if it needs to be changed.",
     "settings.sellerSaving": "Saving…",
+
+    // SellerProfileSettings — card & toasts
+    "settings.sellerCardTitle": "My details",
+    "settings.sellerCardDesc": "Your personal details. They are private and only visible to you and administrators. Update them if anything changes (e.g. if you move).",
+    "settings.sellerResetErrorTitle": "Could not reset",
+    "settings.sellerSaveErrorTitle": "Could not save",
+    "settings.sellerSavedTitle": "Saved",
+    "settings.sellerSavedDesc": "Your details have been updated.",
+    "settings.sellerTestToolNote": "Test tool: reset your profile to see the first-login popup again.",
+    "settings.sellerResetButton": "Reset test (show the popup again)",
+
+    // SellerProfileGate — first-login popup
+    "settings.sellerGateSaveErrorTitle": "Could not save",
+    "settings.sellerGateThankTitle": "Thank you!",
+    "settings.sellerGateThankDesc": "Your details have been saved.",
+    "settings.sellerGateWelcomeTitle": "Welcome! Fill in your details",
+    "settings.sellerGateWelcomeDesc": "Before you continue we need your details. They are private and only visible to you and administrators. You can change them later under Settings.",
+    "settings.sellerGateSubmit": "Save and continue",
+    "settings.sellerGateNudge": "Nice try! Fill in all your details!",
   },
   es: {
     // Settings page — layout & tabs
@@ -1167,5 +1205,24 @@ Ayudamos a las empresas a centrarse en su actividad principal mientras nosotros 
     // SellerProfileForm — help & states
     "settings.sellerPersonnummerLockedHelp": "El número de identidad queda bloqueado una vez introducido. Contacta con un administrador si hay que cambiarlo.",
     "settings.sellerSaving": "Guardando…",
+
+    // SellerProfileSettings — card & toasts
+    "settings.sellerCardTitle": "Mis datos",
+    "settings.sellerCardDesc": "Tus datos personales. Son privados y solo los ven tú y los administradores. Actualízalos si algo cambia (p. ej. si te mudas).",
+    "settings.sellerResetErrorTitle": "No se pudo restablecer",
+    "settings.sellerSaveErrorTitle": "No se pudo guardar",
+    "settings.sellerSavedTitle": "Guardado",
+    "settings.sellerSavedDesc": "Tus datos se han actualizado.",
+    "settings.sellerTestToolNote": "Herramienta de prueba: restablece tu perfil para ver de nuevo la ventana de primer inicio de sesión.",
+    "settings.sellerResetButton": "Restablecer prueba (mostrar la ventana de nuevo)",
+
+    // SellerProfileGate — first-login popup
+    "settings.sellerGateSaveErrorTitle": "No se pudo guardar",
+    "settings.sellerGateThankTitle": "¡Gracias!",
+    "settings.sellerGateThankDesc": "Tus datos se han guardado.",
+    "settings.sellerGateWelcomeTitle": "¡Bienvenido! Rellena tus datos",
+    "settings.sellerGateWelcomeDesc": "Antes de continuar necesitamos tus datos. Son privados y solo los ven tú y los administradores. Puedes cambiarlos más tarde en Ajustes.",
+    "settings.sellerGateSubmit": "Guardar y continuar",
+    "settings.sellerGateNudge": "¡Buen intento! ¡Rellena todos tus datos!",
   },
 };

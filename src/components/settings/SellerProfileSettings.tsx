@@ -3,6 +3,7 @@ import { Loader2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useSellerProfile } from "@/hooks/useSellerProfile";
 import {
   SellerProfileForm, EMPTY_SELLER_PROFILE, type SellerProfileValues, type CompanyForm,
@@ -11,13 +12,14 @@ import {
 // Editable seller profile under Settings. Same form as the first-login popup.
 export function SellerProfileSettings() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { profile, isLoading, saving, save, reset, isTestUser } = useSellerProfile();
   const { toast } = useToast();
 
   const handleReset = async () => {
     const { error } = await reset();
     if (error) {
-      toast({ title: "Kunde inte återställa", description: error, variant: "destructive" });
+      toast({ title: t("settings.sellerResetErrorTitle"), description: error, variant: "destructive" });
       return;
     }
     // Reload so the gate (its own hook instance) re-evaluates and the blocking
@@ -54,25 +56,24 @@ export function SellerProfileSettings() {
     const { error } = await save(values);
     toast(
       error
-        ? { title: "Kunde inte spara", description: error, variant: "destructive" }
-        : { title: "Sparat", description: "Dina uppgifter är uppdaterade." },
+        ? { title: t("settings.sellerSaveErrorTitle"), description: error, variant: "destructive" }
+        : { title: t("settings.sellerSavedTitle"), description: t("settings.sellerSavedDesc") },
     );
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Mina uppgifter</CardTitle>
+        <CardTitle>{t("settings.sellerCardTitle")}</CardTitle>
         <CardDescription>
-          Dina personuppgifter. De är privata och syns bara för dig och administratörer.
-          Uppdatera om något ändras (t.ex. om du flyttar).
+          {t("settings.sellerCardDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <SellerProfileForm
           initial={initial}
           saving={saving}
-          submitLabel="Spara ändringar"
+          submitLabel={t("settings.saveChanges")}
           onSave={handleSave}
           lockApplabbetEmail
           lockPersonnummer={!!p?.personnummer}
@@ -81,11 +82,11 @@ export function SellerProfileSettings() {
         {isTestUser && (
           <div className="mt-6 border-t pt-4">
             <p className="text-xs text-muted-foreground mb-2">
-              Testverktyg: nollställ din profil för att se first-login-popupen igen.
+              {t("settings.sellerTestToolNote")}
             </p>
             <Button variant="outline" size="sm" onClick={handleReset}>
               <RotateCcw className="h-4 w-4 mr-2" />
-              Återställ test (visa popupen igen)
+              {t("settings.sellerResetButton")}
             </Button>
           </div>
         )}

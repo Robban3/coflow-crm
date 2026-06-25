@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useSellerProfile } from "@/hooks/useSellerProfile";
 import { SellerProfileForm, EMPTY_SELLER_PROFILE, type SellerProfileValues } from "./SellerProfileForm";
 
@@ -10,6 +11,7 @@ import { SellerProfileForm, EMPTY_SELLER_PROFILE, type SellerProfileValues } fro
 // AppLayout; only renders when a seller has no profile yet.
 export function SellerProfileGate() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { needsSellerProfile, saving, save } = useSellerProfile();
   const { toast } = useToast();
 
@@ -33,10 +35,10 @@ export function SellerProfileGate() {
   const handleSave = async (values: SellerProfileValues) => {
     const { error } = await save(values);
     if (error) {
-      toast({ title: "Kunde inte spara", description: error, variant: "destructive" });
+      toast({ title: t("settings.sellerGateSaveErrorTitle"), description: error, variant: "destructive" });
       return;
     }
-    toast({ title: "Tack!", description: "Dina uppgifter är sparade." });
+    toast({ title: t("settings.sellerGateThankTitle"), description: t("settings.sellerGateThankDesc") });
   };
 
   return (
@@ -57,16 +59,15 @@ export function SellerProfileGate() {
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Välkommen! Fyll i dina uppgifter</DialogTitle>
+          <DialogTitle>{t("settings.sellerGateWelcomeTitle")}</DialogTitle>
           <DialogDescription>
-            Innan du fortsätter behöver vi dina uppgifter. De är privata och syns bara
-            för dig och administratörer. Du kan ändra dem senare under Inställningar.
+            {t("settings.sellerGateWelcomeDesc")}
           </DialogDescription>
         </DialogHeader>
         <SellerProfileForm
           initial={initial}
           saving={saving}
-          submitLabel="Spara och fortsätt"
+          submitLabel={t("settings.sellerGateSubmit")}
           onSave={handleSave}
           lockApplabbetEmail
         />
@@ -79,9 +80,9 @@ export function SellerProfileGate() {
           className="fixed -translate-x-1/2 -translate-y-full -mt-2 pointer-events-none rounded-lg border bg-background px-4 py-2 shadow-xl text-sm font-semibold text-center whitespace-nowrap"
           style={{ left: nudge.x, top: nudge.y, zIndex: 2147483647 }}
         >
-          Försök inte! Fyll i alla uppgifter!
+          {t("settings.sellerGateNudge")}
           <br />
-          <span className="text-muted-foreground">😊 Robban och Oliver 😊</span>
+          <span className="text-muted-foreground">😊 Robban &amp; Oliver 😊</span>
         </div>,
         document.body,
       )}

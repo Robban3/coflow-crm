@@ -131,11 +131,11 @@ export function CallOutcomesBreakdown({ data }: Props) {
                   }}
                 />
                 <Legend wrapperStyle={{ fontSize: "11px" }} />
-                <Bar dataKey="answered" stackId="a" fill={OUTCOME_COLORS.answered} name="Svar" />
-                <Bar dataKey="no_answer" stackId="a" fill={OUTCOME_COLORS.no_answer} name="Ej svar" />
+                <Bar dataKey="answered" stackId="a" fill={OUTCOME_COLORS.answered} name={t("statistics.legendAnswered")} />
+                <Bar dataKey="no_answer" stackId="a" fill={OUTCOME_COLORS.no_answer} name={t("statistics.legendNoAnswer")} />
                 <Bar dataKey="callback" stackId="a" fill={OUTCOME_COLORS.callback} name={t("statistics.legendCallback")} />
-                <Bar dataKey="booked" stackId="a" fill={OUTCOME_COLORS.booked} name="Bokad" />
-                <Bar dataKey="not_interested" stackId="a" fill={OUTCOME_COLORS.not_interested} name="Ej intresserad" />
+                <Bar dataKey="booked" stackId="a" fill={OUTCOME_COLORS.booked} name={t("statistics.legendBooked")} />
+                <Bar dataKey="not_interested" stackId="a" fill={OUTCOME_COLORS.not_interested} name={t("statistics.legendNotInterested")} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

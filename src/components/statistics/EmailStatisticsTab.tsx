@@ -266,9 +266,9 @@ export function EmailStatisticsTab() {
                   contentStyle={{ borderRadius: 8, fontSize: 12 }}
                   labelStyle={{ fontWeight: 600 }}
                 />
-                <Bar dataKey="sent" name="Skickade" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="sent" name={t("statistics.seriesSent")} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="opened" name={t("statistics.opened")} fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="replied" name="Svar" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="replied" name={t("statistics.seriesReply")} fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
                 <Legend />
               </BarChart>
             </ResponsiveContainer>
@@ -295,7 +295,7 @@ export function EmailStatisticsTab() {
                   <YAxis fontSize={11} tickLine={false} unit="%" domain={[0, 100]} />
                   <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
                   <Line type="monotone" dataKey="openRate" name={t("statistics.openRate")} stroke="hsl(var(--chart-2))" strokeWidth={2} dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="replyRate" name="Svarsfrekvens" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="replyRate" name={t("statistics.replyRate")} stroke="hsl(var(--chart-3))" strokeWidth={2} dot={{ r: 3 }} />
                   <Legend />
                 </LineChart>
               </ResponsiveContainer>
@@ -325,7 +325,7 @@ export function EmailStatisticsTab() {
                 {stats.bySource.sort((a, b) => b.sent - a.sent).map(row => (
                   <TableRow key={row.source}>
                     <TableCell>
-                      <Badge variant="outline" className="text-xs capitalize">{formatSource(row.source)}</Badge>
+                      <Badge variant="outline" className="text-xs capitalize">{formatSource(row.source, t)}</Badge>
                     </TableCell>
                     <TableCell className="text-right">{row.sent}</TableCell>
                     <TableCell className="text-right">{row.opened}</TableCell>
@@ -403,7 +403,7 @@ export function EmailStatisticsTab() {
                     <TableCell className="text-sm">{e.recipient_name || e.recipient_email}</TableCell>
                     <TableCell className="text-sm">{profileMap.get(e.sent_by) ?? "—"}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-xs capitalize">{formatSource(e.source)}</Badge>
+                      <Badge variant="outline" className="text-xs capitalize">{formatSource(e.source, t)}</Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       {e.opened_at ? (
@@ -459,14 +459,14 @@ function KPICard({ icon, label, value, sub, variant }: {
   );
 }
 
-function formatSource(source: string): string {
+function formatSource(source: string, t: (key: string, params?: Record<string, string | number>) => string): string {
   const map: Record<string, string> = {
-    outreach: "Outreach",
-    sequence: "Sekvens",
-    manual: "Manuell",
-    auto_enrich: "Auto-enrich",
-    quick_outreach: "Snabbmail",
-    analysis: "Analys",
+    outreach: t("statistics.sourceOutreach"),
+    sequence: t("statistics.sourceSequence"),
+    manual: t("statistics.sourceManual"),
+    auto_enrich: t("statistics.sourceAutoEnrich"),
+    quick_outreach: t("statistics.sourceQuickOutreach"),
+    analysis: t("statistics.sourceAnalysis"),
   };
   return map[source] ?? source;
 }

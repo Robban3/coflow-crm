@@ -1,6 +1,18 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 
+// i18n NOTE: The notification `title`/`message` strings below are intentionally
+// left untranslated here. These are plain module-level functions (not React
+// components/hooks), so they cannot call useTranslation() — the t() translator
+// only exists inside the LanguageProvider React context. Additionally, the
+// generated text is PERSISTED to the `notifications` table and later rendered
+// verbatim by NotificationBell for the *recipient*, whose language preference
+// lives in their own browser (localStorage) and is not available at write-time.
+// Properly localizing these would require storing the notification `type` +
+// structured `metadata` (already done) and translating at render time in
+// NotificationBell — a change outside this file's scope. Until then the Swedish
+// defaults are kept to avoid breaking existing notification creation.
+
 interface CreateNotificationParams {
   userId: string;
   type: string;

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { Loader2, Users, CheckCircle2, AlertCircle } from "lucide-react";
 
 interface SellerRow {
@@ -30,13 +31,16 @@ interface SellerRow {
   updated_at: string | null;
 }
 
-const companyFormLabel = (v: string | null) =>
-  v === "enskild_firma" ? "Enskild firma"
-    : v === "aktiebolag" ? "Aktiebolag"
-    : v === "extern_tjanst" ? "Extern tjänst"
+type TFn = (key: string, params?: Record<string, string | number>) => string;
+
+const companyFormLabel = (v: string | null, t: TFn) =>
+  v === "enskild_firma" ? t("statistics.companyFormSoleTrader")
+    : v === "aktiebolag" ? t("statistics.companyFormLimited")
+    : v === "extern_tjanst" ? t("statistics.externalService")
     : "-";
 
 export default function SalespeoplePage() {
+  const { t } = useTranslation();
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<SellerRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,8 +61,8 @@ export default function SalespeoplePage() {
 
   if (!isAdmin) {
     return (
-      <AppLayout title="Säljare">
-        <p className="text-sm text-muted-foreground">Endast administratörer har åtkomst till denna sida.</p>
+      <AppLayout title={t("statistics.salespeople")}>
+        <p className="text-sm text-muted-foreground">{t("statistics.salespeopleNoAccess")}</p>
       </AppLayout>
     );
   }
@@ -66,23 +70,23 @@ export default function SalespeoplePage() {
   const filledCount = rows.filter((r) => r.has_profile).length;
 
   return (
-    <AppLayout title="Säljare">
+    <AppLayout title={t("statistics.salespeople")}>
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Users className="h-6 w-6" /> Säljare
+              <Users className="h-6 w-6" /> {t("statistics.salespeople")}
             </h2>
             <p className="text-muted-foreground text-sm">
-              Alla säljare och deras uppgifter. {filledCount} av {rows.length} har fyllt i.
+              {t("statistics.salespeopleSubtitle", { filled: filledCount, total: rows.length })}
             </p>
           </div>
         </div>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Översikt</CardTitle>
-            <CardDescription>Klicka på en säljare för att se alla uppgifter.</CardDescription>
+            <CardTitle className="text-lg">{t("statistics.overview")}</CardTitle>
+            <CardDescription>{t("statistics.salespeopleClickHint")}</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             {loading ? (
@@ -90,14 +94,14 @@ export default function SalespeoplePage() {
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : rows.length === 0 ? (
-              <div className="py-16 text-center text-sm text-muted-foreground">Inga säljare hittades.</div>
+              <div className="py-16 text-center text-sm text-muted-foreground">{t("statistics.noSalespeople")}</div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Namn</TableHead>
-                    <TableHead>Applabbet-epost</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t("statistics.name")}</TableHead>
+                    <TableHead>{t("statistics.applabbetEmail")}</TableHead>
+                    <TableHead>{t("statistics.status")}</TableHead>
                     <TableHead className="w-20"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -117,17 +121,17 @@ export default function SalespeoplePage() {
                         <TableCell>
                           {r.has_profile ? (
                             <Badge variant="secondary" className="gap-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
-                              <CheckCircle2 className="h-3 w-3" /> Ifylld
+                              <CheckCircle2 className="h-3 w-3" /> {t("statistics.filled")}
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="gap-1 text-amber-700 dark:text-amber-400">
-                              <AlertCircle className="h-3 w-3" /> Saknas
+                              <AlertCircle className="h-3 w-3" /> {t("statistics.missing")}
                             </Badge>
                           )}
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
                           {r.has_profile && (
-                            <Button variant="ghost" size="sm" onClick={() => setSelected(r)}>Visa</Button>
+                            <Button variant="ghost" size="sm" onClick={() => setSelected(r)}>{t("statistics.show")}</Button>
                           )}
                         </TableCell>
                       </TableRow>
@@ -149,15 +153,15 @@ export default function SalespeoplePage() {
           </DialogHeader>
           {selected && (
             <div className="space-y-3 text-sm">
-              <Detail label="Applabbet-epost" value={selected.email} />
-              <Detail label="E-post utanför Applabbet" value={selected.external_email} />
-              <Detail label="Adress" value={selected.address} />
-              <Detail label="Postnummer" value={selected.postal_code} />
-              <Detail label="Postort" value={selected.city} />
-              <Detail label="Personnummer" value={selected.personnummer} />
-              <Detail label="Bolagsform" value={companyFormLabel(selected.company_form)} />
+              <Detail label={t("statistics.applabbetEmail")} value={selected.email} />
+              <Detail label={t("statistics.externalEmail")} value={selected.external_email} />
+              <Detail label={t("statistics.address")} value={selected.address} />
+              <Detail label={t("statistics.postalCode")} value={selected.postal_code} />
+              <Detail label={t("statistics.city")} value={selected.city} />
+              <Detail label={t("statistics.personalNumber")} value={selected.personnummer} />
+              <Detail label={t("statistics.companyForm")} value={companyFormLabel(selected.company_form, t)} />
               {selected.company_form === "extern_tjanst" && (
-                <Detail label="Extern tjänst" value={selected.external_service_name} />
+                <Detail label={t("statistics.externalService")} value={selected.external_service_name} />
               )}
             </div>
           )}

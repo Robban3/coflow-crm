@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, AlertTriangle, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export interface TimeToConvertData {
   steps: Array<{
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function TimeToConvertInsights({ data }: Props) {
+  const { t } = useTranslation();
   const hasData = data.steps.some(s => s.avg_days !== null);
   if (!hasData) return null;
 
@@ -25,7 +27,7 @@ export function TimeToConvertInsights({ data }: Props) {
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
-          Konverteringstider
+          {t("statistics.conversionTimes")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -45,7 +47,7 @@ export function TimeToConvertInsights({ data }: Props) {
               {data.slowest_step === step.label && (
                 <div className="flex items-center justify-center gap-1 mt-2 text-amber-600 dark:text-amber-400">
                   <AlertTriangle className="h-3 w-3" />
-                  <span className="text-[10px] font-medium">Långsammast</span>
+                  <span className="text-[10px] font-medium">{t("statistics.slowest")}</span>
                 </div>
               )}
             </div>
@@ -56,8 +58,8 @@ export function TimeToConvertInsights({ data }: Props) {
           <div className="flex items-center gap-2 text-xs text-muted-foreground rounded-lg border border-border/50 p-3 bg-muted/20">
             <Zap className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
             <span>
-              Snabbast att stänga: <strong className="text-foreground">{data.fastest_closer.full_name}</strong>{" "}
-              ({data.fastest_closer.avg_days} dagar i snitt)
+              {t("statistics.fastestToClose")}<strong className="text-foreground">{data.fastest_closer.full_name}</strong>{" "}
+              {t("statistics.avgDaysSuffix", { count: data.fastest_closer.avg_days })}
             </span>
           </div>
         )}
