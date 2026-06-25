@@ -154,7 +154,7 @@ export function LeadOwnerSelect({
             title={
               assignedMembers.length > 0
                 ? assignedMembers.map((m) => m.full_name || m.email).join(", ")
-                : "Tilldela medlemmar"
+                : t("leadDetail.lo_assignMembers")
             }
           >
             {assignedMembers.length === 0 ? (
@@ -191,7 +191,7 @@ export function LeadOwnerSelect({
           <div className="space-y-1">
             {assignedMembers.length > 0 && (
               <>
-                <p className="text-xs font-medium text-muted-foreground px-2 py-1">Tilldelade</p>
+                <p className="text-xs font-medium text-muted-foreground px-2 py-1">{t("leadDetail.lo_assigned")}</p>
                 {assignedMembers.map((member) => (
                   <div
                     key={member.id}
@@ -261,7 +261,7 @@ export function LeadOwnerSelect({
             {assignedMembers.length === 0 ? (
               <>
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Ingen tilldelad</span>
+                <span className="text-muted-foreground">{t("leadDetail.lo_noneAssigned")}</span>
               </>
             ) : (
               <>
@@ -278,7 +278,7 @@ export function LeadOwnerSelect({
                 <span className="truncate text-sm">
                   {assignedMembers.length === 1
                     ? assignedMembers[0].full_name || assignedMembers[0].email
-                    : `${assignedMembers.length} medlemmar`}
+                    : t("leadDetail.lo_membersCount", { count: assignedMembers.length })}
                 </span>
               </>
             )}
@@ -290,7 +290,7 @@ export function LeadOwnerSelect({
         <div className="space-y-1">
           {assignedMembers.length > 0 && (
             <>
-              <p className="text-xs font-medium text-muted-foreground px-2 py-1">Tilldelade</p>
+              <p className="text-xs font-medium text-muted-foreground px-2 py-1">{t("leadDetail.lo_assigned")}</p>
               {assignedMembers.map((member) => (
                 <div
                   key={member.id}

@@ -491,7 +491,7 @@ export function FleetDataSection({
               )}
               {fleetData.org_number && (
                 <Badge variant="outline" className="text-[10px]">
-                  Org: {fleetData.org_number}
+                  {t("leadDetail.fd_orgPrefix", { orgNumber: fleetData.org_number })}
                 </Badge>
               )}
             </div>

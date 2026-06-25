@@ -549,12 +549,12 @@ export function SingleEmailGenerator({
                         <Search className="h-4 w-4 text-amber-500 shrink-0" />
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate flex items-center gap-1">
-                            SEO Intelligence
+                            {t("leadDetail.ac_seoIntelligence")}
                             <AlertTriangle className="h-3 w-3 text-amber-500" />
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {hasSeoIntelligence 
-                              ? `Synlighet: ${seoData?.visibility_score}/100 (cachad)`
+                            {hasSeoIntelligence
+                              ? t("leadDetail.se_seoVisibilityCached", { score: seoData?.visibility_score })
                               : t("leadDetail.se_notAnalyzedPaid")}
                           </p>
                         </div>
@@ -567,7 +567,7 @@ export function SingleEmailGenerator({
                 <div className="space-y-2">
                   <Label htmlFor="customPrompt" className="flex items-center gap-2">
                     <Sparkles className="h-4 w-4" />
-                    Direktiv till AI (valfritt)
+                    {t("leadDetail.se_aiDirective")}
                   </Label>
                   <Textarea
                     id="customPrompt"
@@ -612,12 +612,12 @@ export function SingleEmailGenerator({
                   {isGenerating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Genererar mail...
+                      {t("leadDetail.se_generatingEmail")}
                     </>
                   ) : (
                     <>
                       <Sparkles className="mr-2 h-4 w-4" />
-                      Generera mail med AI
+                      {t("leadDetail.se_generateEmailAi")}
                     </>
                   )}
                 </Button>
@@ -659,7 +659,7 @@ export function SingleEmailGenerator({
                   >
                     <RotateCcw className="mr-2 h-4 w-4" />
                     <span className="hidden sm:inline">{t("leadDetail.se2_restart")}</span>
-                    <span className="sm:hidden">Ny</span>
+                    <span className="sm:hidden">{t("leadDetail.se_new")}</span>
                   </Button>
                   <Button
                     variant="outline"
@@ -672,8 +672,8 @@ export function SingleEmailGenerator({
                     ) : (
                       <Sparkles className="mr-2 h-4 w-4" />
                     )}
-                    <span className="hidden sm:inline">Generera om</span>
-                    <span className="sm:hidden">Omgen</span>
+                    <span className="hidden sm:inline">{t("leadDetail.se_regenerate")}</span>
+                    <span className="sm:hidden">{t("leadDetail.se_regenShort")}</span>
                   </Button>
                   <Button
                     onClick={handleSend}
@@ -683,12 +683,12 @@ export function SingleEmailGenerator({
                     {isSending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Skickar...
+                        {t("leadDetail.se_sending")}
                       </>
                     ) : (
                       <>
                         <Send className="mr-2 h-4 w-4" />
-                        Skicka mail
+                        {t("leadDetail.se_sendEmail")}
                       </>
                     )}
                   </Button>

@@ -263,7 +263,7 @@ export function LogCallDialog({
           {selectedOutcome && (selectedOutcome.requires_note || selectedOutcome.key === "callback") && (
             <div className="space-y-2 animate-in fade-in-50 duration-200">
               <Label>
-                Notering {selectedOutcome.requires_note && <span className="text-destructive">*</span>}
+                {t("leadDetail.lc_noteLabel")} {selectedOutcome.requires_note && <span className="text-destructive">*</span>}
               </Label>
               <Textarea
                 autoFocus

@@ -358,14 +358,14 @@ export function CompetitorAnalysis({ leadId, leadWebsite, leadCompanyName }: Com
                       {competitor.analysis && (
                         <div className="flex flex-wrap gap-2 mt-2">
                           <Badge variant="outline" className={`text-[10px] ${getScoreColor(competitor.analysis.performance_score)}`}>
-                            Prestanda: {competitor.analysis.performance_score ?? '-'}
+                            {t("leadDetail.co_badgePerformance", { score: competitor.analysis.performance_score ?? '-' })}
                           </Badge>
                           <Badge variant="outline" className={`text-[10px] ${getScoreColor(competitor.analysis.seo_score)}`}>
-                            SEO: {competitor.analysis.seo_score ?? '-'}
+                            {t("leadDetail.co_badgeSeo", { score: competitor.analysis.seo_score ?? '-' })}
                           </Badge>
                           {avgScore !== null && (
                             <Badge variant="secondary" className={`text-[10px] ${getScoreColor(avgScore)}`}>
-                              Snitt: {avgScore}
+                              {t("leadDetail.co_badgeAverage", { score: avgScore })}
                             </Badge>
                           )}
                         </div>

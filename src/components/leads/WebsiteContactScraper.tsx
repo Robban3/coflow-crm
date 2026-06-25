@@ -275,7 +275,7 @@ export function WebsiteContactScraper({
                     <div className="flex items-center gap-3">
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-xs text-muted-foreground">E-post</p>
+                        <p className="text-xs text-muted-foreground">{t("leadDetail.ws_fieldEmail")}</p>
                         <p className="font-medium">{extractedData.email}</p>
                       </div>
                     </div>
@@ -289,7 +289,7 @@ export function WebsiteContactScraper({
                       ) : (
                         <>
                           <CheckCircle2 className="h-4 w-4 mr-1" />
-                          Spara
+                          {t("leadDetail.ws_save")}
                         </>
                       )}
                     </Button>
@@ -302,7 +302,7 @@ export function WebsiteContactScraper({
                     <div className="flex items-center gap-3">
                       <Phone className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Telefon</p>
+                        <p className="text-xs text-muted-foreground">{t("leadDetail.ws_fieldPhone")}</p>
                         <p className="font-medium">{extractedData.phone}</p>
                       </div>
                     </div>
@@ -316,7 +316,7 @@ export function WebsiteContactScraper({
                       ) : (
                         <>
                           <CheckCircle2 className="h-4 w-4 mr-1" />
-                          Spara
+                          {t("leadDetail.ws_save")}
                         </>
                       )}
                     </Button>
@@ -329,7 +329,7 @@ export function WebsiteContactScraper({
                     <div className="flex items-center gap-3">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Kontaktperson</p>
+                        <p className="text-xs text-muted-foreground">{t("leadDetail.ws_fieldContactPerson")}</p>
                         <p className="font-medium">{extractedData.contactName}</p>
                       </div>
                     </div>
@@ -343,7 +343,7 @@ export function WebsiteContactScraper({
                       ) : (
                         <>
                           <CheckCircle2 className="h-4 w-4 mr-1" />
-                          Spara
+                          {t("leadDetail.ws_save")}
                         </>
                       )}
                     </Button>
@@ -355,7 +355,7 @@ export function WebsiteContactScraper({
                   <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Adress</p>
+                      <p className="text-xs text-muted-foreground">{t("leadDetail.ws_labelAddress")}</p>
                       <p className="text-sm">{extractedData.address}</p>
                     </div>
                   </div>
@@ -366,7 +366,7 @@ export function WebsiteContactScraper({
                   <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Org.nummer</p>
+                      <p className="text-xs text-muted-foreground">{t("leadDetail.ws_labelOrgNumber")}</p>
                       <p className="text-sm font-mono">{extractedData.orgNumber}</p>
                     </div>
                   </div>
@@ -378,7 +378,7 @@ export function WebsiteContactScraper({
                 <>
                   <Separator />
                   <div>
-                    <p className="text-sm text-muted-foreground mb-2">Sociala medier</p>
+                    <p className="text-sm text-muted-foreground mb-2">{t("leadDetail.ldp_socialMedia")}</p>
                     <div className="flex flex-wrap gap-2">
                       {extractedData.socialLinks.linkedin && (
                         <a
@@ -433,8 +433,8 @@ export function WebsiteContactScraper({
               {!extractedData.email && !extractedData.phone && !extractedData.contactName && (
                 <div className="text-center py-4 text-muted-foreground">
                   <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Inga direkta kontaktuppgifter hittades</p>
-                  <p className="text-xs mt-1">Prova att berika via kontaktsida igen</p>
+                  <p className="text-sm">{t("leadDetail.ws_emptyTitle")}</p>
+                  <p className="text-xs mt-1">{t("leadDetail.ws_emptyHint")}</p>
                 </div>
               )}
 
@@ -448,7 +448,7 @@ export function WebsiteContactScraper({
                     ) : (
                       <CheckCircle2 className="mr-2 h-4 w-4" />
                     )}
-                    Spara all kontaktinfo
+                    {t("leadDetail.ws_saveAll")}
                   </Button>
                 </>
               )}

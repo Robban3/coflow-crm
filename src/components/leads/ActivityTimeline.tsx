@@ -334,10 +334,10 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <Clock className="h-12 w-12 text-muted-foreground/50 mb-4" />
         <h3 className="text-lg font-semibold text-foreground mb-1">
-          Ingen aktivitet ännu
+          {t("leadDetail.at_emptyTitle")}
         </h3>
         <p className="text-sm text-muted-foreground">
-          Aktiviteter, e-post och analyser visas här
+          {t("leadDetail.at_emptyDesc")}
         </p>
       </div>
     );
@@ -408,12 +408,12 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
                         <div className="flex flex-wrap gap-1.5 mt-2">
                           {event.metadata.performanceScore !== null && (
                             <Badge variant="outline" className="text-[10px]">
-                              Prestanda: {event.metadata.performanceScore as number}
+                              {t("leadDetail.at_badgePerformance", { score: event.metadata.performanceScore as number })}
                             </Badge>
                           )}
                           {event.metadata.seoScore !== null && (
                             <Badge variant="outline" className="text-[10px]">
-                              SEO: {event.metadata.seoScore as number}
+                              {t("leadDetail.at_badgeSeo", { score: event.metadata.seoScore as number })}
                             </Badge>
                           )}
                         </div>

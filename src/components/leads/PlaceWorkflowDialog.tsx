@@ -806,13 +806,13 @@ export function PlaceWorkflowDialog({
                     {analysisResult && (
                       <div className="flex items-center gap-2 text-sm text-primary">
                         <CheckCircle2 className="h-4 w-4" />
-                        Webbplats analyserad
+                        {t("leadDetail.pw_websiteAnalyzed")}
                       </div>
                     )}
                     {emailSent && (
                       <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
                         <CheckCircle2 className="h-4 w-4" />
-                        Mail skickat
+                        {t("leadDetail.pw_emailSentStep")}
                       </div>
                     )}
                   </div>
@@ -825,7 +825,7 @@ export function PlaceWorkflowDialog({
               {isAnalyzing ? (
                 <div className="flex flex-col items-center justify-center py-12 space-y-4">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="text-muted-foreground">Analyserar {place.name}...</p>
+                  <p className="text-muted-foreground">{t("leadDetail.pw_analyzingName", { name: place.name })}</p>
                   <Progress value={45} className="w-48" />
                 </div>
               ) : analysisResult ? (
@@ -833,7 +833,7 @@ export function PlaceWorkflowDialog({
                   {/* Score Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                      { label: "Prestanda", score: analysisResult.performance_score },
+                      { label: t("leadDetail.pw_performance"), score: analysisResult.performance_score },
                       { label: t("leadDetail.pwx_accessibility"), score: analysisResult.accessibility_score },
                       { label: t("leadDetail.ac_metricSeo"), score: analysisResult.seo_score },
                       { label: "Best Practice", score: analysisResult.best_practices_score },
@@ -897,7 +897,7 @@ export function PlaceWorkflowDialog({
                   </div>
                   <Button onClick={handleAnalyze} disabled={isAnalyzing}>
                     <BarChart3 className="mr-2 h-4 w-4" />
-                    Starta analys
+                    {t("leadDetail.pw_startAnalysis")}
                   </Button>
                 </div>
               )}
@@ -917,7 +917,7 @@ export function PlaceWorkflowDialog({
                   <div>
                     <p className="font-medium">{t("leadDetail.pw_emailSentTitle")}</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Mailet har skickats till {recipientEmail}
+                      {t("leadDetail.pw_emailSentToInfo", { email: recipientEmail })}
                     </p>
                   </div>
                   <Button variant="outline" onClick={() => {
@@ -926,7 +926,7 @@ export function PlaceWorkflowDialog({
                     setEmailSubject("");
                     setEmailBody("");
                   }}>
-                    Skicka nytt mail
+                    {t("leadDetail.pw_sendNewEmail")}
                   </Button>
                 </div>
               ) : (
@@ -978,12 +978,12 @@ export function PlaceWorkflowDialog({
                       {isGeneratingEmail ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Genererar...
+                          {t("leadDetail.pw_generating")}
                         </>
                       ) : (
                         <>
                           <Sparkles className="mr-2 h-4 w-4" />
-                          Generera mail med AI
+                          {t("leadDetail.pw_generateEmailAi")}
                         </>
                       )}
                     </Button>
@@ -1018,7 +1018,7 @@ export function PlaceWorkflowDialog({
                           className="flex-1"
                         >
                           <Sparkles className="mr-2 h-4 w-4" />
-                          Generera om
+                          {t("leadDetail.pw_regenerate")}
                         </Button>
                         <Button
                           onClick={handleSendEmail}
@@ -1028,12 +1028,12 @@ export function PlaceWorkflowDialog({
                           {isSendingEmail ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Skickar...
+                              {t("leadDetail.pw_sending")}
                             </>
                           ) : (
                             <>
                               <Send className="mr-2 h-4 w-4" />
-                              Skicka mail
+                              {t("leadDetail.pw_sendEmailBtn")}
                             </>
                           )}
                         </Button>

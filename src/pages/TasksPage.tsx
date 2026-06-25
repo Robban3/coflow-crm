@@ -199,12 +199,15 @@ export default function TasksPage() {
                       {isAdmin ? (
                         <Popover>
                           <PopoverTrigger asChild>
-                            <button className="flex items-center gap-1 hover:bg-muted rounded p-1 transition-colors" onClick={(e) => e.stopPropagation()}>
+                            <button className="flex items-center gap-1.5 hover:bg-muted rounded p-1 transition-colors" onClick={(e) => e.stopPropagation()}>
                               {task.assigned_to ? <UserAvatar userId={task.assigned_to} size="sm" /> : (
                                 <div className="h-6 w-6 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
                                   <UserPlus className="h-3 w-3 text-muted-foreground/50" />
                                 </div>
                               )}
+                              <span className="text-xs text-muted-foreground max-w-[120px] truncate hidden sm:inline">
+                                {task.assigned_to ? (getMember(task.assigned_to)?.full_name || getMember(task.assigned_to)?.email || "") : t("tasks.assignTo")}
+                              </span>
                             </button>
                           </PopoverTrigger>
                           <PopoverContent className="w-48 p-2" align="end" onClick={(e) => e.stopPropagation()}>
@@ -223,7 +226,14 @@ export default function TasksPage() {
                             </div>
                           </PopoverContent>
                         </Popover>
-                      ) : task.assigned_to ? <UserAvatar userId={task.assigned_to} size="sm" /> : null}
+                      ) : task.assigned_to ? (
+                        <div className="flex items-center gap-1.5">
+                          <UserAvatar userId={task.assigned_to} size="sm" />
+                          <span className="text-xs text-muted-foreground max-w-[120px] truncate hidden sm:inline">
+                            {getMember(task.assigned_to)?.full_name || getMember(task.assigned_to)?.email || ""}
+                          </span>
+                        </div>
+                      ) : null}
                       <Badge variant="secondary" className={cn("text-xs", priorityColors[task.priority])}>{t(priorityKeys[task.priority])}</Badge>
                       {task.due_date && (
                         <div className={cn("flex items-center text-xs", isOverdue(task.due_date) && task.status !== "completed" ? "text-destructive" : "text-muted-foreground")}>

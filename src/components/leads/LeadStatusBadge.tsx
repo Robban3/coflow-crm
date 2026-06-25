@@ -6,6 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface LeadStatusBadgeProps {
   leadStatus?: string;
@@ -13,6 +14,7 @@ interface LeadStatusBadgeProps {
 }
 
 export function LeadStatusBadge({ leadStatus, notInterestedReason }: LeadStatusBadgeProps) {
+  const { t } = useTranslation();
   if (!leadStatus || leadStatus === "active") return null;
 
   if (leadStatus === "not_interested") {
@@ -22,7 +24,7 @@ export function LeadStatusBadge({ leadStatus, notInterestedReason }: LeadStatusB
           <TooltipTrigger asChild>
             <Badge variant="destructive" className="gap-1 text-[10px]">
               <XCircle className="h-3 w-3" />
-              Ej intresserad
+              {t("leadDetail.lsb_notInterested")}
             </Badge>
           </TooltipTrigger>
           {notInterestedReason && (
@@ -39,7 +41,7 @@ export function LeadStatusBadge({ leadStatus, notInterestedReason }: LeadStatusB
     return (
       <Badge variant="secondary" className="gap-1 text-[10px] text-muted-foreground">
         <AlertTriangle className="h-3 w-3" />
-        Nummer fel
+        {t("leadDetail.lsb_invalidNumber")}
       </Badge>
     );
   }

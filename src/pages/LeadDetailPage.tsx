@@ -166,7 +166,7 @@ function AutoEnrichButton({ leadId, onDone }: { leadId: string; onDone: () => vo
   return (
     <Button onClick={handleClick} disabled={loading} variant="outline" size="sm">
       {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-      Analysera automatiskt
+      {t("leadDetail.ldp_analyzeAutomatically")}
     </Button>
   );
 }
@@ -382,7 +382,7 @@ export default function LeadDetailPage() {
     } else if (!trimmedTitle) {
       return;
     }
-    const finalTitle = trimmedTitle || 'Anteckning';
+    const finalTitle = trimmedTitle || t("leadDetail.ldp_note");
 
     setIsSaving(true);
     try {
@@ -407,7 +407,7 @@ export default function LeadDetailPage() {
 
       toast({
         title: t("leadDetail.ldp_activityAdded"),
-        description: `${finalTitle} har loggats`,
+        description: t("leadDetail.ldp_activityAddedDesc", { title: finalTitle }),
       });
 
       setShowActivityDialog(false);
@@ -480,7 +480,7 @@ export default function LeadDetailPage() {
 
         toast({
           title: t("leadDetail.ldp_taskUpdated"),
-          description: `"${taskForm.title}" har sparats`,
+          description: t("leadDetail.ldp_taskUpdatedDesc", { title: taskForm.title }),
         });
       } else {
         // Create new task
@@ -629,7 +629,7 @@ export default function LeadDetailPage() {
   }
 
   return (
-    <AppLayout title={lead.company_name || "Lead"}>
+    <AppLayout title={lead.company_name || t("leadDetail.lc_leadFallback")}>
       <div className="space-y-4 md:space-y-6">
         {/* Header - Mobile optimized */}
         <div className="flex flex-col gap-4">
@@ -667,7 +667,7 @@ export default function LeadDetailPage() {
               </div>
               <p className="text-sm text-muted-foreground flex items-center gap-2">
                 <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-                Skapad {format(new Date(lead.created_at), "d MMMM yyyy", { locale: sv })}
+                {t("leadDetail.ldp_createdAt", { date: format(new Date(lead.created_at), "d MMMM yyyy", { locale: sv }) })}
               </p>
             </div>
             <Button
@@ -690,19 +690,19 @@ export default function LeadDetailPage() {
             {!isEditMode && (
               <Button variant="outline" size="sm" onClick={() => setIsEditMode(true)} className="flex-1 sm:flex-none">
                 <Edit className="mr-2 h-4 w-4" />
-                Redigera
+                {t("leadDetail.ldp_edit")}
               </Button>
             )}
            {lead.website && (
               <Button size="sm" onClick={handleAnalyze} className="flex-1 sm:flex-none">
                 <BarChart3 className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Analysera webbplats</span>
-                <span className="sm:hidden">Analysera</span>
+                <span className="hidden sm:inline">{t("leadDetail.ldp_analyzeWebsite")}</span>
+                <span className="sm:hidden">{t("leadDetail.ldp_analyzeShort")}</span>
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={() => navigate(`/quotes?newFromLead=${id}`)} className="flex-1 sm:flex-none">
               <FileText className="mr-2 h-4 w-4" />
-              Skapa offert
+              {t("leadDetail.ldp_createQuote")}
             </Button>
             <Button
               variant="outline"
@@ -711,8 +711,8 @@ export default function LeadDetailPage() {
               className="flex-1 sm:flex-none"
             >
               <BarChart3 className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">{existingGrowthReport ? "Visa rapport" : "Komplett rapport"}</span>
-              <span className="sm:hidden">Rapport</span>
+              <span className="hidden sm:inline">{existingGrowthReport ? t("leadDetail.ldp_viewReport") : t("leadDetail.ldp_completeReport")}</span>
+              <span className="sm:hidden">{t("leadDetail.ldp_reportShort")}</span>
             </Button>
           </div>
         </div>
@@ -725,7 +725,7 @@ export default function LeadDetailPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base md:text-lg flex items-center gap-2">
                   <Building2 className="h-4 w-4 md:h-5 md:w-5" />
-                  Kontaktinformation
+                  {t("leadDetail.ldp_contactInformation")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -780,10 +780,10 @@ export default function LeadDetailPage() {
                     <div className="flex gap-2">
                       <Button onClick={handleSaveEdit} disabled={isSaving || !editForm.company_name}>
                         {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Spara
+                        {t("leadDetail.ldp_save")}
                       </Button>
                       <Button variant="outline" onClick={() => setIsEditMode(false)}>
-                        Avbryt
+                        {t("leadDetail.ldp_cancel")}
                       </Button>
                     </div>
                   </div>
@@ -792,14 +792,14 @@ export default function LeadDetailPage() {
                     <div className="flex items-center gap-3">
                       <User className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Kontaktperson</p>
+                        <p className="text-sm text-muted-foreground">{t("leadDetail.ldp_contactPerson")}</p>
                         <p className="font-medium">{lead.contact_name || "-"}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <Mail className="h-5 w-5 text-muted-foreground" />
                       <div className="flex-1">
-                        <p className="text-sm text-muted-foreground">E-post</p>
+                        <p className="text-sm text-muted-foreground">{t("leadDetail.ldp_email")}</p>
                         {lead.email ? (
                           <div className="flex items-center gap-2">
                             <a href={`mailto:${lead.email}`} className="font-medium text-primary hover:underline">
@@ -848,7 +848,7 @@ export default function LeadDetailPage() {
                     <div className="flex items-center gap-3">
                       <Phone className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Telefon</p>
+                        <p className="text-sm text-muted-foreground">{t("leadDetail.ldp_phone")}</p>
                         {lead.phone ? (
                           <a href={`tel:${lead.phone}`} className="font-medium text-primary hover:underline">
                             {lead.phone}
@@ -861,7 +861,7 @@ export default function LeadDetailPage() {
                     <div className="flex items-center gap-3">
                       <Globe className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Webbplats</p>
+                        <p className="text-sm text-muted-foreground">{t("leadDetail.ldp_website")}</p>
                         {lead.website ? (
                           <a 
                             href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
@@ -880,7 +880,7 @@ export default function LeadDetailPage() {
                     <div className="flex items-center gap-3">
                       <Hash className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Org-nummer</p>
+                        <p className="text-sm text-muted-foreground">{t("leadDetail.ldp_orgNumber")}</p>
                         <p className="font-medium">{lead.org_number || "-"}</p>
                       </div>
                     </div>
@@ -912,29 +912,29 @@ export default function LeadDetailPage() {
               <TabsList className="w-full h-auto grid grid-cols-3 sm:grid-cols-5 sm:flex gap-1">
                 <TabsTrigger value="timeline" className="flex-1 min-w-0 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2 py-2 px-2 sm:px-3 text-xs sm:text-sm">
                   <Clock className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="hidden sm:inline truncate">Tidslinje</span>
-                  <span className="sm:hidden text-[10px] truncate">Tid</span>
+                  <span className="hidden sm:inline truncate">{t("leadDetail.ldp_tabTimeline")}</span>
+                  <span className="sm:hidden text-[10px] truncate">{t("leadDetail.ldp_tabTimelineShort")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="emails" className="flex-1 min-w-0 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2 py-2 px-2 sm:px-3 text-xs sm:text-sm">
                   <Mail className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="hidden sm:inline truncate">Mail</span>
-                  <span className="sm:hidden text-[10px] truncate">Mail</span>
+                  <span className="hidden sm:inline truncate">{t("leadDetail.ldp_tabMail")}</span>
+                  <span className="sm:hidden text-[10px] truncate">{t("leadDetail.ldp_tabMail")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="outreach" className="flex-1 min-w-0 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2 py-2 px-2 sm:px-3 text-xs sm:text-sm">
                   <Send className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="hidden sm:inline truncate">Sekvenser</span>
-                  <span className="sm:hidden text-[10px] truncate">Sekv.</span>
+                  <span className="hidden sm:inline truncate">{t("leadDetail.ldp_tabSequences")}</span>
+                  <span className="sm:hidden text-[10px] truncate">{t("leadDetail.ldp_tabSequencesShort")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="analyses" className="flex-1 min-w-0 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2 py-2 px-2 sm:px-3 text-xs sm:text-sm">
                   <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="hidden sm:inline truncate">Analyser</span>
-                  <span className="sm:hidden text-[10px] truncate">Analys</span>
+                  <span className="hidden sm:inline truncate">{t("leadDetail.ldp_tabAnalyses")}</span>
+                  <span className="sm:hidden text-[10px] truncate">{t("leadDetail.ldp_tabAnalysesShort")}</span>
                   <span className="text-[10px] sm:text-xs text-muted-foreground shrink-0">({analyses.length})</span>
                 </TabsTrigger>
                 <TabsTrigger value="competitors" className="flex-1 min-w-0 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2 py-2 px-2 sm:px-3 text-xs sm:text-sm">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                  <span className="hidden sm:inline truncate">Konkurrenter</span>
-                  <span className="sm:hidden text-[10px] truncate">Konk.</span>
+                  <span className="hidden sm:inline truncate">{t("leadDetail.ldp_tabCompetitors")}</span>
+                  <span className="sm:hidden text-[10px] truncate">{t("leadDetail.ldp_tabCompetitorsShort")}</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -943,10 +943,10 @@ export default function LeadDetailPage() {
                   <CardHeader className="pb-3 sm:pb-4">
                     <CardTitle className="text-base md:text-lg flex items-center gap-2">
                       <Clock className="h-4 w-4 md:h-5 md:w-5" />
-                      Komplett tidslinje
+                      {t("leadDetail.ldp_completeTimeline")}
                     </CardTitle>
                     <CardDescription className="text-xs sm:text-sm">
-                      All aktivitet för denna lead i kronologisk ordning
+                      {t("leadDetail.ldp_timelineDescription")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="px-3 sm:px-6">
@@ -1006,10 +1006,10 @@ export default function LeadDetailPage() {
                   <CardHeader className="pb-3 sm:pb-4">
                     <CardTitle className="text-base md:text-lg flex items-center gap-2">
                       <Users className="h-4 w-4 md:h-5 md:w-5" />
-                      Konkurrentanalys
+                      {t("leadDetail.ldp_competitorAnalysis")}
                     </CardTitle>
                     <CardDescription className="text-xs sm:text-sm">
-                      Jämför med liknande företag i branschen
+                      {t("leadDetail.ldp_competitorDescription")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="px-3 sm:px-6">
@@ -1039,7 +1039,7 @@ export default function LeadDetailPage() {
                   onClick={() => setShowLogCallDialog(true)}
                 >
                   <PhoneCall className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline lg:inline">Logga</span> samtal
+                  <span className="hidden sm:inline lg:inline">{t("leadDetail.ldp_log")}</span> {t("leadDetail.ldp_call")}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -1051,7 +1051,7 @@ export default function LeadDetailPage() {
                   }}
                 >
                   <Mail className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline lg:inline">Logga</span> e-post
+                  <span className="hidden sm:inline lg:inline">{t("leadDetail.ldp_log")}</span> {t("leadDetail.ldp_emailLower")}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -1063,7 +1063,7 @@ export default function LeadDetailPage() {
                   }}
                 >
                   <Calendar className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline lg:inline">Logga</span> möte
+                  <span className="hidden sm:inline lg:inline">{t("leadDetail.ldp_log")}</span> {t("leadDetail.ldp_meeting")}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -1075,7 +1075,7 @@ export default function LeadDetailPage() {
                   }}
                 >
                   <FileText className="mr-2 h-4 w-4" />
-                  Anteckning
+                  {t("leadDetail.ldp_note")}
                 </Button>
                 <Button 
                   variant="default" 
@@ -1084,7 +1084,7 @@ export default function LeadDetailPage() {
                   onClick={openNewTaskDialog}
                 >
                   <ListTodo className="mr-2 h-4 w-4" />
-                  Skapa uppgift
+                  {t("leadDetail.ldp_createTask")}
                 </Button>
               </CardContent>
             </Card>
@@ -1095,7 +1095,7 @@ export default function LeadDetailPage() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base md:text-lg flex items-center gap-2">
                     <ListTodo className="h-4 w-4" />
-                    Kommande uppgifter
+                    {t("leadDetail.ldp_upcomingTasks")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -1160,7 +1160,7 @@ export default function LeadDetailPage() {
                     className="w-full mt-2"
                     onClick={() => navigate('/tasks')}
                   >
-                    Visa alla uppgifter
+                    {t("leadDetail.ldp_viewAllTasks")}
                   </Button>
                 </CardContent>
               </Card>
@@ -1284,7 +1284,7 @@ export default function LeadDetailPage() {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowActivityDialog(false)}>
-                Avbryt
+                {t("leadDetail.ldp_cancel")}
               </Button>
               <Button
                 onClick={handleAddActivity}

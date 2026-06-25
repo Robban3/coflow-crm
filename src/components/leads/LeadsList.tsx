@@ -292,12 +292,12 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
       const { error } = await (supabase as any).rpc("claim_pool_lead", { _lead_id: lead.id });
       if (error) throw error;
       toast({
-        title: "Lead upplockat",
-        description: "Det ligger nu under dina leads med all tidigare historik.",
+        title: t("leadDetail.ll_pickedUpTitle"),
+        description: t("leadDetail.ll_pickedUpDesc"),
       });
       onRefresh();
     } catch (e: any) {
-      toast({ title: "Kunde inte plocka upp", description: e.message, variant: "destructive" });
+      toast({ title: t("leadDetail.ll_couldNotPickUp"), description: e.message, variant: "destructive" });
     } finally {
       setClaimingId(null);
     }
@@ -711,7 +711,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                   <SelectItem value="pool">
                     <div className="flex items-center gap-2">
                       <Inbox className="h-4 w-4" />
-                      Lediga i poolen ({poolCount})
+                      {t("leadDetail.ll_availableInPool", { count: poolCount })}
                     </div>
                   </SelectItem>
                   {isAdmin && members.length > 0 && (
@@ -869,7 +869,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                           ) : (
                             <Inbox className="h-3.5 w-3.5" />
                           )}
-                          Plocka upp
+                          {t("leadDetail.ll_pickUp")}
                         </Button>
                       ) : (
                         <div className="flex items-center gap-1">
@@ -890,7 +890,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                     {isPoolLead(lead) && (
                       <Badge variant="outline" className="gap-1">
                         <Inbox className="h-3 w-3" />
-                        {(lead as any).released_reason || "Ledig i poolen"}
+                        {(lead as any).released_reason || t("leadDetail.ll_freeInPool")}
                       </Badge>
                     )}
                     {getEnrichmentBadge(lead)}
@@ -980,7 +980,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                             ) : (
                               <Inbox className="h-3.5 w-3.5" />
                             )}
-                            Plocka upp
+                            {t("leadDetail.ll_pickUp")}
                           </Button>
                         ) : (
                           <InlineLeadOwners
@@ -1002,7 +1002,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                                 <TooltipTrigger asChild>
                                   <Badge variant="outline" className="gap-1 text-muted-foreground">
                                     <Inbox className="h-3 w-3" />
-                                    Ledig
+                                    {t("leadDetail.ll_free")}
                                   </Badge>
                                 </TooltipTrigger>
                                 <TooltipContent>

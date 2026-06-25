@@ -380,7 +380,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div>
                 <CardTitle className="text-base">{t("leadDetail.ac_webTitle")}</CardTitle>
-                <CardDescription className="text-xs">Lighthouse / PageSpeed</CardDescription>
+                <CardDescription className="text-xs">{t("leadDetail.ac_lighthousePagespeed")}</CardDescription>
               </div>
               {website && (
                 <Button size="sm" onClick={onNavigateAnalyze}>
@@ -511,7 +511,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                       {/* Findings */}
                       {geoDetails?.findings && geoDetails.findings.length > 0 && (
                         <div>
-                          <h4 className="text-sm font-semibold mb-2">Identifierade problem ({geoDetails.findings.length})</h4>
+                          <h4 className="text-sm font-semibold mb-2">{t("leadDetail.ac_identifiedProblems", { count: geoDetails.findings.length })}</h4>
                           <div className="space-y-2">
                             {geoDetails.findings.map((f) => (
                               <div key={f.id} className="p-3 rounded-lg border bg-background">
@@ -525,7 +525,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                                     )}
                                   </div>
                                   <Badge variant={f.severity === "high" ? "destructive" : f.severity === "medium" ? "secondary" : "outline"} className="text-[10px] shrink-0">
-                                    {f.severity === "high" ? t("leadDetail.ldp_priorityHigh") : f.severity === "medium" ? "Medium" : t("leadDetail.ldp_priorityLow")}
+                                    {f.severity === "high" ? t("leadDetail.ldp_priorityHigh") : f.severity === "medium" ? t("leadDetail.ac_priorityMedium") : t("leadDetail.ldp_priorityLow")}
                                   </Badge>
                                 </div>
                               </div>
@@ -537,7 +537,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                       {/* Actions */}
                       {geoDetails?.actions && geoDetails.actions.length > 0 && (
                         <div>
-                          <h4 className="text-sm font-semibold mb-2">Rekommenderade åtgärder ({geoDetails.actions.length})</h4>
+                          <h4 className="text-sm font-semibold mb-2">{t("leadDetail.ac_recommendedActions", { count: geoDetails.actions.length })}</h4>
                           <div className="space-y-2">
                             {(["quick_win", "medium", "long_term"] as const).map((prio) => {
                               const items = geoDetails.actions.filter((a) => a.priority === prio);
@@ -555,10 +555,10 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                                       {a.steps && <p className="text-xs text-muted-foreground mt-1">{a.steps}</p>}
                                       <div className="flex gap-3 mt-1">
                                         {a.estimated_impact && (
-                                          <span className="text-[10px] text-muted-foreground">Impact: {a.estimated_impact}</span>
+                                          <span className="text-[10px] text-muted-foreground">{t("leadDetail.ac_impact", { value: a.estimated_impact })}</span>
                                         )}
                                         {a.estimated_effort && (
-                                          <span className="text-[10px] text-muted-foreground">Effort: {a.estimated_effort}</span>
+                                          <span className="text-[10px] text-muted-foreground">{t("leadDetail.ac_effort", { value: a.estimated_effort })}</span>
                                         )}
                                       </div>
                                     </div>
@@ -581,16 +581,16 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                       disabled={isCreatingReport || !geoDetails}
                     >
                       {isCreatingReport ? (
-                        <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Skapar rapport...</>
+                        <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> {t("leadDetail.ac_creatingReport")}</>
                       ) : (
-                        <><FileText className="mr-1 h-3 w-3" /> Skapa kundrapport</>
+                        <><FileText className="mr-1 h-3 w-3" /> {t("leadDetail.ac_createCustomerReport")}</>
                       )}
                     </Button>
 
                     {latestReport && (
                       <div className="p-3 rounded-lg border bg-muted/30 space-y-2">
                         <div className="flex items-center justify-between">
-                          <p className="text-xs font-medium">Senaste rapport</p>
+                          <p className="text-xs font-medium">{t("leadDetail.ac_latestReport")}</p>
                           <span className="text-[10px] text-muted-foreground">
                             {format(new Date(latestReport.created_at), "d MMM yyyy", { locale: sv })}
                           </span>
@@ -622,11 +622,11 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
-                  SEO Intelligence
+                  {t("leadDetail.ac_seoIntelligence")}
                   <Badge variant="outline" className="text-[10px]">
                     <DollarSign className="h-3 w-3 mr-0.5" />{t("leadDetail.ac_badgePaid")}</Badge>
                 </CardTitle>
-                <CardDescription className="text-xs">DataForSEO – realtidsdata om Google-synlighet</CardDescription>
+                <CardDescription className="text-xs">{t("leadDetail.ac_dataForSeoDesc")}</CardDescription>
               </div>
               {website && (
                 <Button size="sm" onClick={handleRunSeo} disabled={isRunningSeo}>
@@ -649,8 +649,8 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                         {seoCacheValid ? t("leadDetail.ac2_cacheValid") : t("leadDetail.ac2_cacheExpired")}
                       </p>
                       <p className="text-[10px] text-muted-foreground">
-                        Senast körd: {format(new Date(seoCache.created_at), "d MMM yyyy", { locale: sv })}
-                        {" · "}TTL: {seoCache.ttl_days} dagar
+                        {t("leadDetail.ac_lastRun", { date: format(new Date(seoCache.created_at), "d MMM yyyy", { locale: sv }) })}
+                        {" · "}{t("leadDetail.ac_ttlDays", { days: seoCache.ttl_days })}
                       </p>
                     </div>
                   </div>
@@ -662,7 +662,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                 <div className="space-y-3">
                   {seoData.visibility_score !== null && (
                     <div className={`rounded-lg border p-4 text-center ${getScoreBg(seoData.visibility_score)}`}>
-                      <p className="text-xs text-muted-foreground mb-1">Google-synlighet</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t("leadDetail.ac_googleVisibility")}</p>
                       <p className={`text-3xl font-bold ${getScoreColor(seoData.visibility_score)}`}>
                         {seoData.visibility_score}<span className="text-lg text-muted-foreground">/100</span>
                       </p>
@@ -673,7 +673,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                   )}
                   {seoData.primary_keywords && seoData.primary_keywords.length > 0 && (
                     <div>
-                      <p className="text-xs font-semibold mb-1">Toppnyckelord (Google-rankingar)</p>
+                      <p className="text-xs font-semibold mb-1">{t("leadDetail.ac_topKeywords")}</p>
                       <div className="flex flex-wrap gap-1">
                         {seoData.primary_keywords.slice(0, 8).map((kw: any, i: number) => (
                           <Badge key={i} variant="secondary" className="text-[10px]">
@@ -692,7 +692,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
                   {website && (
                     <Button size="sm" className="mt-3" onClick={handleRunSeo} disabled={isRunningSeo}>
                       {isRunningSeo ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Eye className="mr-1 h-3 w-3" />}
-                      Kör SEO-analys
+                      {t("leadDetail.ac2_runSeo")}
                     </Button>
                   )}
                 </div>
@@ -786,7 +786,7 @@ function QuickScanSection({ leadId, website }: { leadId: string; website: string
   return (
     <div className="border-t border-border/50 pt-4 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold">Mini-rapport (Quick Scan)</p>
+        <p className="text-xs font-semibold">{t("leadDetail.ac_miniReportQuickScan")}</p>
       </div>
 
       {latestQuickScan && (
@@ -826,9 +826,9 @@ function QuickScanSection({ leadId, website }: { leadId: string; website: string
         disabled={isCreating || !lead?.email || !website}
       >
         {isCreating ? (
-          <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Skapar...</>
+          <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> {t("leadDetail.ac_creating")}</>
         ) : (
-          <><Zap className="mr-1 h-3 w-3" /> Skapa ny mini-rapport</>
+          <><Zap className="mr-1 h-3 w-3" /> {t("leadDetail.ac_createNewMiniReport")}</>
         )}
       </Button>
     </div>

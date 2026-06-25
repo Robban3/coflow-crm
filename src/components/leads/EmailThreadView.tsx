@@ -188,16 +188,16 @@ export function EmailThreadView({ leadId, leadName, className }: EmailThreadView
             <MessageSquare className="h-5 w-5 text-primary shrink-0" />
             <div className="min-w-0 flex-1">
               <CardTitle className="text-base flex items-center gap-2 flex-wrap">
-                <span className="truncate">Mailkonversation</span>
+                <span className="truncate">{t("leadDetail.et_conversationTitle")}</span>
                 {replyCount > 0 && (
                   <Badge variant={hasNewReplies ? "default" : "secondary"} className="text-xs shrink-0">
-                    {replyCount} svar
+                    {t("leadDetail.et_replyBadge", { count: replyCount })}
                     {hasNewReplies && <Sparkles className="h-3 w-3 ml-1" />}
                   </Badge>
                 )}
               </CardTitle>
               <CardDescription className="text-xs truncate">
-                {threadMessages.length} meddelanden med {leadName || "lead"}
+                {t("leadDetail.et_messagesWith", { count: threadMessages.length, name: leadName || t("leadDetail.et_leadFallback") })}
               </CardDescription>
             </div>
           </div>
@@ -270,7 +270,7 @@ export function EmailThreadView({ leadId, leadName, className }: EmailThreadView
                             )}
                             {!isSent && isLast && (
                               <Badge className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0 shrink-0">
-                                NYTT
+                                {t("leadDetail.et_new")}
                               </Badge>
                             )}
                           </div>
@@ -308,11 +308,11 @@ export function EmailThreadView({ leadId, leadName, className }: EmailThreadView
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
               <span className="flex items-center gap-1">
                 <ArrowRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                {sentEmails.length} skickade
+                {t("leadDetail.et_sentCount", { count: sentEmails.length })}
               </span>
               <span className="flex items-center gap-1">
                 <ArrowLeft className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                {replies.length} mottagna
+                {t("leadDetail.et_receivedCount", { count: replies.length })}
               </span>
             </div>
             <Button
@@ -321,7 +321,7 @@ export function EmailThreadView({ leadId, leadName, className }: EmailThreadView
               onClick={loadEmailThread}
               className="h-6 text-[10px] sm:text-xs px-2 shrink-0"
             >
-              Uppdatera
+              {t("leadDetail.et_refresh")}
             </Button>
           </div>
         </CardContent>
