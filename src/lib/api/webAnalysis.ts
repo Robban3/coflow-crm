@@ -218,8 +218,12 @@ export const webAnalysisApi = {
   },
 
   async analyzeUrl(url: string, strategy: 'mobile' | 'desktop' = 'desktop'): Promise<AnalysisResponse> {
+    // Lighthouse audit titles/descriptions are localised server-side; pass the
+    // user's current app language (persisted by the LanguageProvider).
+    const language =
+      (typeof localStorage !== 'undefined' && localStorage.getItem('app-language')) || 'sv';
     const { data, error } = await supabase.functions.invoke('pagespeed-analyze', {
-      body: { url, strategy },
+      body: { url, strategy, language },
     });
 
     if (error) {

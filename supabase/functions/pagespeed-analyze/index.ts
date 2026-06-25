@@ -166,7 +166,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { url, strategy = 'desktop' } = await req.json();
+    const { url, strategy = 'desktop', language } = await req.json();
+    // Lighthouse localises audit titles/descriptions server-side via `locale`.
+    // sv/en/es are valid PSI locales; default to Swedish (the app default).
+    const locale = ['sv', 'en', 'es'].includes(String(language)) ? String(language) : 'sv';
 
     if (!url) {
       return new Response(
@@ -194,8 +197,8 @@ Deno.serve(async (req) => {
 
     console.log('Analyzing URL:', asciiUrl, 'Strategy:', strategy);
 
-    // Serve a recent cached result for this exact URL + strategy if we have one.
-    const cacheKey = `psi:${strategy}:${asciiUrl}`;
+    // Serve a recent cached result for this exact URL + strategy + locale.
+    const cacheKey = `psi:${strategy}:${locale}:${asciiUrl}`;
     const cached = await getCached<PageSpeedResult>(cacheKey);
     if (cached) {
       console.log('PSI cache hit for', cacheKey);
@@ -212,7 +215,7 @@ Deno.serve(async (req) => {
     // requesting the now-invalid `category=pwa` can make PSI reject the whole
     // request (400), so we only request the four supported categories.
     // Use the ASCII/punycode URL for the API call
-    let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(asciiUrl)}&strategy=${strategy}&category=performance&category=accessibility&category=best-practices&category=seo`;
+    let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(asciiUrl)}&strategy=${strategy}&category=performance&category=accessibility&category=best-practices&category=seo&locale=${locale}`;
     
     // Add API key if available (increases quota significantly)
     if (apiKey) {

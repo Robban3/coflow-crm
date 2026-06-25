@@ -191,8 +191,10 @@ export function PlaceWorkflowDialog({
     setActiveTab("analysis");
     
     try {
+      const language =
+        (typeof localStorage !== "undefined" && localStorage.getItem("app-language")) || "sv";
       const { data, error } = await supabase.functions.invoke("pagespeed-analyze", {
-        body: { url: place.website, strategy: "mobile" },
+        body: { url: place.website, strategy: "mobile", language },
       });
 
       if (error) throw error;
