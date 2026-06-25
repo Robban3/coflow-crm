@@ -1,6 +1,13 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { supabase } from "@/integrations/supabase/client";
+
+// POC convenience: expose the (already-authenticated) Supabase client on window
+// so the Bolagsverket lookup can be tested from the browser console:
+//   await window.supabase.functions.invoke("bolagsverket-lookup", { body: { orgNumber: "5560360793" } })
+// The publishable key is public anyway and RLS guards the data. Remove after the POC.
+(window as unknown as { supabase: typeof supabase }).supabase = supabase;
 
 // After a new deploy, hashed chunk filenames change and the old ones are
 // removed. A browser still running a previous (cached) index.html will fail to
