@@ -432,6 +432,8 @@ SMART ANALYS:
       }),
     });
 
+    console.log("Gemini first-call status:", aiResponse.status);
+
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
       console.error("AI gateway error:", aiResponse.status, errorText);
@@ -453,6 +455,22 @@ SMART ANALYS:
 
     const aiData = await aiResponse.json();
     const assistantMessage = aiData.choices?.[0]?.message;
+
+    // Surface "empty" responses instead of silently returning no content (which
+    // the UI showed as the generic "Jag kunde inte generera ett svar."). If the
+    // model returned neither text nor a tool call, log the raw payload (incl.
+    // finish_reason) and return a real error so the cause is visible.
+    if (!assistantMessage || (!assistantMessage.content && !(assistantMessage.tool_calls?.length))) {
+      console.error("AI returned empty message. Raw aiData:", JSON.stringify(aiData));
+      const finishReason = aiData.choices?.[0]?.finish_reason ?? "unknown";
+      return new Response(
+        JSON.stringify({
+          error: `AI gav inget svar (finish_reason: ${finishReason}). Kontrollera Gemini/verktygskonfigurationen.`,
+          detail: aiData,
+        }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Check if AI wants to use tools
     if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0 && executeTools) {

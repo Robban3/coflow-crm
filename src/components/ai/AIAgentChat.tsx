@@ -308,7 +308,17 @@ export function AIAgentChat({ isOpen, onClose }: AIAgentChatProps) {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // For non-2xx responses supabase-js only exposes a generic message; the
+        // real error is in the attached Response body. Surface it so failures
+        // are never silent.
+        let detail = error.message;
+        try {
+          const body = await (error as any).context?.json?.();
+          if (body?.error) detail = body.error;
+        } catch { /* keep generic message */ }
+        throw new Error(detail);
+      }
       if (data.error) throw new Error(data.error);
 
       const assistantContent = data.message?.content || t("ai.fallback.noResponse");
