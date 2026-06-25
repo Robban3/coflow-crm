@@ -67,10 +67,10 @@ export function TechnicalAISummary({ result, url }: TechnicalAISummaryProps) {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <GraduationCap className="h-5 w-5 text-primary" />
-            Pedagogisk AI-förklaring
+            {t("webAnalysis.educationalAiExplanation")}
           </CardTitle>
           <CardDescription>
-            Förstå varför resultatet blev som det blev
+            {t("webAnalysis.educationalAiSubtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -87,12 +87,12 @@ export function TechnicalAISummary({ result, url }: TechnicalAISummaryProps) {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Genererar...
+                {t("webAnalysis.generating")}
               </>
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
-                Generera ny förklaring
+                {t("webAnalysis.generateNewExplanation")}
               </>
             )}
           </Button>
@@ -106,16 +106,15 @@ export function TechnicalAISummary({ result, url }: TechnicalAISummaryProps) {
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <GraduationCap className="h-5 w-5" />
-          Pedagogisk AI-förklaring
+          {t("webAnalysis.educationalAiExplanation")}
         </CardTitle>
         <CardDescription>
-          Förstå varför hemsidan fick dessa resultat – på ett enkelt och lärorikt sätt
+          {t("webAnalysis.educationalAiSubtitleLong")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">
-          En sida kan se fantastisk ut visuellt men ändå få låga poäng på prestanda. 
-          Låt AI förklara vad som händer "under huven" och varför det spelar roll.
+          {t("webAnalysis.educationalAiPrompt")}
         </p>
         <Button
           onClick={generateSummary}
@@ -125,12 +124,12 @@ export function TechnicalAISummary({ result, url }: TechnicalAISummaryProps) {
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Analyserar tekniska detaljer...
+              {t("webAnalysis.analyzingTechnicalDetails")}
             </>
           ) : (
             <>
               <Sparkles className="mr-2 h-4 w-4" />
-              Generera pedagogisk förklaring
+              {t("webAnalysis.generateEducationalExplanation")}
             </>
           )}
         </Button>

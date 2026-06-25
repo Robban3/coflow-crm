@@ -651,8 +651,8 @@ export default function PowerCallSessionPage() {
             </Button>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm font-medium">Session aktiv</span>
-              <Badge variant="secondary" className="text-xs">{callsThisSession} samtal</Badge>
+              <span className="text-sm font-medium">{t("powerCall.session.active")}</span>
+              <Badge variant="secondary" className="text-xs">{t("powerCall.session.callsBadge", { count: callsThisSession })}</Badge>
             </div>
           </div>
 
@@ -661,22 +661,22 @@ export default function PowerCallSessionPage() {
             {isPreloading ? (
               <span className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                Förbereder nästa…
+                {t("powerCall.session.preparingNext")}
               </span>
             ) : nextReady ? (
               <span className="hidden sm:flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
                 <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                Nästa lead: redo ✓
+                {t("powerCall.session.nextReady")}
               </span>
             ) : (
               <span className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
-                Nästa förbereds
+                {t("powerCall.session.nextPreparing")}
               </span>
             )}
             <Button variant="outline" size="sm" onClick={handleEndSession}>
               <X className="h-3.5 w-3.5 mr-1.5" />
-              Avsluta
+              {t("powerCall.session.end")}
             </Button>
           </div>
         </div>
@@ -687,14 +687,14 @@ export default function PowerCallSessionPage() {
             <div className="flex items-center justify-center h-64">
               <div className="text-center space-y-3">
                 <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                <p className="text-sm text-muted-foreground">Laddar nästa lead…</p>
+                <p className="text-sm text-muted-foreground">{t("powerCall.session.loadingNext")}</p>
               </div>
             </div>
           ) : !currentLead ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center space-y-3">
                 <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto" />
-                <p className="text-muted-foreground">Inga leads att ringa</p>
+                <p className="text-muted-foreground">{t("powerCall.session.noLeads")}</p>
               </div>
             </div>
           ) : (
@@ -727,12 +727,12 @@ export default function PowerCallSessionPage() {
                           >
                             <Phone className="h-4 w-4 text-primary shrink-0" />
                             <span className="text-sm font-semibold text-primary">{currentLead.phone}</span>
-                            <span className="text-xs text-muted-foreground ml-auto group-hover:text-primary">Ring</span>
+                            <span className="text-xs text-muted-foreground ml-auto group-hover:text-primary">{t("powerCall.session.callAction")}</span>
                           </a>
                         ) : (
                           <div className="flex items-center gap-2 text-sm text-muted-foreground p-2">
                             <Phone className="h-4 w-4" />
-                            <span className="italic">Telefon saknas</span>
+                            <span className="italic">{t("powerCall.session.phoneMissing")}</span>
                           </div>
                         )}
 
@@ -762,9 +762,9 @@ export default function PowerCallSessionPage() {
                         <>
                           <Separator />
                           <div className="flex flex-wrap gap-1.5">
-                            <ScorePill label="Prestanda" value={currentLead.webAnalysis?.performance_score ?? null} />
-                            <ScorePill label="SEO" value={currentLead.webAnalysis?.seo_score ?? null} />
-                            <ScorePill label="GEO" value={currentLead.geoAnalysis?.geo_score ?? null} />
+                            <ScorePill label={t("powerCall.session.scorePerformance")} value={currentLead.webAnalysis?.performance_score ?? null} />
+                            <ScorePill label={t("powerCall.session.scoreSeo")} value={currentLead.webAnalysis?.seo_score ?? null} />
+                            <ScorePill label={t("powerCall.session.scoreGeo")} value={currentLead.geoAnalysis?.geo_score ?? null} />
                           </div>
                         </>
                       )}
@@ -807,7 +807,7 @@ export default function PowerCallSessionPage() {
                         asChild
                       >
                         <Link to={`/leads/${currentLead.id}`} target="_blank">
-                          Öppna leadkort <ExternalLink className="h-3 w-3 ml-1" />
+                          {t("powerCall.session.openLeadCard")} <ExternalLink className="h-3 w-3 ml-1" />
                         </Link>
                       </Button>
                     </CardContent>
@@ -818,10 +818,10 @@ export default function PowerCallSessionPage() {
                     <CardContent className="p-4 space-y-2">
                       <div className="flex items-center gap-2">
                         <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-                        <h4 className="text-xs font-semibold">Outreach</h4>
+                        <h4 className="text-xs font-semibold">{t("powerCall.session.outreach")}</h4>
                       </div>
                       {outreachEmails.length === 0 ? (
-                        <p className="text-xs text-muted-foreground italic">Inget mail skickat</p>
+                        <p className="text-xs text-muted-foreground italic">{t("powerCall.session.noMailSent")}</p>
                       ) : (
                         <div className="space-y-1.5">
                           {outreachEmails.map((email: any) => (
@@ -837,7 +837,7 @@ export default function PowerCallSessionPage() {
                                   {format(new Date(email.created_at), "d MMM HH:mm", { locale: sv })}
                                   {email.opened_at && (
                                     <span className="text-green-600 dark:text-green-400 ml-1">
-                                      · Öppnad{email.opened_count > 1 ? ` ${email.opened_count}x` : ""}
+                                      · {email.opened_count > 1 ? t("powerCall.session.openedTimes", { count: email.opened_count }) : t("powerCall.session.opened")}
                                     </span>
                                   )}
                                 </p>
@@ -854,10 +854,10 @@ export default function PowerCallSessionPage() {
                     <CardContent className="p-4 space-y-2">
                       <div className="flex items-center gap-2">
                         <PhoneCall className="h-3.5 w-3.5 text-muted-foreground" />
-                        <h4 className="text-xs font-semibold">Samtalshistorik</h4>
+                        <h4 className="text-xs font-semibold">{t("powerCall.session.callHistory")}</h4>
                       </div>
                       {callHistory.length === 0 ? (
-                        <p className="text-xs text-muted-foreground italic">Inga tidigare samtal</p>
+                        <p className="text-xs text-muted-foreground italic">{t("powerCall.session.noPreviousCalls")}</p>
                       ) : (
                         <div className="space-y-2">
                           {callHistory.map((call: any) => (
@@ -885,9 +885,9 @@ export default function PowerCallSessionPage() {
                     <CardContent className="p-5">
                       <div className="flex items-center gap-2 mb-4">
                         <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                        <h3 className="text-sm font-semibold">Samtalsmanus</h3>
+                        <h3 className="text-sm font-semibold">{t("powerCall.session.pitchTitle")}</h3>
                         {!hasAnalysis && (
-                          <Badge variant="outline" className="text-xs ml-auto">Generiskt</Badge>
+                          <Badge variant="outline" className="text-xs ml-auto">{t("powerCall.session.pitchGeneric")}</Badge>
                         )}
                       </div>
                       <ol className="space-y-3">
@@ -911,7 +911,7 @@ export default function PowerCallSessionPage() {
                         <div className="mt-4 p-3 rounded-lg bg-muted/50 border">
                           <div className="flex items-center gap-1.5 mb-1.5">
                             <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-xs font-medium">GEO-sammanfattning</span>
+                            <span className="text-xs font-medium">{t("powerCall.session.geoSummary")}</span>
                           </div>
                           <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
                             {currentLead.geoAnalysis.summary}
@@ -926,7 +926,7 @@ export default function PowerCallSessionPage() {
                 <div className="lg:col-span-1 space-y-3">
                   <Card>
                     <CardContent className="p-5">
-                      <h3 className="text-sm font-semibold mb-4">Registrera utfall</h3>
+                      <h3 className="text-sm font-semibold mb-4">{t("powerCall.session.registerOutcome")}</h3>
                       <div className="grid grid-cols-1 gap-2">
                         {(outcomes.length > 0 ? outcomes : (DEFAULT_CALL_OUTCOMES as CallOutcome[])).map((outcome) => {
                           const Icon = ICON_COMPONENT[outcome.icon || ""] || Phone;
@@ -962,7 +962,7 @@ export default function PowerCallSessionPage() {
                     disabled={isLoadingLead}
                   >
                     <ArrowRight className="h-4 w-4 mr-2" />
-                    Hoppa över
+                    {t("powerCall.session.skip")}
                   </Button>
                 </div>
               </div>
@@ -977,7 +977,7 @@ export default function PowerCallSessionPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Phone className="h-4 w-4" />
-              Logga utfall — {currentLead?.company_name}
+              {t("powerCall.session.logOutcome", { company: currentLead?.company_name || "" })}
             </DialogTitle>
           </DialogHeader>
 
@@ -1000,17 +1000,17 @@ export default function PowerCallSessionPage() {
             {selectedOutcome && (selectedOutcome.requires_note || ["callback", "answered", "not_interested"].includes(selectedOutcome.key)) && (
               <div className="space-y-1.5">
                 <Label>
-                  Notering{selectedOutcome.requires_note && <span className="text-destructive ml-1">*</span>}
+                  {t("powerCall.session.note")}{selectedOutcome.requires_note && <span className="text-destructive ml-1">*</span>}
                 </Label>
                 <Textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder={
                     selectedOutcome.key === "not_interested"
-                      ? "Anledning..."
+                      ? t("powerCall.session.notInterestedPlaceholder")
                       : selectedOutcome.key === "answered"
                       ? t("powerCall.session.summaryPlaceholder")
-                      : "Notering..."
+                      : t("powerCall.session.notePlaceholder")
                   }
                   rows={3}
                   autoFocus
@@ -1023,11 +1023,11 @@ export default function PowerCallSessionPage() {
               <div className="space-y-3 p-3 rounded-lg border border-amber-300/50 bg-amber-50/50 dark:bg-amber-950/20">
                 <Label className="flex items-center gap-2 text-amber-800 dark:text-amber-300 text-sm">
                   <CalendarClock className="h-4 w-4" />
-                  Schemalägg uppföljning
+                  {t("powerCall.session.scheduleFollowUp")}
                 </Label>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-xs">Datum *</Label>
+                    <Label className="text-xs">{t("powerCall.session.dateLabel")}</Label>
                     <Input
                       type="date"
                       value={callbackDate}
@@ -1036,7 +1036,7 @@ export default function PowerCallSessionPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">Tid</Label>
+                    <Label className="text-xs">{t("powerCall.session.timeLabel")}</Label>
                     <Input
                       type="time"
                       value={callbackTime}
@@ -1050,7 +1050,7 @@ export default function PowerCallSessionPage() {
 
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setOutcomeOpen(false)} disabled={isSaving}>
-              Avbryt
+              {t("powerCall.session.cancel")}
             </Button>
             <Button
               variant="outline"
@@ -1058,14 +1058,14 @@ export default function PowerCallSessionPage() {
               disabled={isSaving || (selectedOutcome?.requires_note && !note.trim()) || (selectedOutcome?.requires_task && !callbackDate)}
             >
               {isSaving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : null}
-              Spara
+              {t("powerCall.session.save")}
             </Button>
             <Button
               onClick={() => handleSaveAndNext(true)}
               disabled={isSaving || (selectedOutcome?.requires_note && !note.trim()) || (selectedOutcome?.requires_task && !callbackDate)}
             >
               {isSaving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : null}
-              Spara & nästa
+              {t("powerCall.session.saveAndNext")}
             </Button>
           </DialogFooter>
         </DialogContent>

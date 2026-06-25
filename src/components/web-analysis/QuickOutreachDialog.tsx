@@ -99,8 +99,8 @@ export function QuickOutreachDialog({
 
       toast({
         title: t("webAnalysis.mailGeneratedTitle"),
-        description: seoData 
-          ? "Inkluderar SEO Intelligence-data i mailet"
+        description: seoData
+          ? t("webAnalysis.mailGeneratedWithSeo")
           : t("webAnalysis.qoReviewBeforeSend"),
       });
     } catch (error) {
@@ -188,7 +188,7 @@ export function QuickOutreachDialog({
             <Mail className="h-5 w-5" />{t("webAnalysis.quickOutreach")}</DialogTitle>
           <DialogDescription>
             {t("webAnalysis.quickOutreachDesc")}
-            {seoData && " (inkluderar SEO Intelligence-data)"}
+            {seoData && t("webAnalysis.quickOutreachSeoSuffix")}
           </DialogDescription>
         </DialogHeader>
 
@@ -198,7 +198,7 @@ export function QuickOutreachDialog({
             <div className="space-y-2">
               <Label htmlFor="recipientEmail" className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                E-post *
+                {t("webAnalysis.emailLabelRequired")}
               </Label>
               <Input
                 id="recipientEmail"
@@ -245,8 +245,8 @@ export function QuickOutreachDialog({
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Generera mail med AI
-                  {seoData && " (+ SEO)"}
+                  {t("webAnalysis.generateMailWithAi")}
+                  {seoData && t("webAnalysis.seoSuffix")}
                 </>
               )}
             </Button>
@@ -284,7 +284,7 @@ export function QuickOutreachDialog({
                   ) : (
                     <Sparkles className="mr-2 h-4 w-4" />
                   )}
-                  Generera om
+                  {t("webAnalysis.regenerate")}
                 </Button>
                 <Button
                   onClick={handleSend}

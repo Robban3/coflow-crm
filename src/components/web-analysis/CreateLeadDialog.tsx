@@ -262,16 +262,16 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Avbryt
+            {t("webAnalysis.cancel")}
           </Button>
           <Button onClick={handleSave} disabled={isSaving || !formData.companyName}>
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sparar...
+                {t("webAnalysis.saving")}
               </>
             ) : (
-              "Skapa lead"
+              t("webAnalysis.createLead")
             )}
           </Button>
         </DialogFooter>

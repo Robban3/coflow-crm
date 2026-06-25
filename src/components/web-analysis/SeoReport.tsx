@@ -201,7 +201,7 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
 
       toast({
         title: t("webAnalysis.seoDoneTitle"),
-        description: `Visibility score: ${data.data.visibility_score}/100${trafficMsg}`,
+        description: t("webAnalysis.seoScoreDesc", { score: data.data.visibility_score, traffic: trafficMsg }),
       });
     } catch (error) {
       console.error('SEO analysis error:', error);
@@ -307,10 +307,7 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
       {automatedAccessBlocked && (
         <div className="flex items-start gap-2 rounded-lg border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 px-3 py-2.5 text-xs text-amber-800 dark:text-amber-300">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-          <span>
-            Sajten blockerar automatiserade verktyg (bot-skydd), så on-page-datan
-            kan vara ofullständig. Kör Lighthouse i din webbläsare för en exakt bild.
-          </span>
+          <span>{t("webAnalysis.botBlockedNote")}</span>
         </div>
       )}
       {/* Visibility Score Header with Traffic Stats */}
@@ -354,8 +351,10 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
                 className="h-3"
               />
               <p className="text-sm text-muted-foreground mt-2">
-                Analyserad: {new Date(seoData.created_at).toLocaleDateString('sv-SE', { 
-                  year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                {t("webAnalysis.analyzedAt", {
+                  date: new Date(seoData.created_at).toLocaleDateString('sv-SE', {
+                    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                  })
                 })}
               </p>
             </div>
@@ -485,7 +484,7 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
                     <span className="font-medium">{kw.keyword}</span>
                     {kw.opportunity && <p className="text-sm text-muted-foreground">{kw.opportunity}</p>}
                   </div>
-                  <Badge variant="outline">Position ~{kw.estimated_position || kw.position || '?'}</Badge>
+                  <Badge variant="outline">{t("webAnalysis.positionApprox", { value: kw.estimated_position || kw.position || '?' })}</Badge>
                 </div>
               ))}
             </div>
@@ -509,7 +508,7 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
             <ChecklistItem checked={seoData.has_open_graph} label={t("webAnalysis.checkOpenGraph")} />
             <ChecklistItem checked={seoData.has_twitter_cards} label={t("webAnalysis.checkTwitterCards")} />
             <ChecklistItem checked={seoData.mobile_friendly} label={t("webAnalysis.checkMobileFriendly")} />
-            <ChecklistItem checked={seoData.h1_count === 1} label={`H1-tagg (${seoData.h1_count} st)`} />
+            <ChecklistItem checked={seoData.h1_count === 1} label={t("webAnalysis.checkH1", { count: seoData.h1_count })} />
           </CardContent>
         </Card>
 
@@ -527,16 +526,16 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
               <MetricItem
                 icon={FileText}
                 label={t("webAnalysis.metricImages")}
-                value={`${seoData.images_count} (${seoData.images_without_alt} utan alt)`} 
+                value={t("webAnalysis.imagesWithoutAlt", { count: seoData.images_count, withoutAlt: seoData.images_without_alt })}
                 warning={seoData.images_without_alt > 0}
               />
             </div>
             <div className="mt-4 pt-4 border-t">
-              <p className="text-sm text-muted-foreground mb-1">Titel ({seoData.title_tag?.length || 0} tecken)</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("webAnalysis.titleChars", { count: seoData.title_tag?.length || 0 })}</p>
               <p className="font-medium text-sm truncate">{seoData.title_tag || '—'}</p>
             </div>
             <div className="mt-3">
-              <p className="text-sm text-muted-foreground mb-1">Meta-beskrivning ({seoData.meta_description?.length || 0} tecken)</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("webAnalysis.metaDescriptionChars", { count: seoData.meta_description?.length || 0 })}</p>
               <p className="text-sm text-muted-foreground line-clamp-2">{seoData.meta_description || '—'}</p>
             </div>
           </CardContent>

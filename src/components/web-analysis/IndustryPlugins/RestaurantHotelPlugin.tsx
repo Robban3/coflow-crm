@@ -38,7 +38,7 @@ export function RestaurantHotelPlugin({ url, rawData }: RestaurantHotelPluginPro
           <FeatureItem 
             label={t("webAnalysis.featOnlineMenu")}
             present={features.hasMenu}
-            description={features.menuType === 'pdf' ? t("webAnalysis.featMenuPdf") : features.menuType === 'online' ? t("webAnalysis.featMenuOnline") : "Ingen meny synlig"}
+            description={features.menuType === 'pdf' ? t("webAnalysis.featMenuPdf") : features.menuType === 'online' ? t("webAnalysis.featMenuOnline") : t("webAnalysis.featMenuNone")}
             importance="high"
             warning={features.menuType === 'pdf'}
           />
