@@ -53,7 +53,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { analysisData } = await req.json() as { analysisData: TechnicalAnalysisData };
+    const { analysisData, market } = await req.json() as { analysisData: TechnicalAnalysisData; market?: string };
+    const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska" };
+    const lang = LANG_BY_MARKET[(market || "SE").toUpperCase()] || "svenska";
 
     if (!analysisData) {
       return new Response(
@@ -125,7 +127,9 @@ Ge 2-3 korta "visste du att"-fakta om webbprestanda som är relevanta för denna
 
 Lista de 3-5 viktigaste tekniska problemen och förklara VAD de är och VARFÖR de påverkar resultatet, på ett sätt som en icke-teknisk person förstår.
 
-Skriv på svenska. Var pedagogisk och uppmuntrande, inte dömande. Hjälp användaren förstå att dessa saker går att åtgärda.`;
+Var pedagogisk och uppmuntrande, inte dömande. Hjälp användaren förstå att dessa saker går att åtgärda.
+
+VIKTIGT: Skriv HELA svaret på ${lang}.`;
 
     console.log('Generating technical AI summary for:', analysisData.url);
 

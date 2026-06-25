@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, Loader2, GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getActiveMarket } from "@/hooks/useMarket";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { PageSpeedResult } from "@/lib/api/webAnalysis";
@@ -38,7 +39,7 @@ export function TechnicalAISummary({ result, url }: TechnicalAISummaryProps) {
       };
 
       const { data, error } = await supabase.functions.invoke("generate-technical-summary", {
-        body: { analysisData },
+        body: { analysisData, market: getActiveMarket() },
       });
 
       if (error) {

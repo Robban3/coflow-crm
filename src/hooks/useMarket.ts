@@ -19,6 +19,11 @@ function readStoredMarket(): Market {
   }
 }
 
+/** Read the active market outside React (e.g. in lib/api code that invokes edge functions). */
+export function getActiveMarket(): Market {
+  return readStoredMarket();
+}
+
 /**
  * Hook for the user's currently selected market (SE/US/DE).
  * Persists the choice in localStorage and synchronises across tabs/components

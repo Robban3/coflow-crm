@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getActiveMarket } from '@/hooks/useMarket';
 
 // Type for analysis records from DB
 interface Analysis {
@@ -231,7 +232,7 @@ export const webAnalysisApi = {
 
   async generateSummary(analysisData: PageSpeedResult & { url: string }, type: 'both' | 'technical' | 'customer' = 'both'): Promise<SummaryResponse> {
     const { data, error } = await supabase.functions.invoke('generate-analysis-summary', {
-      body: { analysisData, type },
+      body: { analysisData, type, market: getActiveMarket() },
     });
 
     if (error) {

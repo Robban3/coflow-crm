@@ -404,7 +404,8 @@ async function generateAiInsights(
   rankedKeywords: RankedKeyword[],
   url: string,
   apiKey: string,
-  lighthouseSeoScore: number | null = null
+  lighthouseSeoScore: number | null = null,
+  lang: string = "svenska"
 ): Promise<{ summary: string; opportunities: any[]; estimatedKeywords: any[]; visibilityScore: number }> {
   const hasRealRankings = rankedKeywords.length > 0;
   // Without real Google rankings, prefer Lighthouse's standardized SEO score
@@ -432,7 +433,7 @@ ${topKeywordsContext}`
 
   const prompt = `Du är en SEO-expert. Analysera följande FAKTISKA SEO-data för ${url} och ge:
 
-1. En kort sammanfattning (max 150 ord) på svenska om webbplatsens synlighet i Google baserat på dessa FAKTISKA mätvärden
+1. En kort sammanfattning (max 150 ord) på ${lang} om webbplatsens synlighet i Google baserat på dessa FAKTISKA mätvärden
 2. 3-5 konkreta förbättringsmöjligheter med prioritet (high/medium/low) baserat på de FAKTISKA bristerna
 3. Identifiera 5 potential-sökord som webbplatsen borde fokusera på (baserat på innehåll och nuvarande rankingar)
 4. Ge en visibility score 0-100 baserat på faktiska rankingar och on-page SEO
@@ -466,7 +467,7 @@ VIKTIGT: Om sajten har sökord som rankar i Google, inkludera konkreta tips för
       body: JSON.stringify({
         model: 'gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'Du är en SEO-expert som ger konkreta, säljbara insikter på svenska. Basera alltid dina svar på de faktiska mätvärdena - särskilt de riktiga Google-rankingarna från DataForSEO. Svara alltid med JSON.' },
+          { role: 'system', content: `Du är en SEO-expert som ger konkreta, säljbara insikter. Skriv ALLA textfält på ${lang}. Basera alltid dina svar på de faktiska mätvärdena - särskilt de riktiga Google-rankingarna från DataForSEO. Svara alltid med JSON.` },
           { role: 'user', content: prompt },
         ],
         tools: [
@@ -641,7 +642,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { url, webAnalysisId, leadId, organizationId } = await req.json();
+    const { url, webAnalysisId, leadId, organizationId, market } = await req.json();
+    const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska" };
+    const aiLang = LANG_BY_MARKET[(market || "SE").toUpperCase()] || "svenska";
 
     if (!url) {
       return new Response(
@@ -813,7 +816,7 @@ Deno.serve(async (req) => {
     }
 
     // Step 4: Generate AI insights with real keyword data
-    const aiInsights = await generateAiInsights(seoMetrics, rankedKeywords, formattedUrl, geminiApiKey, lighthouseSeoScore);
+    const aiInsights = await generateAiInsights(seoMetrics, rankedKeywords, formattedUrl, geminiApiKey, lighthouseSeoScore, aiLang);
 
     // Combine all results
     const result: SeoAnalysisResult = {

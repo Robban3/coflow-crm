@@ -14,6 +14,8 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const { leadId, domain: directDomain } = body;
+    const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska" };
+    const aiLang = LANG_BY_MARKET[(body.market || "SE").toUpperCase()] || "svenska";
     if (!leadId && !directDomain) throw new Error("leadId or domain required");
 
     const authHeader = req.headers.get("Authorization");
@@ -243,7 +245,7 @@ ${findingsSummary}
 GEO-POÄNG: ${geoScore}/100
 
 Ge mig:
-1. En kort sammanfattning (max 200 ord) på svenska om webbplatsens GEO/AI-synlighet
+1. En kort sammanfattning (max 200 ord) på ${aiLang} om webbplatsens GEO/AI-synlighet
 2. Topp 10 prioriterade åtgärder grupperade i quick_win, medium, long_term
 
 Svara som JSON:
@@ -269,7 +271,7 @@ Svara som JSON:
                   {
                     role: "system",
                     content:
-                      "Du är en expert på GEO (Generative Engine Optimization) och AI-synlighet. Du analyserar webbplatser och ger konkreta, prioriterade rekommendationer på svenska.",
+                      `Du är en expert på GEO (Generative Engine Optimization) och AI-synlighet. Du analyserar webbplatser och ger konkreta, prioriterade rekommendationer. Skriv ALLA textfält på ${aiLang}.`,
                   },
                   { role: "user", content: prompt },
                 ],

@@ -45,6 +45,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { webAnalysisApi, PageSpeedResult, normalizeUrl } from "@/lib/api/webAnalysis";
 import { supabase } from "@/integrations/supabase/client";
+import { getActiveMarket } from "@/hooks/useMarket";
 import { ScoreCard } from "@/components/web-analysis/ScoreCard";
 import { TechnicalReport } from "@/components/web-analysis/TechnicalReport";
 import { CustomerReport } from "@/components/web-analysis/CustomerReport";
@@ -543,7 +544,7 @@ export default function WebAnalysisPage() {
                         ? { leadId: linkedLead.id }
                         : { domain: currentUrl };
                       const res = await supabase.functions.invoke("run-geo-analysis", {
-                        body,
+                        body: { ...body, market: getActiveMarket() },
                       });
                       if (res.error) throw new Error(res.error.message);
                       toast({ title: t("webAnalysis.geoDoneTitle"), description: t("webAnalysis.geoScoreDesc", { score: res.data.geo_score }) });

@@ -48,7 +48,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { analysisData } = await req.json() as { analysisData: AnalysisData };
+    const { analysisData, market } = await req.json() as { analysisData: AnalysisData; market?: string };
+    const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska" };
+    const lang = LANG_BY_MARKET[(market || "SE").toUpperCase()] || "svenska";
 
     if (!analysisData) {
       return new Response(
@@ -59,7 +61,7 @@ Deno.serve(async (req) => {
 
 
     // Create a prompt for generating the summary
-    const prompt = `Du är en expert på webbprestanda och SEO. Analysera följande webbplatsresultat och ge en sammanfattning på svenska som är lätt att förstå för både kunden och säljare.
+    const prompt = `Du är en expert på webbprestanda och SEO. Analysera följande webbplatsresultat och ge en sammanfattning på ${lang} som är lätt att förstå för både kunden och säljare.
 
 Webbplats: ${analysisData.url}
 
@@ -92,7 +94,9 @@ Skriv din analys i följande format:
 
 4. **PRIORITERADE FÖRBÄTTRINGAR** (topp 3 åtgärder som bör göras, i prioriteringsordning)
 
-Håll språket enkelt och undvik teknisk jargong. Fokusera på affärsvärdet och användarupplevelsen.`;
+Håll språket enkelt och undvik teknisk jargong. Fokusera på affärsvärdet och användarupplevelsen.
+
+VIKTIGT: Skriv HELA svaret på ${lang}.`;
 
     console.log('Generating AI summary for:', analysisData.url);
 
