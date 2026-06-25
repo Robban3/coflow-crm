@@ -140,12 +140,12 @@ export function NotificationBell() {
               {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
           )}
-          <span className="sr-only">Notifikationer</span>
+          <span className="sr-only">{t("settings.notifications")}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between px-4 py-3 border-b">
-          <h3 className="font-semibold text-sm">Notifikationer</h3>
+          <h3 className="font-semibold text-sm">{t("settings.notifications")}</h3>
           {unreadCount > 0 && (
             <Button
               variant="ghost"

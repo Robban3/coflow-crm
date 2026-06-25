@@ -88,22 +88,22 @@ export function PricingPackageEditor({ open, onOpenChange, pkg, defaultCategory 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t("pricing.editor.category")}</Label>
-              <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Hemsidor" />
+              <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder={t("pricing.editor.categoryPlaceholder")} />
             </div>
             <div className="space-y-1.5">
               <Label>{t("pricing.editor.name")}</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Företagshemsida" />
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("pricing.editor.namePlaceholder")} />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t("pricing.editor.price")}</Label>
-              <Input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="från 18 000 kr" />
+              <Input value={price} onChange={(e) => setPrice(e.target.value)} placeholder={t("pricing.editor.pricePlaceholder")} />
             </div>
             <div className="space-y-1.5">
               <Label>{t("pricing.editor.unit")}</Label>
-              <Input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="engångs / /mån" />
+              <Input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder={t("pricing.editor.unitPlaceholder")} />
             </div>
           </div>
 

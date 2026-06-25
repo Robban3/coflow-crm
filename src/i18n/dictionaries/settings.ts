@@ -40,6 +40,11 @@ export const settingsDict: FeatureDictionary = {
     // Common
     "settings.cancel": "Avbryt",
     "settings.error": "Fel",
+    "settings.notifications": "Notifikationer",
+    "settings.themeToggle": "Byt tema",
+    "settings.themeLight": "Ljust",
+    "settings.themeDark": "Mörkt",
+    "settings.themeSystem": "System",
     "settings.saving": "Sparar...",
 
     // ProfileImageUpload
@@ -448,6 +453,11 @@ Vi hjälper företag att fokusera på sin kärnverksamhet medan vi tar hand om I
     // Common
     "settings.cancel": "Cancel",
     "settings.error": "Error",
+    "settings.notifications": "Notifications",
+    "settings.themeToggle": "Toggle theme",
+    "settings.themeLight": "Light",
+    "settings.themeDark": "Dark",
+    "settings.themeSystem": "System",
     "settings.saving": "Saving...",
 
     // ProfileImageUpload
@@ -856,6 +866,11 @@ We help companies focus on their core business while we take care of the IT.`,
     // Common
     "settings.cancel": "Cancelar",
     "settings.error": "Error",
+    "settings.notifications": "Notificaciones",
+    "settings.themeToggle": "Cambiar tema",
+    "settings.themeLight": "Claro",
+    "settings.themeDark": "Oscuro",
+    "settings.themeSystem": "Sistema",
     "settings.saving": "Guardando...",
 
     // ProfileImageUpload
