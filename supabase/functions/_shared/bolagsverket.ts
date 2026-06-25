@@ -13,10 +13,10 @@
 //   BOLAGSVERKET_SCOPE       - optional, defaults to "vardefulla-datamangder:read"
 //   BOLAGSVERKET_ORG_PATH    - optional, defaults to "/organisationer"
 //
-// NOTE: the exact request path and response field names should be confirmed
-// against the dev-portal OpenAPI spec. The lookup helpers therefore also return
-// the RAW response so the caller (POC) can reveal the true schema; normalisation
-// is best-effort and reads several likely field names.
+// The request body is { identitetsbeteckning: "<orgnr>" } and the response is
+// { organisationer: [ { ... } ] }; normalisation below is mapped against that
+// live schema. The helpers still return the RAW response alongside the
+// normalised object so callers can access fields we don't surface.
 
 import { fetchWithRetry } from "./http.ts";
 
@@ -118,40 +118,40 @@ async function bvPost(path: string, payload: Record<string, unknown>): Promise<R
   });
 }
 
-// ── normalisation (best-effort; verify field names against the spec) ──────────
-const pick = (obj: any, ...keys: string[]): any => {
-  for (const k of keys) {
-    if (obj && obj[k] !== undefined && obj[k] !== null && obj[k] !== "") return obj[k];
-  }
-  return null;
-};
-
+// ── normalisation (mapped against the live API response schema) ───────────────
 function normalize(raw: any): BolagsverketCompany {
-  // The API returns a list of organisations (one per requested org number).
-  const o = Array.isArray(raw)
-    ? raw[0]
-    : raw?.organisationer?.[0] ?? raw?.organisation ?? raw?.data ?? raw ?? {};
-  const addr = o?.postadress ?? o?.adress ?? o?.besoksadress ?? {};
-  const sni = o?.naringsgren ?? o?.sni ?? o?.naringsgrenskod ?? o?.naringsgrensLista ?? [];
-  const sniArr = Array.isArray(sni) ? sni : sni ? [sni] : [];
-  // Company name: confirmed schema nests names under organisationsnamnLista[].namn.
-  const namnLista = o?.organisationsnamn?.organisationsnamnLista ?? o?.organisationsnamnLista ?? [];
-  const primaryName = Array.isArray(namnLista) && namnLista[0]
-    ? pick(namnLista[0], "namn", "name")
-    : pick(o, "organisationsnamn", "namn", "foretagsnamn", "name");
+  // Response shape: { organisationer: [ { ...one per requested org... } ] }
+  const o = raw?.organisationer?.[0] ?? (Array.isArray(raw) ? raw[0] : raw) ?? {};
+
+  const addr = o?.postadressOrganisation?.postadress ?? {};
+  const sniArr: any[] = Array.isArray(o?.naringsgrenOrganisation?.sni)
+    ? o.naringsgrenOrganisation.sni
+    : [];
+  const namnLista = o?.organisationsnamn?.organisationsnamnLista ?? [];
+  const primaryName = Array.isArray(namnLista) && namnLista[0] ? namnLista[0].namn ?? null : null;
+
+  // Status: a deregistered org wins; otherwise the SCB "verksam" flag (JA/NEJ).
+  const status = o?.avregistreradOrganisation
+    ? "Avregistrerad"
+    : o?.verksamOrganisation?.kod === "JA"
+      ? "Aktiv"
+      : o?.verksamOrganisation?.kod === "NEJ"
+        ? "Ej verksam"
+        : null;
+
   return {
-    org_number: pick(o, "identitetsbeteckning", "organisationsnummer", "orgnr", "peOrgNr"),
+    org_number: o?.organisationsidentitet?.identitetsbeteckning ?? null,
     company_name: primaryName,
-    legal_form: pick(o, "organisationsform", "juridiskForm", "bolagsform", "legalForm"),
-    status: pick(o, "organisationsstatus", "status", "avregistrerad"),
-    address: pick(addr, "utdelningsadress", "gatuadress", "adressrad1", "address") ?? pick(o, "adress"),
-    postal_code: pick(addr, "postnummer", "postalCode"),
-    city: pick(addr, "postort", "ort", "city"),
-    sni_codes: sniArr.map((s: any) => pick(s, "kod", "snikod", "code") ?? String(s)).filter(Boolean),
-    sni_descriptions: sniArr.map((s: any) => pick(s, "beskrivning", "text", "description")).filter(Boolean),
-    business_description: pick(o, "verksamhetsbeskrivning", "verksamhet", "businessDescription"),
-    registration_date: pick(o, "registreringsdatum", "registreringsDatum", "bildatDatum"),
-    documents: o?.dokument ?? o?.handlingar ?? raw?.dokumentlista ?? [],
+    legal_form: o?.organisationsform?.klartext ?? o?.juridiskForm?.klartext ?? null,
+    status,
+    address: addr?.utdelningsadress ?? null,
+    postal_code: addr?.postnummer ?? null,
+    city: addr?.postort ?? null,
+    sni_codes: sniArr.map((s) => s?.kod).filter(Boolean),
+    sni_descriptions: sniArr.map((s) => s?.klartext).filter(Boolean),
+    business_description: o?.verksamhetsbeskrivning?.beskrivning ?? null,
+    registration_date: o?.organisationsdatum?.registreringsdatum ?? null,
+    documents: [],
   };
 }
 
@@ -159,27 +159,31 @@ function normalize(raw: any): BolagsverketCompany {
 export async function lookupByOrgNumber(orgNumber: string): Promise<BolagsverketResult> {
   const path = env("BOLAGSVERKET_ORG_PATH") ?? "/organisationer";
   try {
-    // The API takes a LIST of org numbers (identitetsbeteckningar).
-    const res = await bvPost(path, { identitetsbeteckningar: [orgNumber.replace(/\D/g, "")] });
+    // Request body: { identitetsbeteckning: "5560360793" } — single string, not a list.
+    const res = await bvPost(path, { identitetsbeteckning: orgNumber.replace(/\D/g, "") });
     const raw = await res.json().catch(() => null);
-    if (!res.ok) return { ok: false, error: `HTTP ${res.status}`, raw };
-    const fel = (raw as any)?.fel ?? (Array.isArray(raw) ? (raw as any)[0]?.fel : (raw as any)?.organisationer?.[0]?.fel);
-    if (fel?.typ) return { ok: false, error: `${fel.typ}: ${fel.felBeskrivning ?? ""}`.trim(), raw };
+    if (!res.ok) {
+      const msg = (raw as any)?.felBeskrivning ?? (raw as any)?.message ?? (raw as any)?.error;
+      return { ok: false, error: msg ? `HTTP ${res.status}: ${msg}` : `HTTP ${res.status}`, raw };
+    }
+    if (!Array.isArray((raw as any)?.organisationer) || (raw as any).organisationer.length === 0) {
+      return { ok: false, error: "Organisationen hittades inte", raw };
+    }
     return { ok: true, normalized: normalize(raw), raw };
   } catch (e) {
     return { ok: false, error: String(e) };
   }
 }
 
-/** Look up companies by organisationsnamn (name). Returns raw + best-effort normalized first hit. */
-export async function lookupByName(name: string): Promise<BolagsverketResult> {
-  const path = env("BOLAGSVERKET_ORG_PATH") ?? "/organisationer";
-  try {
-    const res = await bvPost(path, { organisationsnamn: name });
-    const raw = await res.json().catch(() => null);
-    if (!res.ok) return { ok: false, error: `HTTP ${res.status}`, raw };
-    return { ok: true, normalized: normalize(raw), raw };
-  } catch (e) {
-    return { ok: false, error: String(e) };
-  }
+/**
+ * The Värdefulla datamängder API only looks organisations up by
+ * identitetsbeteckning (org number) — there is no free-text name search. Name →
+ * org-number resolution must come from the bulk register, so this is a clear
+ * no-op rather than a broken request.
+ */
+export function lookupByName(_name: string): Promise<BolagsverketResult> {
+  return Promise.resolve({
+    ok: false,
+    error: "Bolagsverket-API:t stöder bara uppslag på organisationsnummer, inte namn.",
+  });
 }
