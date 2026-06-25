@@ -213,6 +213,7 @@ async function stepBolagsverket(
       city: c.city,
       sni_codes: c.sni_codes.length ? c.sni_codes.join(", ") : null,
       sni_descriptions: c.sni_descriptions.length ? c.sni_descriptions.join("; ") : null,
+      business_description: c.business_description,
     };
     const { error } = await supabase
       .from("company_registry")
