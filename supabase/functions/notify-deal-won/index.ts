@@ -55,8 +55,6 @@ serve(async (req) => {
       }
     }
 
-    if (!organizationId) return json({ sent: false, reason: "no organization" });
-
     // Seller name
     let sellerName = "En säljare";
     if (seller) {
@@ -64,21 +62,26 @@ serve(async (req) => {
       sellerName = p?.full_name || p?.email || sellerName;
     }
 
-    // Admin recipients in the same org
+    // Recipients: ALWAYS notify Robert & Oliver, plus any org admins (best-effort
+    // enrichment). Never bail out on missing org/admin data — the guaranteed
+    // recipients must always get the mail.
+    const GUARANTEED = ["robert@applabbet.com", "oliver@applabbet.com"];
+    let adminEmails: string[] = [];
     const { data: adminRoles } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
     const adminIds = (adminRoles ?? []).map((r: { user_id: string }) => r.user_id);
-    if (adminIds.length === 0) return json({ sent: false, reason: "no admins" });
+    if (adminIds.length > 0) {
+      let q = supabase.from("profiles").select("email").in("id", adminIds);
+      if (organizationId) q = q.eq("organization_id", organizationId);
+      const { data: admins } = await q;
+      adminEmails = (admins ?? []).map((a: { email: string | null }) => a.email).filter(Boolean) as string[];
+    }
+    const recipients = [...new Set([...GUARANTEED, ...adminEmails])];
 
-    const { data: admins } = await supabase
-      .from("profiles")
-      .select("email")
-      .in("id", adminIds)
-      .eq("organization_id", organizationId);
-    const adminEmails = (admins ?? []).map((a: { email: string | null }) => a.email).filter(Boolean) as string[];
-    if (adminEmails.length === 0) return json({ sent: false, reason: "no admin emails" });
-
-    const { data: org } = await supabase.from("organizations").select("name").eq("id", organizationId).single();
-    const orgName = org?.name || "CoFlow";
+    let orgName = "CoFlow";
+    if (organizationId) {
+      const { data: org } = await supabase.from("organizations").select("name").eq("id", organizationId).single();
+      orgName = org?.name || "CoFlow";
+    }
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY_PLATFORM") || Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) throw new Error("RESEND_API_KEY not configured");
@@ -106,12 +109,12 @@ serve(async (req) => {
 
     await resend.emails.send({
       from: `${orgName} <mail@coflow.se>`,
-      to: adminEmails,
+      to: recipients,
       subject,
       html,
     });
 
-    return json({ sent: true, recipients: adminEmails.length });
+    return json({ sent: true, recipients: recipients.length });
   } catch (e) {
     return json({ sent: false, error: String(e) }, 500);
   }

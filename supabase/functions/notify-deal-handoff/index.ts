@@ -4,7 +4,7 @@ import { Resend } from "npm:resend@2.0.0";
 
 // Emails the onboarding/handoff details (filled in by the seller when a deal is
 // won) to the onboarding recipient. Best-effort.
-const RECIPIENT = "robert@applabbet.com";
+const RECIPIENTS = ["robert@applabbet.com", "oliver@applabbet.com"];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -66,7 +66,7 @@ serve(async (req) => {
 
     await resend.emails.send({
       from: `${orgName} <mail@coflow.se>`,
-      to: [RECIPIENT],
+      to: RECIPIENTS,
       subject: `Vunnen affär: ${h.company_name} – av ${sellerName}`,
       html,
     });
