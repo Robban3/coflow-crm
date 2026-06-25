@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { pickLocalized } from "@/lib/localized";
 import { useAuth } from "@/hooks/useAuth";
 import { usePricingPackages, type PricingPackage } from "@/hooks/usePricingPackages";
 import { PricingPackageEditor } from "@/components/pricing/PricingPackageEditor";
 
 export default function PricingPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { toast } = useToast();
   const { isAdmin } = useAuth();
   const { packages, isLoading, deletePackage } = usePricingPackages();
@@ -81,7 +82,9 @@ export default function PricingPage() {
           groups.map((group) => (
             <section key={group.category} className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">{group.category}</h2>
+                <h2 className="text-lg font-semibold">
+                  {pickLocalized(language, group.category, group.items[0]?.category_en, group.items[0]?.category_es)}
+                </h2>
                 {isAdmin && (
                   <Button variant="ghost" size="sm" onClick={() => openNew(group.category)}>
                     <Plus className="h-4 w-4 mr-1" />
@@ -90,7 +93,13 @@ export default function PricingPage() {
                 )}
               </div>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {group.items.map((pkg) => (
+                {group.items.map((pkg) => {
+                  const name = pickLocalized(language, pkg.name, pkg.name_en, pkg.name_es);
+                  const price = pickLocalized(language, pkg.price, pkg.price_en, pkg.price_es);
+                  const unit = pickLocalized(language, pkg.unit, pkg.unit_en, pkg.unit_es);
+                  const description = pickLocalized(language, pkg.description, pkg.description_en, pkg.description_es);
+                  const features = pickLocalized(language, pkg.features, pkg.features_en, pkg.features_es) ?? [];
+                  return (
                   <article
                     key={pkg.id}
                     className={cn(
@@ -106,7 +115,7 @@ export default function PricingPage() {
                     )}
 
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold">{pkg.name}</h3>
+                      <h3 className="font-semibold">{name}</h3>
                       {isAdmin && (
                         <div className="flex items-center gap-1 shrink-0 -mt-1 -mr-1">
                           <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(pkg)}>
@@ -124,20 +133,20 @@ export default function PricingPage() {
                       )}
                     </div>
 
-                    {pkg.price && (
+                    {price && (
                       <div className="mt-1 mb-3">
-                        <span className="text-xl font-bold">{pkg.price}</span>
-                        {pkg.unit && <span className="text-sm text-muted-foreground ml-1">{pkg.unit}</span>}
+                        <span className="text-xl font-bold">{price}</span>
+                        {unit && <span className="text-sm text-muted-foreground ml-1">{unit}</span>}
                       </div>
                     )}
 
-                    {pkg.description && (
-                      <p className="text-sm text-muted-foreground mb-3">{pkg.description}</p>
+                    {description && (
+                      <p className="text-sm text-muted-foreground mb-3">{description}</p>
                     )}
 
-                    {pkg.features.length > 0 && (
+                    {features.length > 0 && (
                       <ul className="space-y-1.5 mt-auto">
-                        {pkg.features.map((f, i) => (
+                        {features.map((f, i) => (
                           <li key={i} className="flex items-start gap-2 text-sm">
                             <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                             <span>{f}</span>
@@ -146,7 +155,8 @@ export default function PricingPage() {
                       </ul>
                     )}
                   </article>
-                ))}
+                  );
+                })}
               </div>
             </section>
           ))

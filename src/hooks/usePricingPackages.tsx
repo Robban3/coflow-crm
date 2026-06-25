@@ -14,6 +14,19 @@ export interface PricingPackage {
   highlighted: boolean;
   sort_order: number;
   is_active: boolean;
+  // Localised variants (en/es); base columns are the Swedish/primary + fallback.
+  category_en?: string | null;
+  category_es?: string | null;
+  name_en?: string | null;
+  name_es?: string | null;
+  price_en?: string | null;
+  price_es?: string | null;
+  unit_en?: string | null;
+  unit_es?: string | null;
+  description_en?: string | null;
+  description_es?: string | null;
+  features_en?: string[] | null;
+  features_es?: string[] | null;
 }
 
 export interface PricingPackageInput {
@@ -25,6 +38,36 @@ export interface PricingPackageInput {
   features?: string[];
   highlighted?: boolean;
   sort_order?: number;
+  category_en?: string | null;
+  category_es?: string | null;
+  name_en?: string | null;
+  name_es?: string | null;
+  price_en?: string | null;
+  price_es?: string | null;
+  unit_en?: string | null;
+  unit_es?: string | null;
+  description_en?: string | null;
+  description_es?: string | null;
+  features_en?: string[] | null;
+  features_es?: string[] | null;
+}
+
+// Localised text/array columns shared by insert + update.
+function i18nColumns(input: PricingPackageInput) {
+  return {
+    category_en: input.category_en ?? null,
+    category_es: input.category_es ?? null,
+    name_en: input.name_en ?? null,
+    name_es: input.name_es ?? null,
+    price_en: input.price_en ?? null,
+    price_es: input.price_es ?? null,
+    unit_en: input.unit_en ?? null,
+    unit_es: input.unit_es ?? null,
+    description_en: input.description_en ?? null,
+    description_es: input.description_es ?? null,
+    features_en: input.features_en ?? null,
+    features_es: input.features_es ?? null,
+  };
 }
 
 export function usePricingPackages() {
@@ -65,6 +108,7 @@ export function usePricingPackages() {
         highlighted: input.highlighted ?? false,
         sort_order: input.sort_order ?? max + 1,
         created_by: user?.id ?? null,
+        ...i18nColumns(input),
       });
       if (error) throw error;
     },
@@ -82,6 +126,7 @@ export function usePricingPackages() {
           description: input.description ?? null,
           features: input.features ?? [],
           highlighted: input.highlighted ?? false,
+          ...i18nColumns(input),
         })
         .eq("id", id);
       if (error) throw error;
