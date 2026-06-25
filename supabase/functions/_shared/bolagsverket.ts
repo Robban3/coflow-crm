@@ -110,16 +110,21 @@ const pick = (obj: any, ...keys: string[]): any => {
 };
 
 function normalize(raw: any): BolagsverketCompany {
-  // The API may wrap the org in an array / "organisationer" / "organisation".
+  // The API returns a list of organisations (one per requested org number).
   const o = Array.isArray(raw)
     ? raw[0]
     : raw?.organisationer?.[0] ?? raw?.organisation ?? raw?.data ?? raw ?? {};
   const addr = o?.postadress ?? o?.adress ?? o?.besoksadress ?? {};
-  const sni = o?.naringsgren ?? o?.sni ?? o?.naringsgrenskod ?? [];
+  const sni = o?.naringsgren ?? o?.sni ?? o?.naringsgrenskod ?? o?.naringsgrensLista ?? [];
   const sniArr = Array.isArray(sni) ? sni : sni ? [sni] : [];
+  // Company name: confirmed schema nests names under organisationsnamnLista[].namn.
+  const namnLista = o?.organisationsnamn?.organisationsnamnLista ?? o?.organisationsnamnLista ?? [];
+  const primaryName = Array.isArray(namnLista) && namnLista[0]
+    ? pick(namnLista[0], "namn", "name")
+    : pick(o, "organisationsnamn", "namn", "foretagsnamn", "name");
   return {
     org_number: pick(o, "identitetsbeteckning", "organisationsnummer", "orgnr", "peOrgNr"),
-    company_name: pick(o, "organisationsnamn", "namn", "foretagsnamn", "name"),
+    company_name: primaryName,
     legal_form: pick(o, "organisationsform", "juridiskForm", "bolagsform", "legalForm"),
     status: pick(o, "organisationsstatus", "status", "avregistrerad"),
     address: pick(addr, "utdelningsadress", "gatuadress", "adressrad1", "address") ?? pick(o, "adress"),
@@ -137,9 +142,12 @@ function normalize(raw: any): BolagsverketCompany {
 export async function lookupByOrgNumber(orgNumber: string): Promise<BolagsverketResult> {
   const path = env("BOLAGSVERKET_ORG_PATH") ?? "/organisationer";
   try {
-    const res = await bvPost(path, { identitetsbeteckning: orgNumber.replace(/\D/g, "") });
+    // The API takes a LIST of org numbers (identitetsbeteckningar).
+    const res = await bvPost(path, { identitetsbeteckningar: [orgNumber.replace(/\D/g, "")] });
     const raw = await res.json().catch(() => null);
     if (!res.ok) return { ok: false, error: `HTTP ${res.status}`, raw };
+    const fel = (raw as any)?.fel ?? (Array.isArray(raw) ? (raw as any)[0]?.fel : (raw as any)?.organisationer?.[0]?.fel);
+    if (fel?.typ) return { ok: false, error: `${fel.typ}: ${fel.felBeskrivning ?? ""}`.trim(), raw };
     return { ok: true, normalized: normalize(raw), raw };
   } catch (e) {
     return { ok: false, error: String(e) };
