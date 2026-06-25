@@ -6,7 +6,7 @@
 // the (warm) function instance.
 //
 // Configuration via Supabase secrets (set these before use):
-//   BOLAGSVERKET_TOKEN_URL   - OAuth2 token endpoint (from the dev portal)
+//   BOLAGSVERKET_TOKEN_URL   - optional, defaults to portal.api.bolagsverket.se/oauth2/token
 //   BOLAGSVERKET_BASE_URL    - API base URL (prod or test)
 //   BOLAGSVERKET_CLIENT_ID
 //   BOLAGSVERKET_CLIENT_SECRET
@@ -54,7 +54,7 @@ async function getToken(): Promise<string> {
   if (cachedToken && cachedToken.expiresAt > Date.now() + 60_000) {
     return cachedToken.value;
   }
-  const tokenUrl = env("BOLAGSVERKET_TOKEN_URL");
+  const tokenUrl = env("BOLAGSVERKET_TOKEN_URL") ?? "https://portal.api.bolagsverket.se/oauth2/token";
   const clientId = env("BOLAGSVERKET_CLIENT_ID");
   const clientSecret = env("BOLAGSVERKET_CLIENT_SECRET");
   const scope = env("BOLAGSVERKET_SCOPE") ?? "vardefulla-datamangder:read";
