@@ -184,7 +184,7 @@ export function GrowthReportPricingSettings() {
 
         <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-          Spara priskonfiguration
+          {t("reports.pricing.save")}
         </Button>
       </CardContent>
     </Card>

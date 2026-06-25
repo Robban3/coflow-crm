@@ -31,9 +31,9 @@ export default function TicketsPage() {
 
         <Tabs defaultValue="kanban">
           <TabsList>
-            <TabsTrigger value="kanban" className="flex items-center gap-1"><BarChart3 className="h-3.5 w-3.5" /> Kanban</TabsTrigger>
-            <TabsTrigger value="list" className="flex items-center gap-1"><List className="h-3.5 w-3.5" /> Lista</TabsTrigger>
-            <TabsTrigger value="mine" className="flex items-center gap-1"><User className="h-3.5 w-3.5" /> Mina ärenden</TabsTrigger>
+            <TabsTrigger value="kanban" className="flex items-center gap-1"><BarChart3 className="h-3.5 w-3.5" /> {t("tickets.tab.kanban")}</TabsTrigger>
+            <TabsTrigger value="list" className="flex items-center gap-1"><List className="h-3.5 w-3.5" /> {t("tickets.tab.list")}</TabsTrigger>
+            <TabsTrigger value="mine" className="flex items-center gap-1"><User className="h-3.5 w-3.5" /> {t("tickets.tab.mine")}</TabsTrigger>
           </TabsList>
           <TabsContent value="kanban">
             <TicketKanban key={`kanban-${refreshKey}`} />

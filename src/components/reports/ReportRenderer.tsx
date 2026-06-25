@@ -79,7 +79,7 @@ const buildSeverityConfig = (t: TranslateFn): Record<string, { label: string; co
 });
 
 const buildPriorityConfig = (t: TranslateFn): Record<string, { label: string; timeline: string; icon: typeof Zap }> => ({
-  quick_win: { label: t("reports.renderer.priorityQuickWin"), timeline: "0–30 dagar", icon: Zap },
+  quick_win: { label: t("reports.renderer.priorityQuickWin"), timeline: t("reports.renderer.timelineQuickWin"), icon: Zap },
   medium: { label: t("reports.renderer.priorityMedium"), timeline: t("reports.renderer.timelineMedium"), icon: Target },
   long_term: { label: t("reports.renderer.priorityLongTerm"), timeline: t("reports.renderer.timelineLongTerm"), icon: Clock },
 });
@@ -405,7 +405,7 @@ export function ReportRenderer({ data, publicMode, reportId, leadId }: Props) {
             <div className="rounded-xl border bg-muted/20 p-5 text-xs text-muted-foreground leading-relaxed space-y-2">
               <p>{t("reports.renderer.techCrawlNote", { domain: data.meta.domain || t("reports.renderer.theWebsite") })}</p>
               <p>{t("reports.renderer.techMethod")}</p>
-              <p>Genererad: {data.meta.createdAt ? new Date(data.meta.createdAt).toLocaleString("sv-SE") : t("reports.renderer.unknownDate")}</p>
+              <p>{t("reports.renderer.techGenerated", { date: data.meta.createdAt ? new Date(data.meta.createdAt).toLocaleString("sv-SE") : t("reports.renderer.unknownDate") })}</p>
             </div>
           </CollapsibleContent>
         </Collapsible>

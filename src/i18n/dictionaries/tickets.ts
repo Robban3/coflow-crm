@@ -100,6 +100,18 @@ export const ticketsDict: FeatureDictionary = {
     "tickets.toast.createFailed": "Kunde inte skapa ärende",
     "tickets.toast.fetchFailed": "Kunde inte hämta ärenden",
     "tickets.toast.updateFailed": "Kunde inte uppdatera",
+
+    // Deal handoff
+    "tickets.handoff.title": "Vunnen affär – onboarding",
+    "tickets.handoff.company": "Företag",
+    "tickets.handoff.contact": "Kontaktperson",
+    "tickets.handoff.email": "E-post",
+    "tickets.handoff.phone": "Telefon",
+    "tickets.handoff.productService": "Produkt/tjänst",
+    "tickets.handoff.onboarding": "Onboarding",
+    "tickets.handoff.sellerNotes": "Säljarens anteckningar",
+    "tickets.handoff.customerGoal": "Kundens mål",
+    "tickets.handoff.promises": "Löften / överenskommelser",
   },
   en: {
     // Page
@@ -200,6 +212,18 @@ export const ticketsDict: FeatureDictionary = {
     "tickets.toast.createFailed": "Could not create ticket",
     "tickets.toast.fetchFailed": "Could not fetch tickets",
     "tickets.toast.updateFailed": "Could not update",
+
+    // Deal handoff
+    "tickets.handoff.title": "Won deal – onboarding",
+    "tickets.handoff.company": "Company",
+    "tickets.handoff.contact": "Contact person",
+    "tickets.handoff.email": "Email",
+    "tickets.handoff.phone": "Phone",
+    "tickets.handoff.productService": "Product/service",
+    "tickets.handoff.onboarding": "Onboarding",
+    "tickets.handoff.sellerNotes": "Seller's notes",
+    "tickets.handoff.customerGoal": "Customer's goal",
+    "tickets.handoff.promises": "Promises / agreements",
   },
   es: {
     // Page
@@ -300,5 +324,17 @@ export const ticketsDict: FeatureDictionary = {
     "tickets.toast.createFailed": "No se pudo crear el ticket",
     "tickets.toast.fetchFailed": "No se pudieron obtener los tickets",
     "tickets.toast.updateFailed": "No se pudo actualizar",
+
+    // Deal handoff
+    "tickets.handoff.title": "Negocio ganado – incorporación",
+    "tickets.handoff.company": "Empresa",
+    "tickets.handoff.contact": "Persona de contacto",
+    "tickets.handoff.email": "Correo",
+    "tickets.handoff.phone": "Teléfono",
+    "tickets.handoff.productService": "Producto/servicio",
+    "tickets.handoff.onboarding": "Incorporación",
+    "tickets.handoff.sellerNotes": "Notas del vendedor",
+    "tickets.handoff.customerGoal": "Objetivo del cliente",
+    "tickets.handoff.promises": "Promesas / acuerdos",
   },
 };

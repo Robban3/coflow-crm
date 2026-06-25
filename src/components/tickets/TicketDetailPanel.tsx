@@ -60,19 +60,19 @@ export function TicketDetailPanel({ ticket, open, onClose, onUpdated }: Props) {
             const handoff = (ticket.metadata as any)?.deal_handoff;
             if (handoff) {
               const rows: Array<[string, string | null | undefined]> = [
-                ["Företag", handoff.company_name],
-                ["Kontaktperson", handoff.contact_name],
-                ["E-post", handoff.email],
-                ["Telefon", handoff.phone],
-                ["Produkt/tjänst", handoff.product_service],
-                ["Onboarding", [handoff.onboarding_date, handoff.onboarding_time].filter(Boolean).join(" ")],
-                ["Säljarens anteckningar", handoff.seller_notes],
-                ["Kundens mål", handoff.customer_goal],
-                ["Löften / överenskommelser", handoff.promises],
+                [t("tickets.handoff.company"), handoff.company_name],
+                [t("tickets.handoff.contact"), handoff.contact_name],
+                [t("tickets.handoff.email"), handoff.email],
+                [t("tickets.handoff.phone"), handoff.phone],
+                [t("tickets.handoff.productService"), handoff.product_service],
+                [t("tickets.handoff.onboarding"), [handoff.onboarding_date, handoff.onboarding_time].filter(Boolean).join(" ")],
+                [t("tickets.handoff.sellerNotes"), handoff.seller_notes],
+                [t("tickets.handoff.customerGoal"), handoff.customer_goal],
+                [t("tickets.handoff.promises"), handoff.promises],
               ];
               return (
                 <div className="space-y-3">
-                  <p className="text-sm font-semibold text-foreground">Vunnen affär – onboarding</p>
+                  <p className="text-sm font-semibold text-foreground">{t("tickets.handoff.title")}</p>
                   {rows.map(([label, value]) =>
                     value && String(value).trim() ? (
                       <div key={label} className="space-y-0.5">

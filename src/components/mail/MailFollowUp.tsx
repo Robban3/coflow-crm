@@ -268,7 +268,7 @@ export function MailFollowUp() {
       {selected.size > 0 && (
         <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
           <span className="text-sm font-medium">
-            {selected.size} lead(s) valda
+            {t("mail.followUp.selectedCount", { count: selected.size })}
           </span>
           <Button
             size="sm"
@@ -281,7 +281,7 @@ export function MailFollowUp() {
             onClick={() => openNotInterested(Array.from(selected))}
           >
             <XCircle className="h-4 w-4 mr-1" />
-            Ej intresserad
+            {t("mail.followUp.notInterested")}
           </Button>
         </div>
       )}
@@ -298,8 +298,8 @@ export function MailFollowUp() {
                   />
                 </TableHead>
                 <TableHead>{t("mail.followUp.company")}</TableHead>
-                <TableHead className="hidden md:table-cell">Kontakt</TableHead>
-                <TableHead className="hidden sm:table-cell">E-post</TableHead>
+                <TableHead className="hidden md:table-cell">{t("mail.followUp.contact")}</TableHead>
+                <TableHead className="hidden sm:table-cell">{t("mail.followUp.emailCol")}</TableHead>
                 <TableHead className="hidden lg:table-cell">{t("mail.followUp.lastContactLabel")}</TableHead>
                 <TableHead className="text-right">{t("mail.followUp.actions")}</TableHead>
               </TableRow>
@@ -336,7 +336,7 @@ export function MailFollowUp() {
                       <Clock className="h-3 w-3" />
                       {formatDistanceToNow(new Date(lead.last_contact_at), {
                         addSuffix: true,
-                        locale: sv,
+                        locale: dateLocale,
                       })}
                     </span>
                   </TableCell>
@@ -381,7 +381,7 @@ export function MailFollowUp() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <Label htmlFor="ni-reason">Anledning (valfritt)</Label>
+            <Label htmlFor="ni-reason">{t("mail.followUp.reasonLabel")}</Label>
             <Textarea
               id="ni-reason"
               value={reason}
@@ -403,7 +403,7 @@ export function MailFollowUp() {
               {markingLoading && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
-              Bekräfta
+              {t("mail.followUp.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

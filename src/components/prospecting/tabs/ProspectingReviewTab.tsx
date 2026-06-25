@@ -537,7 +537,7 @@ export default function ProspectingReviewTab() {
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={() => sendMutation.mutate(selectedSendable)}>
-              Skicka
+              {t("prospecting.rev_send")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
