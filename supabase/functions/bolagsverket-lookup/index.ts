@@ -7,7 +7,8 @@ import { lookupByName, lookupByOrgNumber } from "../_shared/bolagsverket.ts";
 // AND the raw API response (so the exact schema can be confirmed during the POC).
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 function json(body: unknown, status = 200) {
