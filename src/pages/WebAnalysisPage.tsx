@@ -575,10 +575,10 @@ export default function WebAnalysisPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-lg font-semibold">
                 <Building2 className="h-5 w-5" />
-                Branschspecifik analys
+                {t("webAnalysis.industryTitle")}
               </div>
               <p className="text-sm text-muted-foreground">
-                Ytterligare analyser baserat på vanliga branschkrav
+                {t("webAnalysis.industryDesc")}
               </p>
               <div className="grid gap-4 lg:grid-cols-2">
                 <ServiceBusinessPlugin url={currentUrl} rawData={currentResult} />

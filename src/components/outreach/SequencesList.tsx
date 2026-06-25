@@ -44,7 +44,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { sv, enUS, es } from "date-fns/locale";
-import { useMarket, MARKET_FLAG, MARKET_LABEL, type Market } from "@/hooks/useMarket";
+import { useMarket, MARKET_FLAG, type Market } from "@/hooks/useMarket";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
 // Suggested defaults for delay_days per market and step number (1-indexed)
@@ -295,7 +295,7 @@ export function SequencesList() {
                   <TableRow key={sequence.id}>
                     <TableCell className="font-medium">
                       <span className="inline-flex items-center gap-2">
-                        <span aria-label={MARKET_LABEL[(sequence.market ?? "SE") as Market]} title={MARKET_LABEL[(sequence.market ?? "SE") as Market]}>
+                        <span aria-label={t(`market.${(sequence.market ?? "SE")}`)} title={t(`market.${(sequence.market ?? "SE")}`)}>
                           {MARKET_FLAG[(sequence.market ?? "SE") as Market]}
                         </span>
                         {sequence.name}
@@ -379,9 +379,10 @@ export function SequencesList() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SE">{MARKET_FLAG.SE} {MARKET_LABEL.SE}</SelectItem>
-                  <SelectItem value="US">{MARKET_FLAG.US} {MARKET_LABEL.US}</SelectItem>
-                  <SelectItem value="DE">{MARKET_FLAG.DE} {MARKET_LABEL.DE}</SelectItem>
+                  <SelectItem value="SE">{MARKET_FLAG.SE} {t("market.SE")}</SelectItem>
+                  <SelectItem value="US">{MARKET_FLAG.US} {t("market.US")}</SelectItem>
+                  <SelectItem value="DE">{MARKET_FLAG.DE} {t("market.DE")}</SelectItem>
+                  <SelectItem value="ES">{MARKET_FLAG.ES} {t("market.ES")}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">{t("outreach.seq.marketHint")}</p>
