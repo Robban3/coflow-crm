@@ -158,17 +158,18 @@ export default function ProspectingSearchTab() {
   const [isRegistryImporting, setIsRegistryImporting] = useState(false);
 
   // Org numbers already imported as leads, for hiding them from register hits.
+  // Leads are private (RLS scopes them per owner), so we go through the org-wide
+  // get_org_lead_claims() RPC: a company imported by ANYONE in the org is hidden
+  // for everyone, so two salespeople can't claim the same company.
   const { data: registryExistingOrg } = useQuery({
     queryKey: ["prospecting-lead-orgnumbers", orgId],
     enabled: !!orgId,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("leads")
-        .select("org_number")
-        .eq("organization_id", orgId)
-        .not("org_number", "is", null);
+      const { data } = await (supabase as any).rpc("get_org_lead_claims");
       return new Set(
-        (data ?? []).map((d: any) => String(d.org_number).replace(/\D/g, "")).filter(Boolean),
+        (data ?? [])
+          .map((d: any) => String(d.org_number ?? "").replace(/\D/g, ""))
+          .filter(Boolean),
       );
     },
   });
