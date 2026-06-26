@@ -80,6 +80,9 @@ export default function WebAnalysisPage() {
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+  // Tracks the viewId we've already loaded, so the loader effect doesn't re-run
+  // on every `analyses` change and clobber a freshly-run analysis.
+  const handledViewIdRef = useRef<string | null>(null);
    const [activeReportTab, setActiveReportTab] = useState<"customer" | "technical" | "seo" | "geo">("customer");
   const [isRunningGeo, setIsRunningGeo] = useState(false);
   const [savedAnalysisId, setSavedAnalysisId] = useState<string | null>(null);
@@ -113,10 +116,17 @@ export default function WebAnalysisPage() {
     const loadAnalysisById = async () => {
       const viewId = searchParams.get('viewId');
       if (!viewId) return;
-      
+      // Load a given viewId only once. Without this, the effect re-fires on
+      // every `analyses` change — e.g. right after running and saving a new
+      // analysis (fetchAnalyses updates `analyses` ~2s later) — and re-applies
+      // the stale viewId, reverting the fresh result to an old, often
+      // scoreless/red analysis. That was the "scores turn red after 2s" bug.
+      if (handledViewIdRef.current === viewId) return;
+
       // First check if it's in the already loaded analyses
       const existingAnalysis = analyses.find(a => a.id === viewId);
       if (existingAnalysis) {
+        handledViewIdRef.current = viewId;
         setSelectedAnalysis(existingAnalysis);
         setCurrentResult(existingAnalysis.raw_data);
         setCurrentUrl(existingAnalysis.url);
@@ -137,6 +147,7 @@ export default function WebAnalysisPage() {
           .maybeSingle();
         
         if (!error && data) {
+          handledViewIdRef.current = viewId;
           const analysis: Analysis = {
             ...data,
             raw_data: data.raw_data as unknown as PageSpeedResult | null,
@@ -571,8 +582,8 @@ export default function WebAnalysisPage() {
                </TabsContent>
             </Tabs>
 
-            {/* Industry-specific Analysis Plugins */}
-            <div className="space-y-4">
+            {/* Industry-specific Analysis Plugins — hidden for now (not used). */}
+            {/* <div className="space-y-4">
               <div className="flex items-center gap-2 text-lg font-semibold">
                 <Building2 className="h-5 w-5" />
                 {t("webAnalysis.industryTitle")}
@@ -584,7 +595,7 @@ export default function WebAnalysisPage() {
                 <ServiceBusinessPlugin url={currentUrl} rawData={currentResult} />
                 <RestaurantHotelPlugin url={currentUrl} rawData={currentResult} />
               </div>
-            </div>
+            </div> */}
           </div>
         )}
 

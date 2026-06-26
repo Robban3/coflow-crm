@@ -66,15 +66,20 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
   const rating = getOverallRating();
   const RatingIcon = rating.icon;
 
+  const hasLcp = typeof result.metrics?.largestContentfulPaint === "number";
   const lcp = result.metrics?.largestContentfulPaint ?? 0;
+  const hasSeo = typeof result.seo_score === "number";
 
   const quickInsights = [
     {
       icon: Zap,
       title: t("webAnalysis.insightLoadTime"),
-      value: result.metrics ? webAnalysisApi.formatTime(lcp) : "N/A",
-      status: lcp <= 2500 ? "good" : lcp <= 4000 ? "warning" : "bad",
-      description: lcp <= 2500
+      // Don't claim "fast loading" when there's no metric — show a neutral note.
+      value: hasLcp ? webAnalysisApi.formatTime(lcp) : "N/A",
+      status: !hasLcp ? "warning" : lcp <= 2500 ? "good" : lcp <= 4000 ? "warning" : "bad",
+      description: !hasLcp
+        ? t("webAnalysis.insightNoData")
+        : lcp <= 2500
         ? t("webAnalysis.insightLoadTimeGood")
         : lcp <= 4000
         ? t("webAnalysis.insightLoadTimeWarning")
@@ -83,9 +88,11 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
     {
       icon: Target,
       title: t("webAnalysis.insightGoogleVisibility"),
-      value: typeof result.seo_score === "number" ? `${result.seo_score}/100` : "N/A",
-      status: result.seo_score >= 90 ? "good" : result.seo_score >= 50 ? "warning" : "bad",
-      description: result.seo_score >= 90
+      value: hasSeo ? `${result.seo_score}/100` : "N/A",
+      status: !hasSeo ? "warning" : result.seo_score >= 90 ? "good" : result.seo_score >= 50 ? "warning" : "bad",
+      description: !hasSeo
+        ? t("webAnalysis.insightNoData")
+        : result.seo_score >= 90
         ? t("webAnalysis.insightGoogleVisibilityGood")
         : result.seo_score >= 50
         ? t("webAnalysis.insightGoogleVisibilityWarning")
