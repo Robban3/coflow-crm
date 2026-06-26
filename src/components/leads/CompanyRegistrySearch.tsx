@@ -213,6 +213,25 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
     performSearch(0);
   };
 
+  // Quick preset: companies registered within the last N months ("nystartade").
+  // Bump a trigger so the search runs after the date state has updated (avoids
+  // performSearch closing over stale filter values).
+  const [autoSearch, setAutoSearch] = useState(0);
+  useEffect(() => {
+    if (autoSearch) performSearch(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoSearch]);
+
+  const applyNewlyStarted = (months: number) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - months);
+    setRegDateFrom(d.toISOString().slice(0, 10));
+    setRegDateTo("");
+    setShowFilters(true);
+    setSelected(new Set());
+    setAutoSearch((n) => n + 1);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleSearch();
   };
@@ -381,6 +400,14 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
                 value={regDateTo}
                 onChange={(e) => setRegDateTo(e.target.value)}
               />
+              <div className="col-span-2 md:col-span-4 flex flex-wrap items-center gap-2">
+                <span className="text-xs text-muted-foreground">{t("companyRegistry.newlyStarted")}:</span>
+                {[3, 6, 12].map((m) => (
+                  <Button key={m} variant="outline" size="sm" className="h-7" onClick={() => applyNewlyStarted(m)}>
+                    {t("companyRegistry.lastMonths", { months: m })}
+                  </Button>
+                ))}
+              </div>
               {hasActiveFilters && (
                 <Button variant="ghost" size="sm" onClick={clearFilters} className="col-span-2 md:col-span-4">
                   <X className="h-3 w-3 mr-1" /> {t("companyRegistry.clearFilters")}
