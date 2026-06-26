@@ -212,12 +212,13 @@ export function OfferEditor() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      {/* Header row: back + actions */}
-      <div className="flex items-center justify-between mb-2">
+      {/* Header row: back + actions. Wraps on narrow screens so the action
+          buttons (incl. Send) never get pushed off-screen on mobile. */}
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <Button variant="ghost" size="icon" onClick={() => navigate("/offers")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline">
             {t(statusLabelKeys[doc?.status || "draft"])}
           </Badge>
@@ -326,7 +327,7 @@ export function OfferEditor() {
           </div>
 
           {/* Recipient fields */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label className="text-xs">{t("templates.offerEditor.recipientName")}</Label>
               <Input
