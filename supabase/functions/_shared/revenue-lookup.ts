@@ -38,17 +38,46 @@ function formatTkr(tkr: number): string {
   return `${tkr.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} tkr`;
 }
 
+// The latest fiscal year reported on an allabolag page. The nyckeltal table
+// lists figures newest-first, with the period as a COLUMN HEADER ("2024-12",
+// "2024/12") — NOT next to the "Omsättning" label — so the year of the figure we
+// extract (the newest) is the most recent fiscal period on the page. Prefer
+// period patterns (they only occur in financial tables); fall back to the latest
+// plausible bare year. Bounded to <= current year so news/future dates are
+// ignored.
+function latestFiscalYear(text: string): string | null {
+  const now = new Date().getFullYear();
+  const years: number[] = [];
+  // "2024-12", "2024/12", "2024-08-31" → fiscal period headers.
+  for (const m of text.matchAll(/\b(20\d{2})[-/](0[1-9]|1[0-2])\b/g)) {
+    const y = parseInt(m[1], 10);
+    if (y <= now) years.push(y);
+  }
+  if (!years.length) {
+    // Fallback: any plausible recent year (registry data is rarely older than
+    // ~6 years, so don't reach back further than that and never beyond today).
+    for (const m of text.matchAll(/\b(20\d{2})\b/g)) {
+      const y = parseInt(m[1], 10);
+      if (y <= now && y >= now - 6) years.push(y);
+    }
+  }
+  return years.length ? String(Math.max(...years)) : null;
+}
+
 // Pull the latest "Omsättning"/"Nettoomsättning" figure (in tkr) + its year.
 // allabolag prints amounts space-grouped ("34 621"); a bare 4-digit year like
 // 2024 is NOT space-grouped, so matching a grouped number skips the year next
 // to it (which previously produced "202434 621").
 function extractRevenue(text: string): RevenueResult | null {
   if (!text) return null;
+  const pageYear = latestFiscalYear(text);
   const re = /(?:Nett)?[Oo]ms[äa]ttning/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text)) !== null) {
     const after = text.slice(m.index, m.index + 160);
-    const year = (after.match(/\b(20\d{2})\b/) || [])[1] ?? null;
+    // A fiscal period right by the label wins; otherwise use the page's latest.
+    const local = (after.match(/\b(20\d{2})[-/](?:0[1-9]|1[0-2])\b/) || [])[1];
+    const year = local ?? pageYear;
     let tkr: number | null = null;
     const grouped = after.match(/\d{1,3}(?:[\s ]\d{3})+/);
     if (grouped) {
