@@ -152,7 +152,26 @@ export default function ProspectingSearchTab() {
   const [registrySelected, setRegistrySelected] = useState<Set<string>>(new Set());
   const [registrySearched, setRegistrySearched] = useState(false);
   const [isRegistrySearching, setIsRegistrySearching] = useState(false);
+  const [registryPage, setRegistryPage] = useState(0);
+  const [registryTotal, setRegistryTotal] = useState(0);
+  const REGISTRY_PAGE_SIZE = 100;
   const [isRegistryImporting, setIsRegistryImporting] = useState(false);
+
+  // Org numbers already imported as leads, for hiding them from register hits.
+  const { data: registryExistingOrg } = useQuery({
+    queryKey: ["prospecting-lead-orgnumbers", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("leads")
+        .select("org_number")
+        .eq("organization_id", orgId)
+        .not("org_number", "is", null);
+      return new Set(
+        (data ?? []).map((d: any) => String(d.org_number).replace(/\D/g, "")).filter(Boolean),
+      );
+    },
+  });
 
   // The company_registry is Swedish-only. Outside the SE market, force the
   // Google Places flow so nothing register-related renders or runs.
@@ -463,7 +482,7 @@ export default function ProspectingSearchTab() {
   });
 
   // ── Register (company_registry) search ──
-  const runRegistrySearch = useCallback(async () => {
+  const runRegistrySearch = useCallback(async (page = 0) => {
     setIsRegistrySearching(true);
     setRegistrySearched(true);
     setRegistrySelected(new Set());
@@ -485,11 +504,14 @@ export default function ProspectingSearchTab() {
       if (Number.isFinite(younger) && younger > 0) q = q.gte("registration_date", isoYearsAgo(younger));
       const older = parseInt(olderThan, 10);
       if (Number.isFinite(older) && older > 0) q = q.lte("registration_date", isoYearsAgo(older));
-      q = q.order("company_name").range(0, 99);
+      const from = page * REGISTRY_PAGE_SIZE;
+      q = q.order("company_name").range(from, from + REGISTRY_PAGE_SIZE - 1);
 
-      const { data, error } = await q;
+      const { data, count, error } = await q;
       if (error) throw error;
       setRegistryResults(((data as unknown) as RegistryRow[]) || []);
+      setRegistryTotal(count ?? 0);
+      setRegistryPage(page);
     } catch (err: any) {
       toast.error(t("prospecting.searchFailed"), { description: err?.message });
       setRegistryResults([]);
@@ -507,12 +529,17 @@ export default function ProspectingSearchTab() {
     });
   };
 
+  // Hide companies already imported as leads (dedup by org number).
+  const registryDisplay = registryResults.filter(
+    (r) => !registryExistingOrg?.has(String(r.org_number).replace(/\D/g, "")),
+  );
+
   const allRegistrySelected =
-    registryResults.length > 0 && registryResults.every((r) => registrySelected.has(r.id));
+    registryDisplay.length > 0 && registryDisplay.every((r) => registrySelected.has(r.id));
 
   const toggleRegistrySelectAll = () => {
     if (allRegistrySelected) setRegistrySelected(new Set());
-    else setRegistrySelected(new Set(registryResults.map((r) => r.id)));
+    else setRegistrySelected(new Set(registryDisplay.map((r) => r.id)));
   };
 
   const handleRegistryImport = async () => {
@@ -562,6 +589,10 @@ export default function ProspectingSearchTab() {
       queryClient.invalidateQueries({ queryKey: ["prospecting-existing-leads"] });
       queryClient.invalidateQueries({ queryKey: ["prospecting-queue-count"] });
       queryClient.invalidateQueries({ queryKey: ["prospecting-queue"] });
+      // Refresh the imported-org dedup set and reload the current page so the
+      // companies just imported drop out of the results.
+      await queryClient.invalidateQueries({ queryKey: ["prospecting-lead-orgnumbers"] });
+      runRegistrySearch(registryPage);
 
       try {
         await supabase.functions.invoke("process-enrichment-queue", {
@@ -580,7 +611,7 @@ export default function ProspectingSearchTab() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchSource === "registry") {
-      runRegistrySearch();
+      runRegistrySearch(0);
       return;
     }
     if (!industry.trim()) return;
@@ -963,7 +994,7 @@ export default function ProspectingSearchTab() {
       )}
 
       {/* ── Register results ── */}
-      {searchSource === "registry" && registryResults.length > 0 && (
+      {searchSource === "registry" && registrySearched && registryTotal > 0 && (
         <>
           <Card className="border-primary/20">
             <CardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
@@ -971,10 +1002,11 @@ export default function ProspectingSearchTab() {
                 <Checkbox
                   checked={allRegistrySelected}
                   onCheckedChange={toggleRegistrySelectAll}
-                  disabled={registryResults.length === 0}
+                  disabled={registryDisplay.length === 0}
                 />
                 <div className="text-sm">
-                  <strong>{registryResults.length}</strong>{" "}
+                  <strong>{registryTotal.toLocaleString()}</strong> {t("prospecting.regHits")}
+                  {" · "}
                   {t("companyRegistry.selectedCount", { count: registrySelected.size })}
                 </div>
               </div>
@@ -1010,7 +1042,13 @@ export default function ProspectingSearchTab() {
                 </tr>
               </thead>
               <tbody>
-                {registryResults.map((row) => {
+                {registryDisplay.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
+                      {t("prospecting.regAllImported")}
+                    </td>
+                  </tr>
+                ) : registryDisplay.map((row) => {
                   const selected = registrySelected.has(row.id);
                   return (
                     <tr
@@ -1037,10 +1075,37 @@ export default function ProspectingSearchTab() {
               </tbody>
             </table>
           </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              {t("prospecting.regPage", {
+                page: registryPage + 1,
+                pages: Math.max(1, Math.ceil(registryTotal / REGISTRY_PAGE_SIZE)),
+              })}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={registryPage === 0 || isRegistrySearching}
+                onClick={() => runRegistrySearch(registryPage - 1)}
+              >
+                {t("prospecting.regPrev")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={(registryPage + 1) * REGISTRY_PAGE_SIZE >= registryTotal || isRegistrySearching}
+                onClick={() => runRegistrySearch(registryPage + 1)}
+              >
+                {t("prospecting.regNext")}
+              </Button>
+            </div>
+          </div>
         </>
       )}
 
-      {searchSource === "registry" && registrySearched && !isRegistrySearching && registryResults.length === 0 && (
+      {searchSource === "registry" && registrySearched && !isRegistrySearching && registryTotal === 0 && (
         <div className="text-center py-16 text-muted-foreground">
           <Search className="h-8 w-8 mx-auto mb-3 opacity-40" />
           <p className="text-sm">{t("prospecting.regNoResults")}</p>
