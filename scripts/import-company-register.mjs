@@ -71,7 +71,13 @@ let buffer = [];
 
 async function flush() {
   if (!buffer.length) return;
-  const batch = buffer;
+  // The bulk file can list the same org_number more than once (multiple address
+  // rows, name variants, etc.). Postgres rejects an upsert that touches the same
+  // conflict key twice in one statement ("cannot affect row a second time"), so
+  // collapse duplicates within the batch — last row wins.
+  const byOrg = new Map();
+  for (const row of buffer) byOrg.set(row.org_number, row);
+  const batch = [...byOrg.values()];
   buffer = [];
   const { error } = await supabase.from("company_registry").upsert(batch, { onConflict: "org_number" });
   if (error) { errors++; console.error("  upsert error:", error.message); }
