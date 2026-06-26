@@ -212,7 +212,9 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
           query = query.ilike("company_form", `%${companyFormFilter.trim()}%`);
         }
         if (sniFilter.trim()) {
-          query = query.ilike("sni_descriptions", `%${sniFilter.trim()}%`);
+          // Match SNI text (CSV imports) OR the business description (Bolagsverket).
+          const term = sniFilter.trim().replace(/[%,()]/g, " ").trim();
+          query = query.or(`sni_descriptions.ilike.%${term}%,business_description.ilike.%${term}%`);
         }
         if (regDateFrom.trim()) {
           query = query.gte("registration_date", regDateFrom.trim());

@@ -469,7 +469,11 @@ export default function ProspectingSearchTab() {
     setRegistrySelected(new Set());
     try {
       let q = supabase.from("company_registry" as any).select("*", { count: "exact" });
-      if (industry.trim()) q = q.ilike("sni_descriptions", `%${industry.trim()}%`);
+      if (industry.trim()) {
+        // Match SNI text (CSV imports) OR the business description (Bolagsverket).
+        const term = industry.trim().replace(/[%,()]/g, " ").trim();
+        q = q.or(`sni_descriptions.ilike.%${term}%,business_description.ilike.%${term}%`);
+      }
       if (location.trim()) q = q.ilike("city", `%${location.trim()}%`);
       if (companyForm) q = q.ilike("company_form", `%${companyForm}%`);
       if (region) {
