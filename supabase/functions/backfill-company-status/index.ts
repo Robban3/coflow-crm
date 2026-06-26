@@ -9,6 +9,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getAuthenticatedUserId } from "../_shared/auth.ts";
 import { lookupByOrgNumber } from "../_shared/bolagsverket.ts";
+import { findRevenueByName } from "../_shared/revenue-lookup.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -70,6 +71,7 @@ Deno.serve(async (req) => {
         const result = await lookupByOrgNumber(orgnr);
         if (result.ok && result.normalized) {
           const c = result.normalized;
+          const revenue = await findRevenueByName(c.company_name || lead.company_name || "");
           const row = {
             org_number: c.org_number || orgnr.replace(/\D/g, ""),
             company_name: c.company_name || lead.company_name || "",
@@ -83,6 +85,7 @@ Deno.serve(async (req) => {
             sni_codes: c.sni_codes.length ? c.sni_codes.join(", ") : null,
             sni_descriptions: c.sni_descriptions.length ? c.sni_descriptions.join("; ") : null,
             business_description: c.business_description,
+            revenue,
           };
           await supabase.from("company_registry").upsert(row, { onConflict: "org_number" });
           // Mark the lead. Use a sentinel so we don't re-fetch endlessly when the

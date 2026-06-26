@@ -200,7 +200,7 @@ export default function LeadDetailPage() {
         supabase.from('lead_fleet_data').select('vehicle_count, phone_subscription_count, phone_operator, leasing_company, vehicles, phone_numbers').eq('lead_id', id).maybeSingle(),
         supabase.from('seo_analyses').select('visibility_score, ai_summary, ai_opportunities, primary_keywords, estimated_keywords, raw_data').eq('lead_id', id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         orgDigits
-          ? supabase.from('company_registry').select('company_name, legal_form, company_form, city, postal_code, address, sni_codes, sni_descriptions, registration_date, status, business_description').eq('org_number', orgDigits).maybeSingle()
+          ? supabase.from('company_registry').select('company_name, legal_form, company_form, city, postal_code, address, sni_codes, sni_descriptions, registration_date, status, business_description, revenue').eq('org_number', orgDigits).maybeSingle()
           : Promise.resolve({ data: null }),
       ]);
 
@@ -935,6 +935,12 @@ export default function LeadDetailPage() {
                               <div>
                                 <p className="text-xs text-muted-foreground">Registrerad</p>
                                 <p className="font-medium">{companyRegistry.registration_date}</p>
+                              </div>
+                            )}
+                            {companyRegistry.revenue && (
+                              <div>
+                                <p className="text-xs text-muted-foreground">Omsättning <span className="opacity-60">· allabolag</span></p>
+                                <p className="font-medium">{companyRegistry.revenue}</p>
                               </div>
                             )}
                             {(companyRegistry.sni_descriptions || companyRegistry.sni_codes) && (

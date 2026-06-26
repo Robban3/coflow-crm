@@ -8,6 +8,7 @@ import {
 import { fetchWithRetry } from "../_shared/http.ts";
 import { lookupByOrgNumber } from "../_shared/bolagsverket.ts";
 import { findOrgNumberByName } from "../_shared/orgnr-lookup.ts";
+import { findRevenueByName } from "../_shared/revenue-lookup.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -200,6 +201,8 @@ async function stepBolagsverket(
       return;
     }
     const c = result.normalized;
+    // Turnover isn't in Bolagsverket's API — scrape it best-effort from allabolag.
+    const revenue = await findRevenueByName(c.company_name || (lead.company_name as string) || "");
     // sni_* columns are TEXT in company_registry (the CSV import joins them too).
     const row = {
       org_number: c.org_number || orgNumber.replace(/\D/g, ""),
@@ -214,6 +217,7 @@ async function stepBolagsverket(
       sni_codes: c.sni_codes.length ? c.sni_codes.join(", ") : null,
       sni_descriptions: c.sni_descriptions.length ? c.sni_descriptions.join("; ") : null,
       business_description: c.business_description,
+      revenue,
     };
     const { error } = await supabase
       .from("company_registry")
