@@ -24,6 +24,8 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
+import { hasRealScores, replaceWebAnalysis } from "./web-analysis-store.ts";
+
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 export interface Cursor {
@@ -191,20 +193,24 @@ export async function triggerAnalysisKind(
         const body = await resp.json().catch(() => null);
         // pagespeed-analyze wraps response: { success: true, data: { performance_score, ... } }
         const data = body?.data ?? body ?? null;
-        if (data && (data.performance_score !== undefined || data.seo_score !== undefined)) {
+        const scored = data ? {
+          performance_score: data.performance_score ?? null,
+          seo_score: data.seo_score ?? null,
+          accessibility_score: data.accessibility_score ?? null,
+          best_practices_score: data.best_practices_score ?? null,
+        } : null;
+        // Only persist a result that actually has real scores, and never delete
+        // a good analysis before a valid replacement exists (insert-then-prune).
+        if (scored && hasRealScores(scored)) {
           const normalized = lead.website?.startsWith("http") ? lead.website : `https://${lead.website}`;
-          await supabaseClient.from("web_analyses").delete().eq("lead_id", lead.id).catch(() => null);
-          await supabaseClient.from("web_analyses").insert({
+          await replaceWebAnalysis(supabaseClient, {
             lead_id: lead.id,
             url: normalized,
-            performance_score: data.performance_score ?? null,
-            seo_score: data.seo_score ?? null,
-            accessibility_score: data.accessibility_score ?? null,
-            best_practices_score: data.best_practices_score ?? null,
+            ...scored,
             raw_data: data,
-          }).catch((e: any) => console.warn("[analysis-adapter] web_analyses insert failed:", e?.message));
+          });
         } else {
-          console.warn("[analysis-adapter] web result missing expected scores. Body:", JSON.stringify(body)?.slice(0, 200));
+          console.warn("[analysis-adapter] web result has no real scores — keeping existing analysis. Body:", JSON.stringify(body)?.slice(0, 200));
         }
       }
 

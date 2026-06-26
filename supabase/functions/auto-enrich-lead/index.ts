@@ -9,6 +9,7 @@ import { fetchWithRetry } from "../_shared/http.ts";
 import { lookupByOrgNumber } from "../_shared/bolagsverket.ts";
 import { findOrgNumberByName } from "../_shared/orgnr-lookup.ts";
 import { findRevenueByName } from "../_shared/revenue-lookup.ts";
+import { extractScores, getFreshWebAnalysis, replaceWebAnalysis } from "../_shared/web-analysis-store.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -360,6 +361,23 @@ async function stepPageSpeed(website: string, leadId: string, orgId: string | nu
 
   const hasSsl = url.startsWith("https://");
 
+  // A website rarely changes within months: if a fresh, valid analysis already
+  // exists, reuse it instead of re-running (which risks a flaky failure that
+  // would otherwise overwrite good data).
+  const fresh = await getFreshWebAnalysis(supabase, leadId);
+  if (fresh) {
+    console.log("[auto-enrich] STEP 2 – reusing fresh analysis", fresh.id);
+    return {
+      performanceScore: fresh.performance_score ?? 0,
+      mobileScore: fresh.performance_score ?? 0,
+      loadTimeSeconds: 0,
+      hasSsl,
+      seoScore: fresh.seo_score ?? 0,
+      accessibilityScore: fresh.accessibility_score ?? 0,
+      bestPracticesScore: fresh.best_practices_score ?? 0,
+    };
+  }
+
   const apiKey = Deno.env.get("GOOGLE_PAGESPEED_API_KEY");
   let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices`;
   if (apiKey) apiUrl += `&key=${apiKey}`;
@@ -368,35 +386,46 @@ async function stepPageSpeed(website: string, leadId: string, orgId: string | nu
   if (!res.ok) {
     const errBody = await res.text();
     console.error("[auto-enrich] PageSpeed error:", res.status, errBody);
+    // Thrown before any write — the existing analysis is preserved.
     throw new Error(`PageSpeed HTTP ${res.status}`);
   }
 
   const data = await res.json();
-  const cats = data.lighthouseResult?.categories || {};
+
+  // A failed/empty Lighthouse run (slow/blocked site, quota) returns 200 with a
+  // runtimeError and no scores. Never persist that — it must not destroy a good
+  // analysis or create a dead red row. Keep whatever already exists.
+  const scores = extractScores(data.lighthouseResult);
+  if (!scores) {
+    console.warn("[auto-enrich] STEP 2 – empty/failed Lighthouse, keeping existing analysis");
+    return { performanceScore: 0, mobileScore: 0, loadTimeSeconds: 0, hasSsl, seoScore: 0, accessibilityScore: 0, bestPracticesScore: 0 };
+  }
+
   const audits = data.lighthouseResult?.audits || {};
-
-  const performanceScore = Math.round((cats.performance?.score || 0) * 100);
-  const seoScore = Math.round((cats.seo?.score || 0) * 100);
-  const accessibilityScore = Math.round((cats.accessibility?.score || 0) * 100);
-  const bestPracticesScore = Math.round((cats["best-practices"]?.score || 0) * 100);
-  const mobileScore = performanceScore;
-
   const speedIndex = audits["speed-index"]?.numericValue || audits["first-contentful-paint"]?.numericValue || 5000;
   const loadTimeSeconds = Math.round((speedIndex / 1000) * 10) / 10;
 
-  await supabase.from("web_analyses").delete().eq("lead_id", leadId);
-  await supabase.from("web_analyses").insert({
+  // Insert the valid result first, then prune older rows — never delete-first.
+  await replaceWebAnalysis(supabase, {
     lead_id: leadId,
     organization_id: orgId,
     url,
-    performance_score: performanceScore,
-    seo_score: seoScore,
-    accessibility_score: accessibilityScore,
-    best_practices_score: bestPracticesScore,
+    performance_score: scores.performance,
+    seo_score: scores.seo,
+    accessibility_score: scores.accessibility,
+    best_practices_score: scores.best_practices,
     raw_data: data.lighthouseResult || null,
   });
 
-  const result = { performanceScore, mobileScore, loadTimeSeconds, hasSsl, seoScore, accessibilityScore, bestPracticesScore };
+  const result = {
+    performanceScore: scores.performance,
+    mobileScore: scores.performance,
+    loadTimeSeconds,
+    hasSsl,
+    seoScore: scores.seo,
+    accessibilityScore: scores.accessibility,
+    bestPracticesScore: scores.best_practices,
+  };
   console.log("[auto-enrich] STEP 2 DONE –", result);
   return result;
 }
