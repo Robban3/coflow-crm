@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { POSTAL_REGIONS, COMPANY_FORMS, INDUSTRIES } from "@/lib/swedishProspecting";
+import { COUNTIES, COMPANY_FORMS, INDUSTRIES } from "@/lib/swedishProspecting";
 import { toast } from "sonner";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
@@ -143,7 +143,7 @@ export default function ProspectingSearchTab() {
 
   // ── Search source toggle + register-mode filters ──
   const [searchSource, setSearchSource] = useState<"places" | "registry">("places");
-  const [region, setRegion] = useState("");          // postal first-digit, "" = all
+  const [region, setRegion] = useState("");          // county (län) code, "" = all
   const [companyForm, setCompanyForm] = useState(""); // ilike keyword
   const [regDateFrom, setRegDateFrom] = useState(""); // yyyy-mm-dd
   const [youngerThan, setYoungerThan] = useState(""); // years, string
@@ -472,7 +472,10 @@ export default function ProspectingSearchTab() {
       if (industry.trim()) q = q.ilike("sni_descriptions", `%${industry.trim()}%`);
       if (location.trim()) q = q.ilike("city", `%${location.trim()}%`);
       if (companyForm) q = q.ilike("company_form", `%${companyForm}%`);
-      if (region) q = q.like("postal_code", `${region}%`);
+      if (region) {
+        const prefixes = COUNTIES.find((c) => c.code === region)?.prefixes ?? [];
+        if (prefixes.length) q = q.or(prefixes.map((p) => `postal_code.like.${p}%`).join(","));
+      }
       if (regDateFrom) q = q.gte("registration_date", regDateFrom);
       const younger = parseInt(youngerThan, 10);
       if (Number.isFinite(younger) && younger > 0) q = q.gte("registration_date", isoYearsAgo(younger));
@@ -701,11 +704,11 @@ export default function ProspectingSearchTab() {
       {searchSource === "registry" && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 bg-muted/50 rounded-lg">
           <Select value={region || "__all__"} onValueChange={(v) => setRegion(v === "__all__" ? "" : v)}>
-            <SelectTrigger><SelectValue placeholder={t("companyRegistry.filterRegion")} /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t("companyRegistry.filterCounty")} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">{t("companyRegistry.filterRegionAll")}</SelectItem>
-              {POSTAL_REGIONS.map((r) => (
-                <SelectItem key={r.digit} value={r.digit}>{r.label}</SelectItem>
+              <SelectItem value="__all__">{t("companyRegistry.filterCountyAll")}</SelectItem>
+              {COUNTIES.map((c) => (
+                <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
