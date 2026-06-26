@@ -159,16 +159,10 @@ Deno.serve(async (req) => {
                     webData = { markdown: markdown.substring(0, 2000), sourceUrl: formattedUrl };
                     console.log("[process-enrichment-queue] Fallback: Firecrawl success for", lead.id);
 
-                    // Store in web_analyses
-                    await supabase.from("web_analyses").insert({
-                      lead_id: lead.id,
-                      organization_id: organizationId,
-                      url: formattedUrl,
-                      status: "completed",
-                      summary: markdown.substring(0, 1000),
-                      overall_score: 50,
-                      completed_at: new Date().toISOString(),
-                    });
+                    // NOTE: deliberately NOT writing a web_analyses row here. This
+                    // fallback has no Lighthouse scores, so a row would render as a
+                    // red (scoreless) analysis and could shadow a good one. The
+                    // markdown is still used below for the outreach draft.
                   } else {
                     console.warn("[process-enrichment-queue] Fallback: Firecrawl failed for", lead.id, fcRes.status);
                   }
