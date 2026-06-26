@@ -26,7 +26,16 @@ import {
   ArrowUp,
   ArrowDown,
   CheckCircle2,
+  Trash2,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { POSTAL_REGIONS, COMPANY_FORMS, INDUSTRIES } from "@/lib/swedishProspecting";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,6 +77,33 @@ function saveSession(state: Record<string, any>) {
   } catch { /* sessionStorage kan saknas/vara full – ignorera */ }
 }
 
+// Saved prospecting segments (persisted per-browser via localStorage).
+const SEGMENTS_KEY = "company_registry_segments";
+
+export interface SegmentFilters {
+  searchQuery: string;
+  cityFilter: string;
+  postalCodeFilter: string;
+  companyFormFilter: string;
+  sniFilter: string;
+  regDateFrom: string;
+  regDateTo: string;
+  regionFilter: string;
+  youngerThan: string;
+  olderThan: string;
+}
+interface SavedSegment { name: string; filters: SegmentFilters }
+
+function loadSegments(): SavedSegment[] {
+  try {
+    const raw = localStorage.getItem(SEGMENTS_KEY);
+    return raw ? (JSON.parse(raw) as SavedSegment[]) : [];
+  } catch { return []; }
+}
+function persistSegments(list: SavedSegment[]) {
+  try { localStorage.setItem(SEGMENTS_KEY, JSON.stringify(list)); } catch { /* ignore */ }
+}
+
 const PAGE_SIZE = 50;
 
 export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () => void }) {
@@ -88,6 +124,10 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
   const [sniFilter, setSniFilter] = useState(saved?.sniFilter ?? "");
   const [regDateFrom, setRegDateFrom] = useState(saved?.regDateFrom ?? "");
   const [regDateTo, setRegDateTo] = useState(saved?.regDateTo ?? "");
+  const [regionFilter, setRegionFilter] = useState<string>(saved?.regionFilter ?? "");
+  const [youngerThan, setYoungerThan] = useState<string>(saved?.youngerThan ?? "");
+  const [olderThan, setOlderThan] = useState<string>(saved?.olderThan ?? "");
+  const [segments, setSegments] = useState<SavedSegment[]>(loadSegments);
   const [showFilters, setShowFilters] = useState(saved?.showFilters ?? false);
   const [sortField, setSortField] = useState<"company_name" | "registration_date">(saved?.sortField ?? "company_name");
   const [sortAsc, setSortAsc] = useState(saved?.sortAsc ?? true);
@@ -133,13 +173,13 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
   useEffect(() => {
     saveSession({
       searchQuery, cityFilter, postalCodeFilter, companyFormFilter, sniFilter,
-      regDateFrom, regDateTo, showFilters, sortField, sortAsc,
+      regDateFrom, regDateTo, regionFilter, youngerThan, olderThan, showFilters, sortField, sortAsc,
       results, totalCount, page, hasSearched,
       selected: Array.from(selected),
       hideExistingLeads,
       scrollTop: scrollRef.current?.scrollTop ?? 0,
     });
-  }, [searchQuery, cityFilter, postalCodeFilter, companyFormFilter, sniFilter, regDateFrom, regDateTo, showFilters, sortField, sortAsc, results, totalCount, page, hasSearched, selected, hideExistingLeads]);
+  }, [searchQuery, cityFilter, postalCodeFilter, companyFormFilter, sniFilter, regDateFrom, regDateTo, regionFilter, youngerThan, olderThan, showFilters, sortField, sortAsc, results, totalCount, page, hasSearched, selected, hideExistingLeads]);
 
   // Restore scroll position after mount
   useEffect(() => {
@@ -180,6 +220,24 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
         if (regDateTo.trim()) {
           query = query.lte("registration_date", regDateTo.trim());
         }
+        if (regionFilter) {
+          // First digit of the postnummer = postal region.
+          query = query.like("postal_code", `${regionFilter}%`);
+        }
+        // Company age: younger/older than N years -> registration_date bounds.
+        const isoYearsAgo = (years: number) => {
+          const d = new Date();
+          d.setFullYear(d.getFullYear() - years);
+          return d.toISOString().slice(0, 10);
+        };
+        const younger = parseInt(youngerThan, 10);
+        if (Number.isFinite(younger) && younger > 0) {
+          query = query.gte("registration_date", isoYearsAgo(younger));
+        }
+        const older = parseInt(olderThan, 10);
+        if (Number.isFinite(older) && older > 0) {
+          query = query.lte("registration_date", isoYearsAgo(older));
+        }
 
         const from = pageNum * PAGE_SIZE;
         query = query
@@ -205,7 +263,7 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
         setIsSearching(false);
       }
     },
-    [searchQuery, cityFilter, postalCodeFilter, companyFormFilter, sniFilter, regDateFrom, regDateTo, sortField, sortAsc, toast, t]
+    [searchQuery, cityFilter, postalCodeFilter, companyFormFilter, sniFilter, regDateFrom, regDateTo, regionFilter, youngerThan, olderThan, sortField, sortAsc, toast, t]
   );
 
   const handleSearch = () => {
@@ -311,6 +369,49 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
     setSniFilter("");
     setRegDateFrom("");
     setRegDateTo("");
+    setRegionFilter("");
+    setYoungerThan("");
+    setOlderThan("");
+  };
+
+  // ── Saved segments (filter combos) ───────────────────────────────────────
+  const currentFilters = (): SegmentFilters => ({
+    searchQuery, cityFilter, postalCodeFilter, companyFormFilter, sniFilter,
+    regDateFrom, regDateTo, regionFilter, youngerThan, olderThan,
+  });
+
+  const saveSegment = () => {
+    const name = window.prompt(t("companyRegistry.segmentNamePrompt"));
+    if (!name?.trim()) return;
+    const next = [
+      ...segments.filter((s) => s.name !== name.trim()),
+      { name: name.trim(), filters: currentFilters() },
+    ];
+    setSegments(next);
+    persistSegments(next);
+  };
+
+  const applySegment = (seg: SavedSegment) => {
+    const f = seg.filters;
+    setSearchQuery(f.searchQuery ?? "");
+    setCityFilter(f.cityFilter ?? "");
+    setPostalCodeFilter(f.postalCodeFilter ?? "");
+    setCompanyFormFilter(f.companyFormFilter ?? "");
+    setSniFilter(f.sniFilter ?? "");
+    setRegDateFrom(f.regDateFrom ?? "");
+    setRegDateTo(f.regDateTo ?? "");
+    setRegionFilter(f.regionFilter ?? "");
+    setYoungerThan(f.youngerThan ?? "");
+    setOlderThan(f.olderThan ?? "");
+    setShowFilters(true);
+    setSelected(new Set());
+    setAutoSearch((n) => n + 1);
+  };
+
+  const deleteSegment = (name: string) => {
+    const next = segments.filter((s) => s.name !== name);
+    setSegments(next);
+    persistSegments(next);
   };
 
   const toggleSort = (field: "company_name" | "registration_date") => {
@@ -323,7 +424,7 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
   };
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-  const hasActiveFilters = cityFilter || postalCodeFilter || companyFormFilter || sniFilter || regDateFrom || regDateTo;
+  const hasActiveFilters = cityFilter || postalCodeFilter || companyFormFilter || sniFilter || regDateFrom || regDateTo || regionFilter || youngerThan || olderThan;
 
   return (
     <div className="space-y-4" ref={scrollRef}>
@@ -374,12 +475,36 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
                 onChange={(e) => setPostalCodeFilter(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
-              <Input
-                placeholder={t("companyRegistry.filterForm")}
-                value={companyFormFilter}
-                onChange={(e) => setCompanyFormFilter(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
+              <Select value={regionFilter || "__all__"} onValueChange={(v) => setRegionFilter(v === "__all__" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder={t("companyRegistry.filterRegion")} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">{t("companyRegistry.filterRegionAll")}</SelectItem>
+                  {POSTAL_REGIONS.map((r) => (
+                    <SelectItem key={r.digit} value={r.digit}>{r.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={companyFormFilter || "__all__"} onValueChange={(v) => setCompanyFormFilter(v === "__all__" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder={t("companyRegistry.filterForm")} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">{t("companyRegistry.filterFormAll")}</SelectItem>
+                  {COMPANY_FORMS.map((f) => (
+                    <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={INDUSTRIES.some((i) => i.value === sniFilter) ? sniFilter : "__all__"}
+                onValueChange={(v) => setSniFilter(v === "__all__" ? "" : v)}
+              >
+                <SelectTrigger><SelectValue placeholder={t("companyRegistry.filterIndustry")} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">{t("companyRegistry.filterIndustryAll")}</SelectItem>
+                  {INDUSTRIES.map((i) => (
+                    <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Input
                 placeholder={t("companyRegistry.filterSni")}
                 value={sniFilter}
@@ -400,6 +525,24 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
                 value={regDateTo}
                 onChange={(e) => setRegDateTo(e.target.value)}
               />
+              <Input
+                type="number"
+                min={0}
+                placeholder={t("companyRegistry.filterYoungerThan")}
+                title={t("companyRegistry.filterYoungerThan")}
+                value={youngerThan}
+                onChange={(e) => setYoungerThan(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+              <Input
+                type="number"
+                min={0}
+                placeholder={t("companyRegistry.filterOlderThan")}
+                title={t("companyRegistry.filterOlderThan")}
+                value={olderThan}
+                onChange={(e) => setOlderThan(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
               <div className="col-span-2 md:col-span-4 flex flex-wrap items-center gap-2">
                 <span className="text-xs text-muted-foreground">{t("companyRegistry.newlyStarted")}:</span>
                 {[3, 6, 12].map((m) => (
@@ -408,11 +551,38 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
                   </Button>
                 ))}
               </div>
-              {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="col-span-2 md:col-span-4">
-                  <X className="h-3 w-3 mr-1" /> {t("companyRegistry.clearFilters")}
-                </Button>
+              {segments.length > 0 && (
+                <div className="col-span-2 md:col-span-4 flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-muted-foreground">{t("companyRegistry.savedSegments")}:</span>
+                  {segments.map((s) => (
+                    <Badge
+                      key={s.name}
+                      variant="secondary"
+                      className="gap-1 cursor-pointer"
+                      onClick={() => applySegment(s)}
+                    >
+                      {s.name}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteSegment(s.name); }}
+                        className="hover:text-destructive"
+                        title={t("companyRegistry.deleteSegment")}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
               )}
+              <div className="col-span-2 md:col-span-4 flex items-center gap-2">
+                <Button variant="outline" size="sm" className="h-7" onClick={saveSegment} disabled={!hasActiveFilters && !searchQuery}>
+                  {t("companyRegistry.saveSegment")}
+                </Button>
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" className="h-7" onClick={clearFilters}>
+                    <X className="h-3 w-3 mr-1" /> {t("companyRegistry.clearFilters")}
+                  </Button>
+                )}
+              </div>
             </div>
           )}
 
