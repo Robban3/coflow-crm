@@ -939,7 +939,7 @@ export default function LeadDetailPage() {
                             )}
                             {companyRegistry.revenue && (
                               <div>
-                                <p className="text-xs text-muted-foreground">Omsättning <span className="opacity-60">· allabolag</span></p>
+                                <p className="text-xs text-muted-foreground">Omsättning</p>
                                 {companyRegistry.revenue_year && (
                                   <p className="text-xs text-muted-foreground">{companyRegistry.revenue_year}</p>
                                 )}
