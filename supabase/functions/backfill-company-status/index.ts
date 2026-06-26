@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
         const result = await lookupByOrgNumber(orgnr);
         if (result.ok && result.normalized) {
           const c = result.normalized;
-          const revenue = await findRevenueByName(c.company_name || lead.company_name || "");
+          const revenue = await findRevenueByName(c.company_name || lead.company_name || "", c.city);
           const row = {
             org_number: c.org_number || orgnr.replace(/\D/g, ""),
             company_name: c.company_name || lead.company_name || "",
