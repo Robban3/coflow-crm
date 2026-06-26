@@ -11,6 +11,13 @@
 --   * btree on registration_date — makes the "newly started last N months"
 --     (>=) filter selective instead of scanning.
 -- pg_trgm is already enabled (see the table's original migration).
+--
+-- Building a GIN trigram index over ~3M rows takes a couple of minutes, which
+-- exceeds the default statement timeout (the first attempt failed with SQLSTATE
+-- 57014). Lift the timeout for this migration and raise maintenance_work_mem so
+-- the build is both allowed to run and faster.
+SET statement_timeout = 0;
+SET maintenance_work_mem = '256MB';
 
 CREATE INDEX IF NOT EXISTS idx_company_registry_busdesc_trgm
   ON public.company_registry USING gin (business_description gin_trgm_ops);
