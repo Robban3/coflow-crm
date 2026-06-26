@@ -6,6 +6,11 @@
 -- could re-import them as duplicates. Exposing org_number through this
 -- SECURITY DEFINER function closes that hole the same way company_name/website
 -- already do for the Google Places flow.
+--
+-- Adding a column to RETURNS TABLE changes the function's return type, which
+-- CREATE OR REPLACE cannot do (ERROR 42P13) — so drop it first, then recreate.
+DROP FUNCTION IF EXISTS public.get_org_lead_claims();
+
 CREATE OR REPLACE FUNCTION public.get_org_lead_claims()
 RETURNS TABLE (
   id uuid,
