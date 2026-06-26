@@ -1,19 +1,5 @@
 // Curated option lists for company-registry prospecting filters.
 
-// Postal "zones" = the first digit of a Swedish postnummer. This is the official
-// regional grouping (approximate vs län, but accurate and simple for districts).
-export const POSTAL_REGIONS: { digit: string; label: string }[] = [
-  { digit: "1", label: "Stockholm med omnejd" },
-  { digit: "2", label: "Skåne, Blekinge & södra Halland" },
-  { digit: "3", label: "Småland, Halland & Öland" },
-  { digit: "4", label: "Göteborg, Bohuslän & Skaraborg" },
-  { digit: "5", label: "Östergötland & Västergötland" },
-  { digit: "6", label: "Värmland, Örebro, Dalarna & Västmanland" },
-  { digit: "7", label: "Uppland, Gävleborg & Dalarna" },
-  { digit: "8", label: "Södra Norrland (Västernorrland, Jämtland)" },
-  { digit: "9", label: "Norra Norrland (Västerbotten, Norrbotten)" },
-];
-
 // Swedish counties (län) approximated from the first two digits of the postnummer.
 // Postal codes don't align perfectly with county borders, so a handful of
 // companies near a border may be mis-classified — good enough for districting.

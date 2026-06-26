@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { POSTAL_REGIONS, COMPANY_FORMS, INDUSTRIES } from "@/lib/swedishProspecting";
+import { COUNTIES, COMPANY_FORMS, INDUSTRIES } from "@/lib/swedishProspecting";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -221,8 +221,11 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
           query = query.lte("registration_date", regDateTo.trim());
         }
         if (regionFilter) {
-          // First digit of the postnummer = postal region.
-          query = query.like("postal_code", `${regionFilter}%`);
+          // County (län) derived from 2-digit postnummer prefixes.
+          const prefixes = COUNTIES.find((c) => c.code === regionFilter)?.prefixes ?? [];
+          if (prefixes.length) {
+            query = query.or(prefixes.map((p) => `postal_code.like.${p}%`).join(","));
+          }
         }
         // Company age: younger/older than N years -> registration_date bounds.
         const isoYearsAgo = (years: number) => {
@@ -476,11 +479,11 @@ export function CompanyRegistrySearch({ onLeadCreated }: { onLeadCreated?: () =>
                 onKeyDown={handleKeyDown}
               />
               <Select value={regionFilter || "__all__"} onValueChange={(v) => setRegionFilter(v === "__all__" ? "" : v)}>
-                <SelectTrigger><SelectValue placeholder={t("companyRegistry.filterRegion")} /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("companyRegistry.filterCounty")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">{t("companyRegistry.filterRegionAll")}</SelectItem>
-                  {POSTAL_REGIONS.map((r) => (
-                    <SelectItem key={r.digit} value={r.digit}>{r.label}</SelectItem>
+                  <SelectItem value="__all__">{t("companyRegistry.filterCountyAll")}</SelectItem>
+                  {COUNTIES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
