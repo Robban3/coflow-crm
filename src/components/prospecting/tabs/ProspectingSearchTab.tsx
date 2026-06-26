@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Search, Star, ExternalLink, CheckCircle2, Loader2, Globe, Phone, Mail, Download, History, Trash2, AlertCircle, ChevronDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,8 +10,47 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { POSTAL_REGIONS, COMPANY_FORMS, INDUSTRIES } from "@/lib/swedishProspecting";
 import { toast } from "sonner";
 import { useTranslation } from "@/i18n/LanguageProvider";
+
+interface RegistryRow {
+  id: string;
+  company_name: string;
+  org_number: string;
+  company_form: string | null;
+  registration_date: string | null;
+  legal_form: string | null;
+  address: string | null;
+  co_address: string | null;
+  postal_code: string | null;
+  city: string | null;
+  country: string | null;
+  phone: string | null;
+  sni_codes: string | null;
+  sni_descriptions: string | null;
+}
+
+// today minus N years, yyyy-mm-dd
+function isoYearsAgo(years: number): string {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - years);
+  return d.toISOString().slice(0, 10);
+}
+
+// today minus N months, yyyy-mm-dd
+function isoMonthsAgo(months: number): string {
+  const d = new Date();
+  d.setMonth(d.getMonth() - months);
+  return d.toISOString().slice(0, 10);
+}
 
 interface PlaceResult {
   placeId: string;
@@ -101,6 +140,27 @@ export default function ProspectingSearchTab() {
   const [submitted, setSubmitted] = useState<{ industry: string; location: string; nonce: number } | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(loadSavedSearches());
+
+  // ── Search source toggle + register-mode filters ──
+  const [searchSource, setSearchSource] = useState<"places" | "registry">("places");
+  const [region, setRegion] = useState("");          // postal first-digit, "" = all
+  const [companyForm, setCompanyForm] = useState(""); // ilike keyword
+  const [regDateFrom, setRegDateFrom] = useState(""); // yyyy-mm-dd
+  const [youngerThan, setYoungerThan] = useState(""); // years, string
+  const [olderThan, setOlderThan] = useState("");     // years, string
+  const [registryResults, setRegistryResults] = useState<RegistryRow[]>([]);
+  const [registrySelected, setRegistrySelected] = useState<Set<string>>(new Set());
+  const [registrySearched, setRegistrySearched] = useState(false);
+  const [isRegistrySearching, setIsRegistrySearching] = useState(false);
+  const [isRegistryImporting, setIsRegistryImporting] = useState(false);
+
+  // The company_registry is Swedish-only. Outside the SE market, force the
+  // Google Places flow so nothing register-related renders or runs.
+  useEffect(() => {
+    if (market !== "SE" && searchSource !== "places") {
+      setSearchSource("places");
+    }
+  }, [market, searchSource]);
 
   // Accumulated results across multiple searches
   const [accumulatedResults, setAccumulatedResults] = useState<PlaceResult[]>([]);
@@ -402,8 +462,120 @@ export default function ProspectingSearchTab() {
     },
   });
 
+  // ── Register (company_registry) search ──
+  const runRegistrySearch = useCallback(async () => {
+    setIsRegistrySearching(true);
+    setRegistrySearched(true);
+    setRegistrySelected(new Set());
+    try {
+      let q = supabase.from("company_registry" as any).select("*", { count: "exact" });
+      if (industry.trim()) q = q.ilike("sni_descriptions", `%${industry.trim()}%`);
+      if (location.trim()) q = q.ilike("city", `%${location.trim()}%`);
+      if (companyForm) q = q.ilike("company_form", `%${companyForm}%`);
+      if (region) q = q.like("postal_code", `${region}%`);
+      if (regDateFrom) q = q.gte("registration_date", regDateFrom);
+      const younger = parseInt(youngerThan, 10);
+      if (Number.isFinite(younger) && younger > 0) q = q.gte("registration_date", isoYearsAgo(younger));
+      const older = parseInt(olderThan, 10);
+      if (Number.isFinite(older) && older > 0) q = q.lte("registration_date", isoYearsAgo(older));
+      q = q.order("company_name").range(0, 99);
+
+      const { data, error } = await q;
+      if (error) throw error;
+      setRegistryResults(((data as unknown) as RegistryRow[]) || []);
+    } catch (err: any) {
+      toast.error(t("prospecting.searchFailed"), { description: err?.message });
+      setRegistryResults([]);
+    } finally {
+      setIsRegistrySearching(false);
+    }
+  }, [industry, location, companyForm, region, regDateFrom, youngerThan, olderThan, t]);
+
+  const toggleRegistrySelect = (id: string) => {
+    setRegistrySelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const allRegistrySelected =
+    registryResults.length > 0 && registryResults.every((r) => registrySelected.has(r.id));
+
+  const toggleRegistrySelectAll = () => {
+    if (allRegistrySelected) setRegistrySelected(new Set());
+    else setRegistrySelected(new Set(registryResults.map((r) => r.id)));
+  };
+
+  const handleRegistryImport = async () => {
+    if (!orgId) {
+      toast.error(t("prospecting.noOrg"));
+      return;
+    }
+    const selectedRows = registryResults.filter((r) => registrySelected.has(r.id));
+    if (!selectedRows.length) {
+      toast.error(t("prospecting.noLeadsSelected"));
+      return;
+    }
+    setIsRegistryImporting(true);
+    try {
+      const { data: currentUser } = await supabase.auth.getUser();
+      const leads = selectedRows.map((c) => ({
+        company_name: c.company_name,
+        org_number: c.org_number,
+        phone: c.phone || null,
+        source: "company_registry",
+        prospecting_source: "company_registry",
+        imported_via_prospecting: true,
+        enrichment_status: "pending",
+        organization_id: orgId,
+        created_by: currentUser.user?.id || null,
+        source_data: {
+          company_form: c.company_form,
+          registration_date: c.registration_date,
+          legal_form: c.legal_form,
+          address: c.address,
+          co_address: c.co_address,
+          postal_code: c.postal_code,
+          city: c.city,
+          country: c.country,
+          sni_codes: c.sni_codes,
+          sni_descriptions: c.sni_descriptions,
+        } as any,
+      }));
+
+      const { error } = await supabase.from("leads").insert(leads);
+      if (error) throw error;
+
+      toast.success(t("prospecting.regImported", { count: leads.length }), {
+        description: t("prospecting.autoStartDesc"),
+      });
+      setRegistrySelected(new Set());
+      queryClient.invalidateQueries({ queryKey: ["prospecting-existing-leads"] });
+      queryClient.invalidateQueries({ queryKey: ["prospecting-queue-count"] });
+      queryClient.invalidateQueries({ queryKey: ["prospecting-queue"] });
+
+      try {
+        await supabase.functions.invoke("process-enrichment-queue", {
+          body: { organization_id: orgId, user_id: currentUser.user?.id },
+        });
+      } catch (e) {
+        console.warn("Auto-enrich trigger failed:", e);
+      }
+    } catch (err: any) {
+      toast.error(t("prospecting.importFailed", { message: err?.message ?? "" }));
+    } finally {
+      setIsRegistryImporting(false);
+    }
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    if (searchSource === "registry") {
+      runRegistrySearch();
+      return;
+    }
     if (!industry.trim()) return;
     addToSavedSearches(industry, location);
     setSelectedIds(new Set());
@@ -451,6 +623,33 @@ export default function ProspectingSearchTab() {
 
   return (
     <div className="space-y-5 mt-4">
+      {/* ── Search-source toggle (Swedish market only) ── */}
+      {market === "SE" && (
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-medium text-muted-foreground">{t("prospecting.sourceLabel")}:</span>
+        <div className="inline-flex rounded-lg border p-0.5">
+          <Button
+            type="button"
+            size="sm"
+            variant={searchSource === "places" ? "default" : "ghost"}
+            className="h-7"
+            onClick={() => setSearchSource("places")}
+          >
+            {t("prospecting.sourcePlaces")}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={searchSource === "registry" ? "default" : "ghost"}
+            className="h-7"
+            onClick={() => setSearchSource("registry")}
+          >
+            {t("prospecting.sourceRegistry")}
+          </Button>
+        </div>
+      </div>
+      )}
+
       {/* ── Search form ── */}
       <form onSubmit={handleSearch} className="flex gap-2 items-end flex-wrap">
         <div className="flex-1 min-w-[200px]">
@@ -469,13 +668,23 @@ export default function ProspectingSearchTab() {
             onChange={(e) => setLocation(e.target.value)}
           />
         </div>
-        <Button type="submit" disabled={!industry.trim() || searchQuery.isFetching} className="gap-1.5">
-          {searchQuery.isFetching ? (
-            <><Loader2 className="h-4 w-4 animate-spin" />{t("prospecting.searching")}</>
-          ) : (
-            <><Search className="h-4 w-4" />{t("prospecting.search")}</>
-          )}
-        </Button>
+        {searchSource === "places" ? (
+          <Button type="submit" disabled={!industry.trim() || searchQuery.isFetching} className="gap-1.5">
+            {searchQuery.isFetching ? (
+              <><Loader2 className="h-4 w-4 animate-spin" />{t("prospecting.searching")}</>
+            ) : (
+              <><Search className="h-4 w-4" />{t("prospecting.search")}</>
+            )}
+          </Button>
+        ) : (
+          <Button type="submit" disabled={isRegistrySearching} className="gap-1.5">
+            {isRegistrySearching ? (
+              <><Loader2 className="h-4 w-4 animate-spin" />{t("prospecting.searching")}</>
+            ) : (
+              <><Search className="h-4 w-4" />{t("prospecting.search")}</>
+            )}
+          </Button>
+        )}
         <Button
           type="button"
           variant="outline"
@@ -488,8 +697,78 @@ export default function ProspectingSearchTab() {
         </Button>
       </form>
 
+      {/* ── Register advanced filters ── */}
+      {searchSource === "registry" && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 bg-muted/50 rounded-lg">
+          <Select value={region || "__all__"} onValueChange={(v) => setRegion(v === "__all__" ? "" : v)}>
+            <SelectTrigger><SelectValue placeholder={t("companyRegistry.filterRegion")} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">{t("companyRegistry.filterRegionAll")}</SelectItem>
+              {POSTAL_REGIONS.map((r) => (
+                <SelectItem key={r.digit} value={r.digit}>{r.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={companyForm || "__all__"} onValueChange={(v) => setCompanyForm(v === "__all__" ? "" : v)}>
+            <SelectTrigger><SelectValue placeholder={t("companyRegistry.filterForm")} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">{t("companyRegistry.filterFormAll")}</SelectItem>
+              {COMPANY_FORMS.map((f) => (
+                <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={INDUSTRIES.some((i) => i.value === industry) ? industry : "__all__"}
+            onValueChange={(v) => setIndustry(v === "__all__" ? "" : v)}
+          >
+            <SelectTrigger><SelectValue placeholder={t("companyRegistry.filterIndustry")} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">{t("companyRegistry.filterIndustryAll")}</SelectItem>
+              {INDUSTRIES.map((i) => (
+                <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="number"
+            min={0}
+            placeholder={t("companyRegistry.filterYoungerThan")}
+            title={t("companyRegistry.filterYoungerThan")}
+            value={youngerThan}
+            onChange={(e) => setYoungerThan(e.target.value)}
+          />
+          <Input
+            type="number"
+            min={0}
+            placeholder={t("companyRegistry.filterOlderThan")}
+            title={t("companyRegistry.filterOlderThan")}
+            value={olderThan}
+            onChange={(e) => setOlderThan(e.target.value)}
+          />
+          <div className="col-span-2 md:col-span-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground">{t("companyRegistry.newlyStarted")}:</span>
+            {[3, 6, 12].map((m) => (
+              <Button
+                key={m}
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7"
+                onClick={() => setRegDateFrom(isoMonthsAgo(m))}
+              >
+                {t("companyRegistry.lastMonths", { months: m })}
+              </Button>
+            ))}
+            {regDateFrom && (
+              <Badge variant="secondary" className="text-[10px]">{regDateFrom}</Badge>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Saved searches ── */}
-      {savedSearches.length > 0 && (
+      {searchSource === "places" && savedSearches.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
           <History className="h-3.5 w-3.5 text-muted-foreground" />
           {savedSearches.map((s, i) => (
@@ -514,7 +793,7 @@ export default function ProspectingSearchTab() {
       )}
 
       {/* ── Error ── */}
-      {searchQuery.isError && (
+      {searchSource === "places" && searchQuery.isError && (
         <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
           <AlertCircle className="h-4 w-4 shrink-0" />
           {searchQuery.error instanceof Error ? searchQuery.error.message : t("prospecting.searchFailed")}
@@ -522,7 +801,7 @@ export default function ProspectingSearchTab() {
       )}
 
       {/* ── Results ── */}
-      {filteredResults.length > 0 && (
+      {searchSource === "places" && filteredResults.length > 0 && (
         <>
           {/* Summary + Import bar */}
           <Card className="border-primary/20">
@@ -661,18 +940,111 @@ export default function ProspectingSearchTab() {
         </>
       )}
 
-      {submitted && !searchQuery.isFetching && filteredResults.length === 0 && !searchQuery.isError && (
+      {searchSource === "places" && submitted && !searchQuery.isFetching && filteredResults.length === 0 && !searchQuery.isError && (
         <div className="text-center py-16 text-muted-foreground">
           <Search className="h-8 w-8 mx-auto mb-3 opacity-40" />
           <p className="text-sm">{t("prospecting.noResultsWithSite")}</p>
         </div>
       )}
 
-      {!submitted && savedSearches.length === 0 && (
+      {searchSource === "places" && !submitted && savedSearches.length === 0 && (
         <div className="text-center py-16 text-muted-foreground">
           <Search className="h-8 w-8 mx-auto mb-3 opacity-40" />
           <p className="text-sm font-medium mb-1">{t("prospecting.emptyTitle")}</p>
           <p className="text-xs">{t("prospecting.emptyDesc")}</p>
+        </div>
+      )}
+
+      {/* ── Register results ── */}
+      {searchSource === "registry" && registryResults.length > 0 && (
+        <>
+          <Card className="border-primary/20">
+            <CardContent className="py-3 px-4 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  checked={allRegistrySelected}
+                  onCheckedChange={toggleRegistrySelectAll}
+                  disabled={registryResults.length === 0}
+                />
+                <div className="text-sm">
+                  <strong>{registryResults.length}</strong>{" "}
+                  {t("companyRegistry.selectedCount", { count: registrySelected.size })}
+                </div>
+              </div>
+              <Button
+                disabled={registrySelected.size === 0 || isRegistryImporting}
+                onClick={handleRegistryImport}
+                className="gap-1.5"
+              >
+                {isRegistryImporting ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" />{t("prospecting.importing")}</>
+                ) : (
+                  <><Download className="h-4 w-4" />{t("prospecting.regImportSelected", { count: registrySelected.size })}</>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <div className="border rounded-lg overflow-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs text-muted-foreground">
+                  <th className="w-10 px-3 py-2">
+                    <Checkbox
+                      checked={allRegistrySelected}
+                      onCheckedChange={toggleRegistrySelectAll}
+                    />
+                  </th>
+                  <th className="px-3 py-2">{t("companyRegistry.colCompany")}</th>
+                  <th className="px-3 py-2 hidden md:table-cell">{t("companyRegistry.colOrgNr")}</th>
+                  <th className="px-3 py-2 hidden md:table-cell">{t("companyRegistry.colCity")}</th>
+                  <th className="px-3 py-2 hidden lg:table-cell">{t("companyRegistry.colForm")}</th>
+                  <th className="px-3 py-2 hidden md:table-cell">{t("companyRegistry.colRegDate")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {registryResults.map((row) => {
+                  const selected = registrySelected.has(row.id);
+                  return (
+                    <tr
+                      key={row.id}
+                      className={`border-b last:border-0 cursor-pointer transition-colors ${
+                        selected ? "bg-primary/5" : "hover:bg-muted/30"
+                      }`}
+                      onClick={() => toggleRegistrySelect(row.id)}
+                    >
+                      <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selected}
+                          onCheckedChange={() => toggleRegistrySelect(row.id)}
+                        />
+                      </td>
+                      <td className="px-3 py-2 font-medium">{row.company_name}</td>
+                      <td className="px-3 py-2 hidden md:table-cell text-muted-foreground">{row.org_number}</td>
+                      <td className="px-3 py-2 hidden md:table-cell">{row.city || "—"}</td>
+                      <td className="px-3 py-2 hidden lg:table-cell">{row.company_form || "—"}</td>
+                      <td className="px-3 py-2 hidden md:table-cell">{row.registration_date || "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {searchSource === "registry" && registrySearched && !isRegistrySearching && registryResults.length === 0 && (
+        <div className="text-center py-16 text-muted-foreground">
+          <Search className="h-8 w-8 mx-auto mb-3 opacity-40" />
+          <p className="text-sm">{t("prospecting.regNoResults")}</p>
+        </div>
+      )}
+
+      {searchSource === "registry" && !registrySearched && (
+        <div className="text-center py-16 text-muted-foreground">
+          <Search className="h-8 w-8 mx-auto mb-3 opacity-40" />
+          <p className="text-sm font-medium mb-1">{t("prospecting.regEmptyTitle")}</p>
+          <p className="text-xs">{t("prospecting.regEmptyDesc")}</p>
         </div>
       )}
     </div>
