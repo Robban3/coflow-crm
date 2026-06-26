@@ -203,7 +203,7 @@ async function stepBolagsverket(
     }
     const c = result.normalized;
     // Turnover isn't in Bolagsverket's API — scrape it best-effort from allabolag.
-    const revenue = await findRevenueByName(c.company_name || (lead.company_name as string) || "", c.city);
+    const rev = await findRevenueByName(c.company_name || (lead.company_name as string) || "", c.city);
     // sni_* columns are TEXT in company_registry (the CSV import joins them too).
     const row = {
       org_number: c.org_number || orgNumber.replace(/\D/g, ""),
@@ -218,7 +218,8 @@ async function stepBolagsverket(
       sni_codes: c.sni_codes.length ? c.sni_codes.join(", ") : null,
       sni_descriptions: c.sni_descriptions.length ? c.sni_descriptions.join("; ") : null,
       business_description: c.business_description,
-      revenue,
+      revenue: rev?.revenue ?? null,
+      revenue_year: rev?.year ?? null,
     };
     const { error } = await supabase
       .from("company_registry")
