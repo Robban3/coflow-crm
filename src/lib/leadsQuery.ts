@@ -27,6 +27,8 @@ export interface LeadWithOutreachStatus extends Lead {
   has_analysis: boolean;
   member_ids: string[];
   has_activity: boolean;
+  has_call: boolean;
+  last_call_label?: string | null;
 }
 
 /**
@@ -73,7 +75,7 @@ export async function fetchLeadsData(): Promise<LeadWithOutreachStatus[]> {
     batchIn(ids => supabase.from('lead_sequences').select('lead_id, status').in('lead_id', ids), leadIds),
     batchIn(ids => supabase.from('web_analyses').select('id, lead_id, url').in('lead_id', ids).order('created_at', { ascending: false }), leadIds),
     batchIn(ids => supabase.from('lead_members').select('lead_id, user_id').in('lead_id', ids), leadIds),
-    batchIn(ids => supabase.from('call_logs').select('lead_id').in('lead_id', ids), leadIds),
+    batchIn(ids => supabase.from('call_logs').select('lead_id, outcome_label, created_at').in('lead_id', ids).order('created_at', { ascending: false }), leadIds),
     batchIn(ids => supabase.from('meetings').select('lead_id').in('lead_id', ids), leadIds),
   ]);
 
@@ -81,7 +83,14 @@ export async function fetchLeadsData(): Promise<LeadWithOutreachStatus[]> {
   // email/active sequence, or a meeting). Worked leads move to the pipeline and
   // are hidden from the leads list by default.
   const callLogSet = new Set<string>();
-  (callLogs as Array<{ lead_id: string | null }>).forEach(c => { if (c.lead_id) callLogSet.add(c.lead_id); });
+  // Latest call outcome label per lead (rows arrive newest-first, so the first
+  // one we see for a lead is the most recent).
+  const lastCallLabel = new Map<string, string>();
+  (callLogs as Array<{ lead_id: string | null; outcome_label: string | null }>).forEach(c => {
+    if (!c.lead_id) return;
+    callLogSet.add(c.lead_id);
+    if (!lastCallLabel.has(c.lead_id) && c.outcome_label) lastCallLabel.set(c.lead_id, c.outcome_label);
+  });
   const meetingSet = new Set<string>();
   (meetingsData as Array<{ lead_id: string | null }>).forEach(m => { if (m.lead_id) meetingSet.add(m.lead_id); });
 
@@ -144,6 +153,8 @@ export async function fetchLeadsData(): Promise<LeadWithOutreachStatus[]> {
       has_activity:
         emailCount > 0 || !!sequenceStatus ||
         callLogSet.has(lead.id) || meetingSet.has(lead.id),
+      has_call: callLogSet.has(lead.id),
+      last_call_label: lastCallLabel.get(lead.id) ?? null,
     };
   });
 }

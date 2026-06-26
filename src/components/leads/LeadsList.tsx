@@ -331,16 +331,20 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
   // shown only under the dedicated "pool" filter, never mixed into normal views.
   const statusFilteredLeads = useMemo(() => {
     if (ownerFilter === "pool") return poolLeads;
+    // While searching, show every matching saved lead regardless of the
+    // hide-worked / hide-not-interested toggles — otherwise a lead you've
+    // already called or marked "ej intresserad" can't be found at all.
+    const searching = searchQuery.trim().length > 0;
     let base = leads.filter((l) => !isPoolLead(l));
     // Worked leads (logged call/email/meeting) live in the pipeline; hide them
     // from the leads list by default.
-    if (hideWorked) base = base.filter((l) => !l.has_activity);
-    if (!hideNotInterested) return base;
+    if (hideWorked && !searching) base = base.filter((l) => !l.has_activity);
+    if (!hideNotInterested || searching) return base;
     return base.filter((lead) => {
       const status = (lead as any).lead_status || "active";
       return status === "active" || status === "customer";
     });
-  }, [leads, poolLeads, isPoolLead, hideNotInterested, hideWorked, ownerFilter]);
+  }, [leads, poolLeads, isPoolLead, hideNotInterested, hideWorked, ownerFilter, searchQuery]);
 
   // Filter by owner (using member_ids from lead_members table)
   const ownerFilteredLeads = useMemo(() => {
@@ -487,6 +491,26 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
         );
       case "none":
       default:
+        // No email outreach, but the lead may have been worked by phone — show
+        // the latest call outcome ("Ej intresserad", "Ringa igen", …) instead of
+        // a misleading "Ej kontaktad".
+        if (lead.has_call) {
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="secondary" className="gap-1">
+                    <Phone className="h-3 w-3" />
+                    {lead.last_call_label || t("leadsList.contacted")}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("leadsList.tipCalled")}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        }
         return (
           <TooltipProvider>
             <Tooltip>
