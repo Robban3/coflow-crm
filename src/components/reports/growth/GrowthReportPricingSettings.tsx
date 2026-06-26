@@ -129,7 +129,7 @@ export function GrowthReportPricingSettings() {
         {/* AI-synlighet */}
         <div>
           <h4 className="text-sm font-semibold mb-3">{t("reports.pricing.aiVisibilityHeading")}</h4>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1">
               <Label className="text-xs">{t("reports.pricing.start")}</Label>
               <Input type="number" value={form.ai_visibility_start_monthly} onChange={(e) => n("ai_visibility_start_monthly", e.target.value)} />

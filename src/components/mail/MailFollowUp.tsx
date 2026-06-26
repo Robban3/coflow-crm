@@ -266,7 +266,7 @@ export function MailFollowUp() {
       </div>
       {/* Batch action bar */}
       {selected.size > 0 && (
-        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+        <div className="flex flex-wrap items-center gap-3 p-3 bg-muted/50 rounded-lg border">
           <span className="text-sm font-medium">
             {t("mail.followUp.selectedCount", { count: selected.size })}
           </span>

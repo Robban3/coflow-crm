@@ -691,7 +691,7 @@ export default function ProspectingSearchTab() {
 
       {/* ── Search form ── */}
       <form onSubmit={handleSearch} className="flex gap-2 items-end flex-wrap">
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-0 sm:min-w-[200px]">
           <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("prospecting.industry")}</label>
           <Input
             placeholder={t("prospecting.industryPlaceholder")}
@@ -699,7 +699,7 @@ export default function ProspectingSearchTab() {
             onChange={(e) => setIndustry(e.target.value)}
           />
         </div>
-        <div className="w-[180px]">
+        <div className="w-full sm:w-[180px]">
           <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("prospecting.city")}</label>
           <Input
             placeholder={MARKET_LOCATION_PLACEHOLDER[market]}

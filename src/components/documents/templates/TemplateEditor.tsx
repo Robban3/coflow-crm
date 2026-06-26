@@ -173,7 +173,7 @@ export function TemplateEditor() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex flex-wrap items-center gap-3 mb-6">
         <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -186,7 +186,7 @@ export function TemplateEditor() {
           className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 px-0 h-auto"
           placeholder={t("templates.editor.namePlaceholder")}
         />
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex gap-2 w-full sm:w-auto justify-end">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="sm">

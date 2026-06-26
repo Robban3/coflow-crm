@@ -55,7 +55,7 @@ export function TicketKanban() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {COLUMNS.map(c => (
           <div key={c.key} className="space-y-2">
             <Skeleton className="h-8 w-full" />

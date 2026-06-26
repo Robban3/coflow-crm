@@ -644,8 +644,8 @@ export default function PowerCallSessionPage() {
     <AppLayout>
       <div className="h-full flex flex-col">
         {/* Session header bar */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10">
+          <div className="flex items-center gap-3 min-w-0">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleEndSession}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -973,7 +973,7 @@ export default function PowerCallSessionPage() {
 
       {/* ── Outcome dialog ── */}
       <Dialog open={outcomeOpen} onOpenChange={setOutcomeOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Phone className="h-4 w-4" />

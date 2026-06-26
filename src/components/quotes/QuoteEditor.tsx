@@ -495,7 +495,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onClose}>
             <ArrowLeft className="h-5 w-5" />
@@ -517,7 +517,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {viewToken && (
             <>
               <Button variant="outline" size="sm" onClick={copyLink}>
@@ -578,8 +578,8 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
               <CardTitle className="text-base">{documentLabel === "avtal" ? t("quotes.avtalInfo") : t("quotes.offertInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2 relative">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="col-span-1 sm:col-span-2 relative">
                   <Label>{t("quotes.titleSearchLead")}</Label>
                   <Input
                     value={title}
@@ -684,7 +684,8 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
               {items.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-sm">{t("quotes.addProductsServices")}</div>
               ) : (
-                <div className="space-y-3">
+                <div className="overflow-x-auto">
+                <div className="space-y-3 min-w-[640px]">
                   {/* Header */}
                   <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-1">
                     <div className="col-span-3">{t("quotes.description")}</div>
@@ -788,6 +789,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                       )}
                     </div>
                   ))}
+                </div>
                 </div>
               )}
             </CardContent>

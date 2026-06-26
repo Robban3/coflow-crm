@@ -17,7 +17,7 @@ export default function TicketsPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{t("tickets.title")}</h1>
             <p className="text-sm text-muted-foreground">{t("tickets.subtitle")}</p>
@@ -30,7 +30,7 @@ export default function TicketsPage() {
         <TicketStats key={`stats-${refreshKey}`} />
 
         <Tabs defaultValue="kanban">
-          <TabsList>
+          <TabsList className="max-w-full overflow-x-auto">
             <TabsTrigger value="kanban" className="flex items-center gap-1"><BarChart3 className="h-3.5 w-3.5" /> {t("tickets.tab.kanban")}</TabsTrigger>
             <TabsTrigger value="list" className="flex items-center gap-1"><List className="h-3.5 w-3.5" /> {t("tickets.tab.list")}</TabsTrigger>
             <TabsTrigger value="mine" className="flex items-center gap-1"><User className="h-3.5 w-3.5" /> {t("tickets.tab.mine")}</TabsTrigger>

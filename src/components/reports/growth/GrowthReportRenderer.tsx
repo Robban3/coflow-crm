@@ -213,7 +213,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
         </div>
 
         {/* Three score badges */}
-        <div className="grid grid-cols-3 gap-4 mt-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
           <ScoreBadge label={t("reports.growth.webPerformance")} score={webScore} icon={<BarChart3 className="h-3.5 w-3.5" />} />
           <ScoreBadge label={t("reports.generator.typeSeo")} score={seoScore} icon={<Search className="h-3.5 w-3.5" />} />
           <ScoreBadge label={t("reports.growth.aiVisibility")} score={geoScore} icon={<Eye className="h-3.5 w-3.5" />} />
@@ -617,7 +617,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
           </div>
 
           {data.contact && (
-            <div className="flex items-center justify-center gap-4 mt-8 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-8 text-xs text-muted-foreground">
               {data.contact.email && (
                 <span className="flex items-center gap-1">
                   <Mail className="h-3 w-3" /> {data.contact.email}

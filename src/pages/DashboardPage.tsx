@@ -645,7 +645,7 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-3 gap-3 sm:gap-6">
                 <div className="text-center">
                   <div className="text-3xl font-semibold text-foreground">{emailStats.totalCount}</div>
                   <div className="text-sm text-muted-foreground mt-1">{t("dashboard.totalSent")}</div>

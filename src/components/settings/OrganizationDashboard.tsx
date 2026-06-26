@@ -663,7 +663,7 @@ export function OrganizationDashboard() {
                 <UserPlus className="mr-2 h-4 w-4" />{t("settings.add")}</Button>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -745,7 +745,7 @@ export function OrganizationDashboard() {
                   <Button size="sm" variant="outline" onClick={() => setShowInviteCodeDialog(true)}>{t("settings.createCode")}</Button>
                 </div>
               ) : (
-                <div className="rounded-md border">
+                <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>

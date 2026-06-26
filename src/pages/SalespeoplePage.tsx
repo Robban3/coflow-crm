@@ -96,6 +96,7 @@ export default function SalespeoplePage() {
             ) : rows.length === 0 ? (
               <div className="py-16 text-center text-sm text-muted-foreground">{t("statistics.noSalespeople")}</div>
             ) : (
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -139,6 +140,7 @@ export default function SalespeoplePage() {
                   })}
                 </TableBody>
               </Table>
+              </div>
             )}
           </CardContent>
         </Card>

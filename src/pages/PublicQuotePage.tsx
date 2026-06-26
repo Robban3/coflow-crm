@@ -256,8 +256,8 @@ export default function PublicQuotePage() {
                 />
               </div>
             )}
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-2 flex-wrap">
+              <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">{org?.name || t("publicPages.quote.company")}</p>
                 <h1 className="text-2xl font-bold tracking-tight">{quote.title}</h1>
                 <p className="text-sm text-muted-foreground">{(quote as any).document_label === "avtal" ? t("publicPages.quote.agreement") : t("publicPages.quote.offer")} #{quote.quote_number}</p>
@@ -306,7 +306,8 @@ export default function PublicQuotePage() {
 
               return (
                 <>
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto -mx-4 px-4">
+                  <table className="w-full text-sm min-w-[520px]">
                     <thead>
                       <tr className="border-b text-left text-muted-foreground">
                         <th className="pb-3 font-medium">{t("publicPages.quote.colDescription")}</th>
@@ -352,6 +353,7 @@ export default function PublicQuotePage() {
                       })}
                     </tbody>
                   </table>
+                  </div>
 
                   <Separator className="my-4" />
 

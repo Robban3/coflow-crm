@@ -67,7 +67,7 @@ export function TicketList({ myOnly }: TicketListProps) {
   return (
     <>
       <div className="flex flex-wrap gap-2 mb-4">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input placeholder={t("tickets.list.searchPlaceholder")} value={search} onChange={e => setSearch(e.target.value)} className="pl-8" />
         </div>
@@ -94,7 +94,7 @@ export function TicketList({ myOnly }: TicketListProps) {
         </Select>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

@@ -165,7 +165,7 @@ export function PricingPackageEditor({ open, onOpenChange, pkg, defaultCategory 
         </div>
 
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t("pricing.editor.category")}</Label>
               <Input value={cur.category} onChange={(e) => upd({ category: e.target.value })} placeholder={t("pricing.editor.categoryPlaceholder")} />
@@ -176,7 +176,7 @@ export function PricingPackageEditor({ open, onOpenChange, pkg, defaultCategory 
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t("pricing.editor.price")}</Label>
               <Input value={cur.price} onChange={(e) => upd({ price: e.target.value })} placeholder={t("pricing.editor.pricePlaceholder")} />

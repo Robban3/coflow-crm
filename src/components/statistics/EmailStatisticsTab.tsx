@@ -311,6 +311,7 @@ export function EmailStatisticsTab() {
             <CardTitle className="text-base">{t("statistics.perSource")}</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -337,6 +338,7 @@ export function EmailStatisticsTab() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </CardContent>
         </Card>
 
@@ -346,6 +348,7 @@ export function EmailStatisticsTab() {
             <CardTitle className="text-base">{t("statistics.perSender")}</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -370,6 +373,7 @@ export function EmailStatisticsTab() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

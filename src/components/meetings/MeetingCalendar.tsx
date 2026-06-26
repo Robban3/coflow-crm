@@ -178,10 +178,10 @@ export function MeetingCalendar({ isAdmin = false }: MeetingCalendarProps) {
             </CardDescription>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isAdmin && (
               <Select value={filterUser} onValueChange={setFilterUser}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder={t("meetings.filterUser")} />
                 </SelectTrigger>
                 <SelectContent>

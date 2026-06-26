@@ -371,29 +371,29 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
           {/* Traffic Stats Grid */}
           {hasRealKeywordData && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1 text-2xl font-bold text-primary">
+              <div className="text-center min-w-0">
+                <div className="flex items-center justify-center gap-1 text-2xl font-bold text-primary min-w-0">
                   <Eye className="h-5 w-5" />
                   {formatNumber(totalTraffic)}
                 </div>
                 <p className="text-xs text-muted-foreground">{t("webAnalysis.visitsPerMonth")}</p>
               </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1 text-2xl font-bold text-primary">
+              <div className="text-center min-w-0">
+                <div className="flex items-center justify-center gap-1 text-2xl font-bold text-primary min-w-0">
                   <Search className="h-5 w-5" />
                   {formatNumber(totalKeywords)}
                 </div>
                 <p className="text-xs text-muted-foreground">{t("webAnalysis.rankedKeywords")}</p>
               </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1 text-2xl font-bold text-green-600 dark:text-green-400">
+              <div className="text-center min-w-0">
+                <div className="flex items-center justify-center gap-1 text-2xl font-bold text-green-600 dark:text-green-400 min-w-0">
                   <ArrowUp className="h-5 w-5" />
                   {topPositions}
                 </div>
                 <p className="text-xs text-muted-foreground">{t("webAnalysis.inTop10")}</p>
               </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1 text-2xl font-bold text-primary">
+              <div className="text-center min-w-0">
+                <div className="flex items-center justify-center gap-1 text-2xl font-bold text-primary min-w-0">
                   <Star className="h-5 w-5" />
                   ${formatNumber(trafficValue)}
                 </div>

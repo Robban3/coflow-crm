@@ -645,7 +645,9 @@ export default function LeadDetailPage() {
             </Button>
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h2 className="text-xl md:text-2xl font-bold text-foreground truncate">{lead.company_name || t("leadDetail.ldp_unknownCompany")}</h2>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl md:text-2xl font-bold text-foreground truncate">{lead.company_name || t("leadDetail.ldp_unknownCompany")}</h2>
+                </div>
                 {lead.company_name && (
                   <button
                     onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(lead.company_name || '')}`, '_blank')}
@@ -894,7 +896,7 @@ export default function LeadDetailPage() {
                     {companyRegistry && (
                       <div className="sm:col-span-2">
                         <div className="rounded-lg border bg-muted/30 p-4">
-                          <div className="flex items-center gap-2 mb-3">
+                          <div className="flex flex-wrap items-center gap-2 mb-3">
                             <Building2 className="h-4 w-4 text-muted-foreground" />
                             <p className="text-sm font-semibold">Officiell företagsinformation</p>
                             <span className="text-xs text-muted-foreground">· Bolagsverket</span>

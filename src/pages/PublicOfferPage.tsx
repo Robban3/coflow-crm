@@ -188,8 +188,8 @@ export default function PublicOfferPage() {
                 />
               </div>
             )}
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-2 flex-wrap">
+              <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">{org?.name || t("publicPages.offer.company")}</p>
                 <h1 className="text-2xl font-bold tracking-tight">{doc.title}</h1>
                 {doc.document_number && (

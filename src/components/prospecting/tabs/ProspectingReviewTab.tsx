@@ -409,7 +409,7 @@ export default function ProspectingReviewTab() {
   return (
     <div className="space-y-4 mt-4">
       {/* Filter tabs */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-1">
           {([["draft", t("prospecting.rev_filterDraft")], ["sent", t("prospecting.rev_filterSent")], ["failed", t("prospecting.rev_filterFailed")], ["all", t("prospecting.rev_filterAll")]] as [FilterKey, string][]).map(
             ([key, label]) => (
@@ -612,17 +612,17 @@ function DraftRow({
     <div className={`rounded-lg border transition-all ${isFinal ? "opacity-50" : ""} ${selected ? "border-primary/50 bg-primary/5" : "border-border"}`}>
       {/* Missing email banner */}
       {!hasEmail && !isFinal && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-1.5 flex items-center gap-2 text-amber-700 text-xs rounded-t-lg">
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-1.5 flex flex-wrap items-center gap-2 text-amber-700 text-xs rounded-t-lg">
           <Mail className="h-3.5 w-3.5 shrink-0" />
           {t("prospecting.rev_missingEmail")}
-          <div className="flex-1" />
+          <div className="hidden sm:block flex-1" />
           <Input
             type="email"
             placeholder={t("prospecting.rev_emailPlaceholder")}
             value={localEmail}
             onChange={(e) => setLocalEmail(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && localEmail.trim()) onSaveEmail(draft.lead_id, localEmail); }}
-            className="h-6 text-xs w-48 bg-background"
+            className="h-6 text-xs w-full sm:w-48 bg-background"
           />
           <Button
             variant="ghost"

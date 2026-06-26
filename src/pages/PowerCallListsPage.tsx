@@ -126,17 +126,17 @@ export default function PowerCallListsPage() {
     <AppLayout>
       <div className="p-4 md:p-6 max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-3 min-w-0">
             <Button variant="ghost" size="icon" asChild className="shrink-0">
               <Link to="/outreach-pro"><ArrowLeft className="h-4 w-4" /></Link>
             </Button>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">{t("powerCall.lists.title")}</h1>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold tracking-tight truncate">{t("powerCall.lists.title")}</h1>
               <p className="text-sm text-muted-foreground">{t("powerCall.lists.subtitle")}</p>
             </div>
           </div>
-          <Button onClick={() => setCreateOpen(true)}>
+          <Button className="shrink-0" onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4 mr-1.5" />
             {t("powerCall.lists.newList")}
           </Button>

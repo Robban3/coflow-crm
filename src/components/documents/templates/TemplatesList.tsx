@@ -78,7 +78,7 @@ export function TemplatesList() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold">{t("templates.list.title")}</h1>
           <p className="text-muted-foreground text-sm">
@@ -128,8 +128,8 @@ export function TemplatesList() {
               onClick={() => navigate(`/settings/templates/${tpl.id}`)}
             >
               <CardContent className="py-4 flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">{tpl.name}</h3>
+                <div className="min-w-0">
+                  <h3 className="font-medium truncate">{tpl.name}</h3>
                   <p className="text-sm text-muted-foreground">
                     {typeLabels[tpl.type] || tpl.type}
                     {tpl.description && ` • ${tpl.description}`}
@@ -137,7 +137,7 @@ export function TemplatesList() {
                     {format(new Date(tpl.created_at), "P", { locale: dateLocale })}
                   </p>
                 </div>
-                <Pencil className="h-4 w-4 text-muted-foreground" />
+                <Pencil className="h-4 w-4 text-muted-foreground shrink-0" />
               </CardContent>
             </Card>
           ))}

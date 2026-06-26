@@ -86,7 +86,7 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t("quotes.title")}</h1>
           <p className="text-muted-foreground text-sm">{t("quotes.subtitle")}</p>
@@ -108,7 +108,7 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
             className="pl-9"
           />
         </div>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {["all", "draft", "sent", "viewed", "accepted", "won", "rejected"].map((s) => (
             <Button
               key={s}
@@ -156,7 +156,7 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
                           {t(statusInfo.labelKey)}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                         <span>#{q.quote_number}</span>
                         {q.recipient_name && <span>→ {q.recipient_name}</span>}
                         <span>{format(new Date(q.created_at), "d MMM yyyy", { locale: dateLocale })}</span>
@@ -168,7 +168,7 @@ export function QuotesList({ onCreateNew, onEdit }: QuotesListProps) {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 shrink-0">
                       <span className="font-semibold text-lg whitespace-nowrap">
                         {Number(q.total).toLocaleString(numberLocale)} {q.currency}
                       </span>

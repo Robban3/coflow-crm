@@ -215,7 +215,7 @@ export function CreateLeadDialog({ open, onOpenChange, url, analysisId, onLeadCr
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
                   <Mail className="h-3 w-3" />
