@@ -383,10 +383,26 @@ async function stepPageSpeed(website: string, leadId: string, orgId: string | nu
   let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices`;
   if (apiKey) apiUrl += `&key=${apiKey}`;
 
-  const res = await fetch(apiUrl);
-  if (!res.ok) {
-    const errBody = await res.text();
-    console.error("[auto-enrich] PageSpeed error:", res.status, errBody);
+  // Google PSI is flaky and frequently returns a transient 5xx/429 that succeeds
+  // on retry. Retry those a few times with backoff before giving up; throw only
+  // after — always before any write, so the existing analysis is preserved.
+  const RETRYABLE_PSI = new Set([429, 500, 502, 503, 504]);
+  let res!: Response;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      res = await fetch(apiUrl);
+    } catch (e) {
+      console.warn(`[auto-enrich] PageSpeed attempt ${attempt}/3 network error:`, String(e));
+      if (attempt < 3) { await new Promise((r) => setTimeout(r, attempt * 1500)); continue; }
+      throw new Error(`PageSpeed network error: ${String(e)}`);
+    }
+    if (res.ok) break;
+    const errBody = await res.text().catch(() => "");
+    console.error(`[auto-enrich] PageSpeed attempt ${attempt}/3 HTTP ${res.status}:`, errBody.slice(0, 200));
+    if (RETRYABLE_PSI.has(res.status) && attempt < 3) {
+      await new Promise((r) => setTimeout(r, attempt * 2000));
+      continue;
+    }
     // Thrown before any write — the existing analysis is preserved.
     throw new Error(`PageSpeed HTTP ${res.status}`);
   }
