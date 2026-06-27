@@ -3,6 +3,9 @@ import type { FeatureDictionary } from "../translations";
 export const pricingDict: FeatureDictionary = {
   sv: {
     "pricing.subtitle": "Tjänstepaket och priser – referens för säljteamet",
+    "pricing.tabProposals": "Förslag (deck)",
+    "pricing.decksHint": "Öppna ett deck och tryck P (eller PDF-knappen) för att ladda ner som PDF.",
+    "pricing.decksEmpty": "Inga förslags-deck ännu.",
     "pricing.newPackage": "Nytt paket",
     "pricing.addToCategory": "Lägg till",
     "pricing.empty": "Inga paket ännu. En admin kan lägga till dem.",
@@ -29,6 +32,9 @@ export const pricingDict: FeatureDictionary = {
   },
   en: {
     "pricing.subtitle": "Service packages and prices – reference for the sales team",
+    "pricing.tabProposals": "Proposals (decks)",
+    "pricing.decksHint": "Open a deck and press P (or the PDF button) to download it as a PDF.",
+    "pricing.decksEmpty": "No proposal decks yet.",
     "pricing.newPackage": "New package",
     "pricing.addToCategory": "Add",
     "pricing.empty": "No packages yet. An admin can add them.",
@@ -55,6 +61,9 @@ export const pricingDict: FeatureDictionary = {
   },
   es: {
     "pricing.subtitle": "Paquetes de servicios y precios – referencia para el equipo de ventas",
+    "pricing.tabProposals": "Propuestas (decks)",
+    "pricing.decksHint": "Abre un deck y pulsa P (o el botón PDF) para descargarlo como PDF.",
+    "pricing.decksEmpty": "Aún no hay decks de propuesta.",
     "pricing.newPackage": "Nuevo paquete",
     "pricing.addToCategory": "Añadir",
     "pricing.empty": "Aún no hay paquetes. Un administrador puede añadirlos.",

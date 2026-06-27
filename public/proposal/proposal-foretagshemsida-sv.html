@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Företagshemsida – Förslag</title>
+<style>
+  :root{
+    --ink:#0b1220; --ink-2:#111c30; --gold:#e3b562; --steel:#5aa0ff;
+    --text:#e8edf6; --muted:#9fb0c8; --line:rgba(255,255,255,.10); --card:rgba(255,255,255,.04);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;
+    background:radial-gradient(1200px 800px at 20% -10%,#16243c 0%,var(--ink) 55%) fixed;
+    color:var(--text); -webkit-font-smoothing:antialiased;
+  }
+  .slide{
+    display:none; min-height:100vh; padding:7vh 8vw 14vh;
+    flex-direction:column; justify-content:center; gap:22px; max-width:1100px; margin:0 auto;
+  }
+  .slide.is-active{display:flex}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--gold);font-weight:600;
+    font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+  .eyebrow svg{width:18px;height:18px}
+  h1{font-size:clamp(32px,6vw,64px);line-height:1.05;margin:0;font-weight:800;letter-spacing:-.02em}
+  h2{font-size:clamp(24px,4vw,40px);line-height:1.1;margin:0 0 6px;font-weight:750;letter-spacing:-.01em}
+  .lead{font-size:clamp(16px,2.2vw,21px);color:var(--muted);max-width:62ch;line-height:1.5;margin:0}
+  .gold{color:var(--gold)} .steel{color:var(--steel)}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:760px){.g2,.g3{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+  .card h3{margin:0 0 6px;font-size:18px}
+  .card p{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
+  .ico{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,rgba(227,181,98,.18),rgba(227,181,98,.06));border:1px solid rgba(227,181,98,.25);margin-bottom:12px}
+  .ico svg{width:21px;height:21px;color:var(--gold)}
+  .ico.steel{background:linear-gradient(180deg,rgba(90,160,255,.18),rgba(90,160,255,.06));border-color:rgba(90,160,255,.25)}
+  .ico.steel svg{color:var(--steel)}
+  ul.checks{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+  ul.checks li{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--text)}
+  ul.checks svg{width:20px;height:20px;color:var(--gold);flex:0 0 auto;margin-top:1px}
+  .steps{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+  .step{flex:1 1 180px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .step .n{color:var(--gold);font-weight:800;font-size:13px;letter-spacing:.1em}
+  .step h4{margin:6px 0 4px;font-size:16px} .step p{margin:0;color:var(--muted);font-size:14px}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+  td.gold{color:var(--gold);font-weight:600}
+  .price{display:flex;align-items:baseline;gap:10px}
+  .price .big{font-size:clamp(34px,6vw,52px);font-weight:800;color:var(--gold)}
+  .price .unit{color:var(--muted);font-size:16px}
+  .pill{display:inline-block;padding:6px 12px;border:1px solid var(--line);border-radius:999px;
+    color:var(--muted);font-size:13px}
+  .cta{display:inline-flex;align-items:center;gap:10px;background:var(--gold);color:#1a1205;
+    font-weight:700;padding:14px 24px;border-radius:12px;text-decoration:none;font-size:16px;width:fit-content}
+  .cta svg{width:18px;height:18px}
+  .muted{color:var(--muted)}
+  .foot{position:fixed;left:8vw;bottom:18px;color:var(--muted);font-size:12px;letter-spacing:.04em}
+  /* Deck chrome (created by deck.js) */
+  .deck-nav{position:fixed;right:18px;bottom:18px;display:flex;gap:8px;align-items:center;z-index:50}
+  .deck-btn{background:var(--card);border:1px solid var(--line);color:var(--text);width:40px;height:40px;
+    border-radius:10px;font-size:16px;cursor:pointer}
+  .deck-btn.deck-pdf{width:auto;padding:0 14px;font-size:13px;font-weight:600;color:var(--gold)}
+  .deck-counter{color:var(--muted);font-size:13px;min-width:54px;text-align:center}
+  .deck-dots{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;display:flex;gap:7px;z-index:50}
+  .deck-dot{width:8px;height:8px;border-radius:50%;border:0;background:rgba(255,255,255,.22);cursor:pointer;padding:0}
+  .deck-dot.is-active{background:var(--gold)}
+  /* PDF / print: stack every slide, hide chrome */
+  @media print{
+    body{background:var(--ink)}
+    .slide{display:flex!important;min-height:auto;page-break-after:always;padding:40px 48px}
+    .deck-nav,.deck-dots,.foot{display:none!important}
+  }
+</style>
+</head>
+<body>
+
+<!-- 1 · COVER -->
+<section class="slide">
+  <span class="eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Förslag · Företagshemsida</span>
+  <h1>En sajt som <span class="gold">jobbar för dig</span> — inte tvärtom.</h1>
+  <p class="lead">En komplett, sökmotorvänlig företagshemsida på upp till 7 sidor som du själv uppdaterar via ett enkelt CMS. Designad för att ge förtroende och förvandla besökare till kunder.</p>
+  <div><span class="pill">Vår populäraste lösning</span></div>
+</section>
+
+<!-- 2 · PROBLEM -->
+<section class="slide">
+  <span class="eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Problemet</span>
+  <h2>Din nuvarande sajt kostar dig kunder</h2>
+  <div class="grid g3">
+    <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></div><h3>Ser inte bra ut i mobilen</h3><p>Över hälften av besökarna kommer från telefonen. En sajt som inte funkar där tappar dem direkt.</p></div>
+    <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div><h3>Syns inte på Google</h3><p>Utan on-page-SEO hittar nya kunder dina konkurrenter i stället för dig.</p></div>
+    <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><h3>Du kan inte uppdatera själv</h3><p>Varje liten ändring kräver en utvecklare — det blir dyrt, långsamt och frustrerande.</p></div>
+  </div>
+</section>
+
+<!-- 3 · LÖSNING -->
+<section class="slide">
+  <span class="eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg> Lösningen</span>
+  <h2>En modern sajt — i tre delar</h2>
+  <ul class="checks">
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg><div><strong>Responsiv design på upp till 7 sidor</strong> — ser proffsig ut på mobil, surfplatta och dator.</div></li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg><div><strong>Eget CMS</strong> — uppdatera texter, bilder och sidor själv, utan kod.</div></li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg><div><strong>On-page-SEO + Google Analytics</strong> — byggd för att synas och mätbar från dag ett.</div></li>
+  </ul>
+</section>
+
+<!-- 4 · HUR DET FUNKAR -->
+<section class="slide">
+  <span class="eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> Hur det funkar</span>
+  <h2>Från idé till lansering i fyra steg</h2>
+  <div class="steps">
+    <div class="step"><div class="n">STEG 1</div><h4>Upptäckt</h4><p>Vi går igenom mål, målgrupp och innehåll tillsammans.</p></div>
+    <div class="step"><div class="n">STEG 2</div><h4>Design</h4><p>Du får en designskiss att tycka till om innan vi bygger.</p></div>
+    <div class="step"><div class="n">STEG 3</div><h4>Bygg</h4><p>Vi utvecklar sajten med CMS, SEO och analys på plats.</p></div>
+    <div class="step"><div class="n">STEG 4</div><h4>Lansering</h4><p>Vi publicerar, mäter och lämnar över så du kan sköta den själv.</p></div>
+  </div>
+</section>
+
+<!-- 5 · PRODUKT / CMS -->
+<section class="slide">
+  <span class="eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg> Produkt &amp; CMS</span>
+  <h2>Allt du behöver — på ett ställe</h2>
+  <div class="grid g2">
+    <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></div><h3>För besökaren</h3><p>Snabb, mobilanpassad sajt · tydliga kontaktvägar · innehåll som bygger förtroende.</p></div>
+    <div class="card"><div class="ico steel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div><h3>För dig som äger sajten</h3><p>Eget CMS · redigera utan kod · SEO-fält per sida · Google Analytics inbyggt.</p></div>
+  </div>
+</section>
+
+<!-- 6 · TECH STACK -->
+<section class="slide">
+  <span class="eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Tech stack</span>
+  <h2>Byggd på modern, snabb teknik</h2>
+  <table>
+    <thead><tr><th>Lager</th><th>Val</th><th>Varför</th></tr></thead>
+    <tbody>
+      <tr><td class="gold">Frontend</td><td>React + TypeScript</td><td>Snabbt, stabilt, framtidssäkert</td></tr>
+      <tr><td class="gold">Styling</td><td>Tailwind CSS</td><td>Konsekvent design, snabb laddning</td></tr>
+      <tr><td class="gold">CMS</td><td>Headless CMS</td><td>Uppdatera innehåll utan utvecklare</td></tr>
+      <tr><td class="gold">Hosting</td><td>Cloudflare (CDN)</td><td>Globalt snabb, säker, hög drifttid</td></tr>
+      <tr><td class="gold">SEO</td><td>On-page + metadata</td><td>Syns i Google från start</td></tr>
+      <tr><td class="gold">Analys</td><td>Google Analytics</td><td>Mät besökare och konvertering</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 7 · TIDSLINJE -->
+<section class="slide">
+  <span class="eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg> Tidslinje</span>
+  <h2>Från start till lansering på ~4 veckor</h2>
+  <div class="steps">
+    <div class="step"><div class="n">V. 1</div><h4>Upptäckt &amp; innehåll</h4><p>Workshop, struktur och materialinsamling.</p></div>
+    <div class="step"><div class="n">V. 2</div><h4>Design</h4><p>Designskiss och godkännande.</p></div>
+    <div class="step"><div class="n">V. 3</div><h4>Utveckling</h4><p>Bygge av sidor, CMS och SEO.</p></div>
+    <div class="step"><div class="n">V. 4</div><h4>Lansering</h4><p>Test, publicering och överlämning.</p></div>
+  </div>
+  <p class="muted">Nyckelmilstolpe: godkänd designskiss i vecka 2 innan bygget startar.</p>
+</section>
+
+<!-- 8 · PRIS -->
+<section class="slide">
+  <span class="eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg> Investering</span>
+  <h2>Ett fast pris — inga överraskningar</h2>
+  <div class="price"><span class="big">18 000 kr</span><span class="unit">engångs</span></div>
+  <div class="grid g2" style="margin-top:8px">
+    <ul class="checks">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>Upp till 7 sidor</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>CMS – uppdatera själv</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>Responsiv design</li>
+    </ul>
+    <ul class="checks">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>On-page SEO</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>Google Analytics</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>Källkod &amp; överlämning</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 9 · VÄRDE / ROI -->
+<section class="slide">
+  <span class="eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> Värdet</span>
+  <h2>Vad sajten ger tillbaka</h2>
+  <div class="grid g3">
+    <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div><h3>Fler hittar dig</h3><p>On-page-SEO gör att rätt kunder hittar dig på Google.</p></div>
+    <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>Fler blir kunder</h3><p>Tydlig design och kontaktvägar förvandlar besök till affärer.</p></div>
+    <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h3>Du sparar tid</h3><p>Eget CMS = inga utvecklarfakturor för varje liten ändring.</p></div>
+  </div>
+  <p class="muted">En enda ny kund kan täcka hela investeringen — resten är ren tillväxt.</p>
+</section>
+
+<!-- 10 · NÄSTA STEG -->
+<section class="slide">
+  <span class="eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Nästa steg</span>
+  <h1>Redo att <span class="gold">komma igång?</span></h1>
+  <p class="lead">Boka ett kort möte så går vi igenom dina mål och sätter en plan. Du får en färdig, mätbar sajt på cirka fyra veckor.</p>
+  <a class="cta" href="mailto:hugo.lopez@applabbet.com?subject=Företagshemsida">Boka möte <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+  <p class="muted">hugo.lopez@applabbet.com</p>
+</section>
+
+<div class="foot">Förslag · Företagshemsida · ← → för att bläddra · P för PDF</div>
+<script src="/proposal/deck.js"></script>
+</body>
+</html>

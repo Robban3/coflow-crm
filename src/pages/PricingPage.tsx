@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Loader2, Plus, Pencil, Trash2, Check, Tag, Sparkles } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Check, Tag, Sparkles, FileText, ExternalLink } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -9,6 +10,7 @@ import { pickLocalized } from "@/lib/localized";
 import { useAuth } from "@/hooks/useAuth";
 import { usePricingPackages, type PricingPackage } from "@/hooks/usePricingPackages";
 import { PricingPackageEditor } from "@/components/pricing/PricingPackageEditor";
+import { PROPOSAL_DECKS, deckUrl, LANG_LABEL } from "@/lib/proposalDecks";
 
 export default function PricingPage() {
   const { t, language } = useTranslation();
@@ -69,6 +71,17 @@ export default function PricingPage() {
           )}
         </div>
 
+        <Tabs defaultValue="packages" className="w-full">
+          <TabsList>
+            <TabsTrigger value="packages" className="gap-1.5">
+              <Tag className="h-4 w-4" /> {t("nav.pricing")}
+            </TabsTrigger>
+            <TabsTrigger value="proposals" className="gap-1.5">
+              <FileText className="h-4 w-4" /> {t("pricing.tabProposals")}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="packages" className="space-y-8 mt-6">
         {isLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -161,6 +174,39 @@ export default function PricingPage() {
             </section>
           ))
         )}
+          </TabsContent>
+
+          <TabsContent value="proposals" className="mt-6 space-y-4">
+            <p className="text-sm text-muted-foreground">{t("pricing.decksHint")}</p>
+            {PROPOSAL_DECKS.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center py-20 px-6 rounded-xl border border-dashed border-border bg-muted/30">
+                <FileText className="h-10 w-10 text-muted-foreground mb-4" />
+                <p className="text-sm text-muted-foreground max-w-md">{t("pricing.decksEmpty")}</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {PROPOSAL_DECKS.map((deck) => (
+                  <article key={deck.slug} className="rounded-xl border border-border bg-card p-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <FileText className="h-4 w-4 text-primary shrink-0" />
+                      <h3 className="font-semibold">{deck.name}</h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">{deck.category}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {deck.langs.map((lang) => (
+                        <Button key={lang} asChild size="sm" variant="outline">
+                          <a href={deckUrl(deck.slug, lang)} target="_blank" rel="noopener noreferrer">
+                            {LANG_LABEL[lang]} <ExternalLink className="h-3 w-3 ml-1" />
+                          </a>
+                        </Button>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       <PricingPackageEditor
