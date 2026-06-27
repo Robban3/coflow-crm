@@ -4,78 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Företagshemsida – Förslag</title>
-<style>
-  :root{
-    --ink:#0b1220; --ink-2:#111c30; --gold:#e3b562; --steel:#5aa0ff;
-    --text:#e8edf6; --muted:#9fb0c8; --line:rgba(255,255,255,.10); --card:rgba(255,255,255,.04);
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;
-    background:radial-gradient(1200px 800px at 20% -10%,#16243c 0%,var(--ink) 55%) fixed;
-    color:var(--text); -webkit-font-smoothing:antialiased;
-  }
-  .slide{
-    display:none; min-height:100vh; padding:7vh 8vw 14vh;
-    flex-direction:column; justify-content:center; gap:22px; max-width:1100px; margin:0 auto;
-  }
-  .slide.is-active{display:flex}
-  .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--gold);font-weight:600;
-    font-size:13px;letter-spacing:.14em;text-transform:uppercase}
-  .eyebrow svg{width:18px;height:18px}
-  h1{font-size:clamp(32px,6vw,64px);line-height:1.05;margin:0;font-weight:800;letter-spacing:-.02em}
-  h2{font-size:clamp(24px,4vw,40px);line-height:1.1;margin:0 0 6px;font-weight:750;letter-spacing:-.01em}
-  .lead{font-size:clamp(16px,2.2vw,21px);color:var(--muted);max-width:62ch;line-height:1.5;margin:0}
-  .gold{color:var(--gold)} .steel{color:var(--steel)}
-  .grid{display:grid;gap:16px}
-  .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)}
-  @media(max-width:760px){.g2,.g3{grid-template-columns:1fr}}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
-  .card h3{margin:0 0 6px;font-size:18px}
-  .card p{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
-  .ico{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(180deg,rgba(227,181,98,.18),rgba(227,181,98,.06));border:1px solid rgba(227,181,98,.25);margin-bottom:12px}
-  .ico svg{width:21px;height:21px;color:var(--gold)}
-  .ico.steel{background:linear-gradient(180deg,rgba(90,160,255,.18),rgba(90,160,255,.06));border-color:rgba(90,160,255,.25)}
-  .ico.steel svg{color:var(--steel)}
-  ul.checks{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-  ul.checks li{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--text)}
-  ul.checks svg{width:20px;height:20px;color:var(--gold);flex:0 0 auto;margin-top:1px}
-  .steps{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
-  .step{flex:1 1 180px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
-  .step .n{color:var(--gold);font-weight:800;font-size:13px;letter-spacing:.1em}
-  .step h4{margin:6px 0 4px;font-size:16px} .step p{margin:0;color:var(--muted);font-size:14px}
-  table{width:100%;border-collapse:collapse;font-size:15px}
-  th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line)}
-  th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em}
-  td.gold{color:var(--gold);font-weight:600}
-  .price{display:flex;align-items:baseline;gap:10px}
-  .price .big{font-size:clamp(34px,6vw,52px);font-weight:800;color:var(--gold)}
-  .price .unit{color:var(--muted);font-size:16px}
-  .pill{display:inline-block;padding:6px 12px;border:1px solid var(--line);border-radius:999px;
-    color:var(--muted);font-size:13px}
-  .cta{display:inline-flex;align-items:center;gap:10px;background:var(--gold);color:#1a1205;
-    font-weight:700;padding:14px 24px;border-radius:12px;text-decoration:none;font-size:16px;width:fit-content}
-  .cta svg{width:18px;height:18px}
-  .muted{color:var(--muted)}
-  .foot{position:fixed;left:8vw;bottom:18px;color:var(--muted);font-size:12px;letter-spacing:.04em}
-  /* Deck chrome (created by deck.js) */
-  .deck-nav{position:fixed;right:18px;bottom:18px;display:flex;gap:8px;align-items:center;z-index:50}
-  .deck-btn{background:var(--card);border:1px solid var(--line);color:var(--text);width:40px;height:40px;
-    border-radius:10px;font-size:16px;cursor:pointer}
-  .deck-btn.deck-pdf{width:auto;padding:0 14px;font-size:13px;font-weight:600;color:var(--gold)}
-  .deck-counter{color:var(--muted);font-size:13px;min-width:54px;text-align:center}
-  .deck-dots{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;display:flex;gap:7px;z-index:50}
-  .deck-dot{width:8px;height:8px;border-radius:50%;border:0;background:rgba(255,255,255,.22);cursor:pointer;padding:0}
-  .deck-dot.is-active{background:var(--gold)}
-  /* PDF / print: stack every slide, hide chrome */
-  @media print{
-    body{background:var(--ink)}
-    .slide{display:flex!important;min-height:auto;page-break-after:always;padding:40px 48px}
-    .deck-nav,.deck-dots,.foot{display:none!important}
-  }
-</style>
+<link rel="stylesheet" href="/proposal/deck.css" />
 </head>
 <body>
 
