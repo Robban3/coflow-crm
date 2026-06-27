@@ -59,6 +59,11 @@ export function SendOfferDialog({
 
       if (error) throw error;
 
+      // Notify org admins that an offer was sent (best-effort, never blocks).
+      supabase.functions
+        .invoke("notify-deal-won", { body: { documentId, event: "sent" } })
+        .catch(() => {});
+
       toast.success(t("templates.sendOffer.sentTo", { email }));
       onSent();
     } catch (err: any) {

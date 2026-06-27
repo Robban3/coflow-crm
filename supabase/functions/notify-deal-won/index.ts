@@ -25,7 +25,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { quoteId, leadId, sellerId, event } = await req.json();
+    const { quoteId, leadId, documentId, sellerId, event } = await req.json();
     const dealEvent: "sent" | "won" = event === "sent" ? "sent" : "won";
 
     let organizationId: string | null = null;
@@ -44,6 +44,17 @@ serve(async (req) => {
         if (q.recipient_name) extra += ` Kund: ${q.recipient_name}.`;
         const amount = q.total ?? q.total_amount ?? q.amount;
         if (amount) extra += ` Värde: ${amount} kr.`;
+      }
+    } else if (documentId) {
+      // Offers live in the `documents` table (separate from `quotes`).
+      const { data: d } = await supabase.from("documents").select("*").eq("id", documentId).single();
+      if (d) {
+        organizationId = d.organization_id;
+        seller = seller ?? d.created_by;
+        dealType = "offert";
+        dealLabel = d.document_number ? `Offert ${d.document_number}` : (d.title || "Offert");
+        if (d.recipient_name) extra += ` Kund: ${d.recipient_name}.`;
+        if (d.total != null) extra += ` Värde: ${d.total} ${d.currency || "kr"}.`;
       }
     } else if (leadId) {
       const { data: l } = await supabase.from("leads").select("*").eq("id", leadId).single();
