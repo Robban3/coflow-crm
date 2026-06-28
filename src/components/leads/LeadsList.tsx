@@ -264,6 +264,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [hideNotInterested, setHideNotInterested] = useState(true);
   const [hideWorked, setHideWorked] = useState(true);
+  const [showTest, setShowTest] = useState(false); // admin-only: reveal test/demo leads
   const [enrichmentFilter, setEnrichmentFilter] = useState<EnrichmentFilter>("all");
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [queueProgress, setQueueProgress] = useState<{ processed: number; remaining: number } | null>(null);
@@ -330,12 +331,15 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
   // Filter by lead status (hide not interested / invalid phone). Pool leads are
   // shown only under the dedicated "pool" filter, never mixed into normal views.
   const statusFilteredLeads = useMemo(() => {
-    if (ownerFilter === "pool") return poolLeads;
+    // Test/demo leads are hidden from everyone; an admin can reveal them with
+    // the "Visa test"-toggle.
+    const notTest = (l: LeadWithOutreachStatus) => (isAdmin && showTest) || !l.is_test;
+    if (ownerFilter === "pool") return poolLeads.filter(notTest);
     // While searching, show every matching saved lead regardless of the
     // hide-worked / hide-not-interested toggles — otherwise a lead you've
     // already called or marked "ej intresserad" can't be found at all.
     const searching = searchQuery.trim().length > 0;
-    let base = leads.filter((l) => !isPoolLead(l));
+    let base = leads.filter((l) => !isPoolLead(l)).filter(notTest);
     // Worked leads (logged call/email/meeting) live in the pipeline; hide them
     // from the leads list by default.
     if (hideWorked && !searching) base = base.filter((l) => !l.has_activity);
@@ -344,7 +348,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
       const status = (lead as any).lead_status || "active";
       return status === "active" || status === "customer";
     });
-  }, [leads, poolLeads, isPoolLead, hideNotInterested, hideWorked, ownerFilter, searchQuery]);
+  }, [leads, poolLeads, isPoolLead, hideNotInterested, hideWorked, ownerFilter, searchQuery, isAdmin, showTest]);
 
   // Filter by owner (using member_ids from lead_members table)
   const ownerFilteredLeads = useMemo(() => {
@@ -820,6 +824,14 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                 {t("leadDetail.ll_hideWorked")}
               </Label>
             </div>
+            {isAdmin && (
+              <div className="flex items-center gap-2">
+                <Switch id="show-test" checked={showTest} onCheckedChange={setShowTest} />
+                <Label htmlFor="show-test" className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap">
+                  {t("leadsList.showTest")}
+                </Label>
+              </div>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -862,7 +874,10 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-sm truncate">{lead.company_name || t("leadsList.noCompany")}</p>
+                        <p className="font-medium text-sm truncate">
+                          {lead.company_name || t("leadsList.noCompany")}
+                          {lead.is_test && <span className="ml-1.5 rounded bg-amber-500/15 px-1 py-0.5 text-[10px] font-semibold text-amber-600 align-middle">TEST</span>}
+                        </p>
                         {lead.website && (
                           <a 
                             href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} 
@@ -1020,6 +1035,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {lead.company_name || "-"}
+                          {lead.is_test && <span className="rounded bg-amber-500/15 px-1 py-0.5 text-[10px] font-semibold text-amber-600">TEST</span>}
                           {isPoolLead(lead) && (lead as any).released_reason && (
                             <TooltipProvider>
                               <Tooltip>

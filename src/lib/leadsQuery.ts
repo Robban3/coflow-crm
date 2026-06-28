@@ -17,6 +17,7 @@ interface Lead {
   not_interested_reason: string | null;
   enrichment_status: string | null;
   auto_draft_generated: boolean | null;
+  is_test: boolean | null;
 }
 
 export interface LeadWithOutreachStatus extends Lead {

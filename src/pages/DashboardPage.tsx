@@ -87,8 +87,8 @@ export default function DashboardPage() {
       };
 
       const [totalRes, weekRes] = await Promise.all([
-        addUserFilter(supabase.from('leads').select('id', { count: 'exact', head: true })),
-        addUserFilter(supabase.from('leads').select('id', { count: 'exact', head: true }).gte('created_at', weekStart)),
+        addUserFilter(supabase.from('leads').select('id', { count: 'exact', head: true }).eq('is_test', false)),
+        addUserFilter(supabase.from('leads').select('id', { count: 'exact', head: true }).eq('is_test', false).gte('created_at', weekStart)),
       ]);
 
       return { total: totalRes.count || 0, thisWeek: weekRes.count || 0 };
@@ -182,6 +182,7 @@ export default function DashboardPage() {
         .from('leads')
         .select('id, company_name, contact_name, last_call_at, lead_status')
         .eq('lead_status', 'contacted')
+        .eq('is_test', false)
         .not('last_call_at', 'is', null)
         .lt('last_call_at', threeDaysAgo)
         .order('last_call_at', { ascending: true })

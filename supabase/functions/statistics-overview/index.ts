@@ -416,11 +416,18 @@ serve(async (req) => {
 
     // Funnel is visible to all roles (filtered by user for USER role)
     {
+      // Test/demo leads are excluded from every count below.
+      const { data: testLeadsRows } = await supabase
+        .from("leads").select("id").eq("organization_id", orgId).eq("is_test", true);
+      const testLeadIds = new Set<string>((testLeadsRows || []).map((r: any) => r.id));
+      const notTest = (id: string | null | undefined): id is string => !!id && !testLeadIds.has(id);
+
       // Leads created in period
       let leadsQuery = supabase
         .from("leads")
         .select("id, created_by, created_at, email")
         .eq("organization_id", orgId)
+        .eq("is_test", false)
         .gte("created_at", startISO)
         .lte("created_at", endISO);
 
@@ -465,7 +472,7 @@ serve(async (req) => {
         .lte("created_at", endISO);
       if (userRole === "user") meetingsQ = meetingsQ.eq("host_user_id", user.id);
       const { data: meetingLeads } = await meetingsQ;
-      const meetingLeadIds = new Set((meetingLeads || []).map(m => m.lead_id).filter(Boolean));
+      const meetingLeadIds = new Set((meetingLeads || []).map(m => m.lead_id).filter(notTest));
 
       // Offers sent in period
       let docsQ = supabase
@@ -478,7 +485,7 @@ serve(async (req) => {
         .lte("sent_at", endISO);
       if (userRole === "user") docsQ = docsQ.eq("created_by", user.id);
       const { data: docLeads } = await docsQ;
-      const offerLeadIds = new Set((docLeads || []).map(d => d.lead_id).filter(Boolean));
+      const offerLeadIds = new Set((docLeads || []).map(d => d.lead_id).filter(notTest));
 
       // Deals won (quotes accepted) in period
       let quotesQ = supabase
@@ -489,8 +496,9 @@ serve(async (req) => {
         .gte("accepted_at", startISO)
         .lte("accepted_at", endISO);
       if (userRole === "user") quotesQ = quotesQ.eq("created_by", user.id);
-      const { data: wonQuotes } = await quotesQ;
-      const wonLeadIds = new Set((wonQuotes || []).map(q => q.lead_id).filter(Boolean));
+      const { data: wonQuotesRaw } = await quotesQ;
+      const wonQuotes = (wonQuotesRaw || []).filter((q: any) => notTest(q.lead_id));
+      const wonLeadIds = new Set(wonQuotes.map((q: any) => q.lead_id).filter(notTest));
 
       // Also check accepted documents
       let acceptedDocsQ = supabase
@@ -501,8 +509,9 @@ serve(async (req) => {
         .gte("accepted_at", startISO)
         .lte("accepted_at", endISO);
       if (userRole === "user") acceptedDocsQ = acceptedDocsQ.eq("created_by", user.id);
-      const { data: wonDocs } = await acceptedDocsQ;
-      (wonDocs || []).forEach(d => { if (d.lead_id) wonLeadIds.add(d.lead_id); });
+      const { data: wonDocsRaw } = await acceptedDocsQ;
+      const wonDocs = (wonDocsRaw || []).filter((d: any) => notTest(d.lead_id));
+      wonDocs.forEach((d: any) => { if (d.lead_id) wonLeadIds.add(d.lead_id); });
 
       const leadsCreated = leads.length;
       const contacted = contactedLeadIds.size;
@@ -566,21 +575,23 @@ serve(async (req) => {
         // Total offers sent per user for close rate
         const allSentQuotesQ = supabase
           .from("quotes")
-          .select("id, created_by")
+          .select("id, created_by, lead_id")
           .eq("organization_id", orgId)
           .not("sent_at", "is", null)
           .gte("sent_at", startISO)
           .lte("sent_at", endISO);
-        const { data: allSentQuotes } = await allSentQuotesQ;
+        const { data: allSentQuotesRaw } = await allSentQuotesQ;
+        const allSentQuotes = (allSentQuotesRaw || []).filter((q: any) => !q.lead_id || notTest(q.lead_id));
 
         const allSentDocsQ = supabase
           .from("documents")
-          .select("id, created_by")
+          .select("id, created_by, lead_id")
           .eq("organization_id", orgId)
           .not("sent_at", "is", null)
           .gte("sent_at", startISO)
           .lte("sent_at", endISO);
-        const { data: allSentDocs } = await allSentDocsQ;
+        const { data: allSentDocsRaw } = await allSentDocsQ;
+        const allSentDocs = (allSentDocsRaw || []).filter((d: any) => !d.lead_id || notTest(d.lead_id));
 
         const sentCountByUser: Record<string, number> = {};
         for (const q of [...(allSentQuotes || []), ...(allSentDocs || [])]) {
@@ -623,6 +634,7 @@ serve(async (req) => {
           .from("leads")
           .select("id, created_at")
           .eq("organization_id", orgId)
+          .eq("is_test", false)
           .gte("created_at", startISO)
           .lte("created_at", endISO)
           .limit(1000);

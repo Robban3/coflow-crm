@@ -85,7 +85,10 @@ export function EmailStatisticsTab() {
       // Regular users only see their own email statistics; admins see all.
       if (!isAdmin && user?.id) q = q.eq("sent_by", user.id);
       const { data } = await q;
-      return (data ?? []) as SentEmail[];
+      const { data: testRows } = await supabase
+        .from("leads").select("id").eq("organization_id", organizationId!).eq("is_test", true);
+      const testSet = new Set((testRows ?? []).map((r: any) => r.id));
+      return ((data ?? []) as SentEmail[]).filter((e) => !e.lead_id || !testSet.has(e.lead_id));
     },
     enabled: !!organizationId,
   });
@@ -100,7 +103,10 @@ export function EmailStatisticsTab() {
         .gte("received_at", startDate.toISOString());
       if (!isAdmin && user?.id) q = q.eq("sent_by", user.id);
       const { data } = await q;
-      return (data ?? []) as EmailReply[];
+      const { data: testRows } = await supabase
+        .from("leads").select("id").eq("organization_id", organizationId!).eq("is_test", true);
+      const testSet = new Set((testRows ?? []).map((r: any) => r.id));
+      return ((data ?? []) as EmailReply[]).filter((r) => !r.lead_id || !testSet.has(r.lead_id));
     },
     enabled: !!organizationId,
   });

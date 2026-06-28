@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, XCircle, PhoneOff, RotateCcw, Loader2, Undo2, Eraser } from "lucide-react";
+import { MoreHorizontal, XCircle, PhoneOff, RotateCcw, Loader2, Undo2, Eraser, FlaskConical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -26,10 +26,11 @@ import { useAuth } from "@/hooks/useAuth";
 interface LeadStatusActionsProps {
   leadId: string;
   leadStatus: string;
+  isTest?: boolean;
   onStatusChange: () => void;
 }
 
-export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadStatusActionsProps) {
+export function LeadStatusActions({ leadId, leadStatus, isTest, onStatusChange }: LeadStatusActionsProps) {
   const [showNotInterestedDialog, setShowNotInterestedDialog] = useState(false);
   const [showReleaseDialog, setShowReleaseDialog] = useState(false);
   const [showRevertDialog, setShowRevertDialog] = useState(false);
@@ -111,6 +112,23 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
     });
   };
 
+  const handleToggleTest = async () => {
+    setLoading(true);
+    try {
+      const { error } = await (supabase as any).rpc("admin_set_lead_test", {
+        _lead_id: leadId,
+        _is_test: !isTest,
+      });
+      if (error) throw error;
+      toast({ title: isTest ? t("leadDetail.lsa_testRemoved") : t("leadDetail.lsa_testSet") });
+      onStatusChange();
+    } catch (e: any) {
+      toast({ title: t("leadDetail.ls_errorTitle"), description: e.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRevertDeal = async () => {
     setLoading(true);
     try {
@@ -173,6 +191,15 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
               <DropdownMenuItem onClick={() => setShowRevertDialog(true)}>
                 <Eraser className="h-4 w-4 mr-2 text-amber-600" />
                 {t("leadDetail.lsa_revertDeal")}
+              </DropdownMenuItem>
+            </>
+          )}
+          {isAdmin && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleToggleTest}>
+                <FlaskConical className="h-4 w-4 mr-2 text-muted-foreground" />
+                {isTest ? t("leadDetail.lsa_unmarkTest") : t("leadDetail.lsa_markTest")}
               </DropdownMenuItem>
             </>
           )}
