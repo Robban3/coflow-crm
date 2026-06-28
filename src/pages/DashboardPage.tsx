@@ -87,8 +87,8 @@ export default function DashboardPage() {
       };
 
       const [totalRes, weekRes] = await Promise.all([
-        addUserFilter(supabase.from('leads').select('id', { count: 'exact', head: true }).eq('is_test', false)),
-        addUserFilter(supabase.from('leads').select('id', { count: 'exact', head: true }).eq('is_test', false).gte('created_at', weekStart)),
+        addUserFilter((supabase.from('leads').select('id', { count: 'exact', head: true }) as any).eq('is_test', false)),
+        addUserFilter((supabase.from('leads').select('id', { count: 'exact', head: true }) as any).eq('is_test', false).gte('created_at', weekStart)),
       ]);
 
       return { total: totalRes.count || 0, thisWeek: weekRes.count || 0 };
@@ -178,9 +178,9 @@ export default function DashboardPage() {
     queryKey: ['dashboard-followup-leads', user?.id, isAdmin],
     queryFn: async () => {
       const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
-      let query = supabase
+      let query: any = (supabase
         .from('leads')
-        .select('id, company_name, contact_name, last_call_at, lead_status')
+        .select('id, company_name, contact_name, last_call_at, lead_status') as any)
         .eq('lead_status', 'contacted')
         .eq('is_test', false)
         .not('last_call_at', 'is', null)

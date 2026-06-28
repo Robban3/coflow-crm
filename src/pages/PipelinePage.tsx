@@ -65,9 +65,9 @@ export default function PipelinePage() {
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["pipeline-leads", user?.id, isAdmin],
     queryFn: async () => {
-      let query = supabase
+      let query: any = (supabase
         .from("leads")
-        .select("id, company_name, contact_name, email, phone, website, lead_status, created_at, last_call_at, last_call_outcome_key")
+        .select("id, company_name, contact_name, email, phone, website, lead_status, created_at, last_call_at, last_call_outcome_key") as any)
         .not("is_not_interested", "eq", true)
         .eq("is_test", false) // demo/test leads never appear in the pipeline
         .order("created_at", { ascending: false });
