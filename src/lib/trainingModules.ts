@@ -1,8 +1,12 @@
-// Split a training course's TipTap body into module segments at each H2 heading.
-// Purely presentational — the content stays a single rich-text field; we just
-// group top-level nodes by their preceding H2 so each "Modul X" heading can be
-// rendered as its own block. The editor only offers H2 (TrainingRichText), so
-// H2 is the module delimiter.
+// Split a training course's TipTap body into module segments at each module
+// marker ("Modul 1" / "Module 1" / "Módulo 1" …). Purely presentational — the
+// content stays one rich-text field; we just group top-level nodes by their
+// preceding module marker so each module renders as its own block.
+//
+// We match on the marker TEXT (not on heading level): the editor only offers H2,
+// so module titles and sub-headings share the same level — and the marker word
+// differs per language. Matching the text works regardless of heading level,
+// bold-paragraph markers, or language.
 
 export interface TipTapDoc {
   type: "doc";
@@ -17,28 +21,31 @@ interface TipTapNode {
 }
 
 export interface CourseModule {
-  /** Heading text, or null for an intro segment before the first H2. */
+  /** Marker text (e.g. "Modul 1 – …"), or null for an intro segment. */
   title: string | null;
-  /** A standalone TipTap doc with this module's body nodes (heading excluded). */
+  /** A standalone TipTap doc with this module's body nodes (marker excluded). */
   doc: TipTapDoc;
 }
 
-function headingText(node: TipTapNode): string {
-  if (!Array.isArray(node.content)) return "";
-  return node.content
-    .map((n) => (typeof n.text === "string" ? n.text : ""))
-    .join("")
-    .trim();
+// "Modul 1", "Module 1", "Modulo 1", "Módulo 1" — case-insensitive, at start.
+const MODULE_MARKER = /^\s*m[oó]dul[oe]?\s*\d+/i;
+
+/** Recursively collect all text in a node into a single plain string. */
+function nodeText(node: TipTapNode): string {
+  if (typeof node.text === "string") return node.text;
+  if (Array.isArray(node.content)) return node.content.map(nodeText).join("");
+  return "";
 }
 
 /**
- * Group a TipTap document into modules by its level-2 headings.
- * - Nodes before the first H2 become an untitled intro module.
- * - Each H2 starts a new module; following nodes (until the next H2) are its body.
- * - No H2 at all → a single untitled module containing the whole body (fallback).
+ * Group a TipTap document into modules by its module markers.
+ * - Nodes before the first marker become an untitled intro module.
+ * - Each marker node starts a new module (its text is the title, excluded from
+ *   the body); following nodes (incl. sub-headings) are that module's body.
+ * - No marker at all → a single untitled module with the whole body (fallback).
  * Returns [] for empty/missing content.
  */
-export function splitDocByHeading(body: unknown): CourseModule[] {
+export function splitDocByModule(body: unknown): CourseModule[] {
   const doc = (body ?? null) as TipTapDoc | null;
   const nodes = Array.isArray(doc?.content) ? doc!.content! : [];
   if (nodes.length === 0) return [];
@@ -47,9 +54,9 @@ export function splitDocByHeading(body: unknown): CourseModule[] {
   let current: CourseModule | null = null;
 
   for (const node of nodes) {
-    const isModuleHeading = node.type === "heading" && node.attrs?.level === 2;
-    if (isModuleHeading) {
-      current = { title: headingText(node) || null, doc: { type: "doc", content: [] } };
+    const text = nodeText(node).trim();
+    if (MODULE_MARKER.test(text)) {
+      current = { title: text || null, doc: { type: "doc", content: [] } };
       modules.push(current);
     } else {
       if (!current) {
@@ -61,4 +68,10 @@ export function splitDocByHeading(body: unknown): CourseModule[] {
   }
 
   return modules;
+}
+
+/** Strip the leading "Modul N – " marker from a title, leaving just the label. */
+export function stripModulePrefix(title: string): string {
+  const cleaned = title.replace(/^\s*m[oó]dul[oe]?\s*\d+\s*[–\-:·.]*\s*/i, "").trim();
+  return cleaned || title;
 }

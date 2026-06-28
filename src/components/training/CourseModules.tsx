@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { TrainingRichText } from "./TrainingRichText";
-import { splitDocByHeading } from "@/lib/trainingModules";
+import { splitDocByModule, stripModulePrefix } from "@/lib/trainingModules";
 
 /**
  * Renders a course's rich-text body as separate, numbered module blocks — split
@@ -9,12 +9,12 @@ import { splitDocByHeading } from "@/lib/trainingModules";
  * first H2 renders as an untitled intro block; no H2 → a single block.
  */
 export function CourseModules({ body, language }: { body: unknown; language: string }) {
-  const modules = splitDocByHeading(body);
+  const modules = splitDocByModule(body);
   if (modules.length === 0) return null;
 
   let n = 0;
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {modules.map((m, i) => {
         const numbered = m.title != null;
         if (numbered) n++;
@@ -31,7 +31,7 @@ export function CourseModules({ body, language }: { body: unknown; language: str
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-sm font-bold text-primary">
                   {String(n).padStart(2, "0")}
                 </span>
-                <h3 className="font-semibold leading-tight">{m.title}</h3>
+                <h3 className="font-semibold leading-tight">{stripModulePrefix(m.title!)}</h3>
               </div>
             )}
             <div className="px-4 py-3">
