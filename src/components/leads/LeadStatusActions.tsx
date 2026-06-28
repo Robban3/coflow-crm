@@ -17,10 +17,11 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, XCircle, PhoneOff, RotateCcw, Loader2, Undo2 } from "lucide-react";
+import { MoreHorizontal, XCircle, PhoneOff, RotateCcw, Loader2, Undo2, Eraser } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { useAuth } from "@/hooks/useAuth";
 
 interface LeadStatusActionsProps {
   leadId: string;
@@ -31,11 +32,16 @@ interface LeadStatusActionsProps {
 export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadStatusActionsProps) {
   const [showNotInterestedDialog, setShowNotInterestedDialog] = useState(false);
   const [showReleaseDialog, setShowReleaseDialog] = useState(false);
+  const [showRevertDialog, setShowRevertDialog] = useState(false);
   const [reason, setReason] = useState("");
   const [releaseReason, setReleaseReason] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { isAdmin } = useAuth();
+
+  // A test deal/offer that can be reverted: won, lost, or an offer already sent.
+  const isDeal = ["won", "lost", "offer_sent"].includes(leadStatus);
 
   const updateStatus = async (
     status: string,
@@ -105,6 +111,23 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
     });
   };
 
+  const handleRevertDeal = async () => {
+    setLoading(true);
+    try {
+      const { error } = await (supabase as any).rpc("admin_revert_deal_to_lead", {
+        _lead_id: leadId,
+      });
+      if (error) throw error;
+      toast({ title: t("leadDetail.lsa_revertDealDone") });
+      setShowRevertDialog(false);
+      onStatusChange();
+    } catch (e: any) {
+      toast({ title: t("leadDetail.ls_errorTitle"), description: e.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -144,6 +167,15 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
             <Undo2 className="h-4 w-4 mr-2 text-muted-foreground" />
             {t("leadDetail.ls_backToPool")}
           </DropdownMenuItem>
+          {isAdmin && isDeal && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setShowRevertDialog(true)}>
+                <Eraser className="h-4 w-4 mr-2 text-amber-600" />
+                {t("leadDetail.lsa_revertDeal")}
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -172,6 +204,24 @@ export function LeadStatusActions({ leadId, leadStatus, onStatusChange }: LeadSt
             <Button variant="destructive" onClick={handleNotInterested} disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {t("leadDetail.ls_confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showRevertDialog} onOpenChange={setShowRevertDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("leadDetail.lsa_revertDeal")}</DialogTitle>
+            <DialogDescription>{t("leadDetail.lsa_revertDealDesc")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRevertDialog(false)}>
+              {t("leadDetail.ls_cancel")}
+            </Button>
+            <Button variant="destructive" onClick={handleRevertDeal} disabled={loading}>
+              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {t("leadDetail.lsa_revertDealConfirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
