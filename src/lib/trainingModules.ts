@@ -75,3 +75,39 @@ export function stripModulePrefix(title: string): string {
   const cleaned = title.replace(/^\s*m[oó]dul[oe]?\s*\d+\s*[–\-:·.]*\s*/i, "").trim();
   return cleaned || title;
 }
+
+// ── Inline illustration shortcode: a paragraph that is exactly "[bild: key]" ──
+export type CourseSegment =
+  | { kind: "text"; doc: TipTapDoc }
+  | { kind: "image"; key: string };
+
+const IMAGE_MARKER = /^\s*\[\s*bild\s*:\s*([\w-]+)\s*\]\s*$/i;
+
+/**
+ * Split a module's body into a sequence of text segments and inline image
+ * markers, so [bild: key] lines can be replaced by an illustration while the
+ * surrounding text keeps rendering through TrainingRichText. Empty text
+ * segments are dropped.
+ */
+export function splitNodesByImageMarker(doc: TipTapDoc): CourseSegment[] {
+  const nodes = Array.isArray(doc.content) ? doc.content : [];
+  const segments: CourseSegment[] = [];
+  let buffer: TipTapNode[] = [];
+  const flush = () => {
+    if (buffer.length) {
+      segments.push({ kind: "text", doc: { type: "doc", content: buffer } });
+      buffer = [];
+    }
+  };
+  for (const node of nodes) {
+    const m = nodeText(node).trim().match(IMAGE_MARKER);
+    if (m) {
+      flush();
+      segments.push({ kind: "image", key: m[1].toLowerCase() });
+    } else {
+      buffer.push(node);
+    }
+  }
+  flush();
+  return segments;
+}

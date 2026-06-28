@@ -1,12 +1,13 @@
 import { cn } from "@/lib/utils";
 import { TrainingRichText } from "./TrainingRichText";
-import { splitDocByModule, stripModulePrefix } from "@/lib/trainingModules";
+import { splitDocByModule, splitNodesByImageMarker, stripModulePrefix } from "@/lib/trainingModules";
+import { getIllustration } from "./illustrations";
 
 /**
  * Renders a course's rich-text body as separate, numbered module blocks — split
- * at each H2 heading (design direction A). Purely visual: reuses the existing
- * TrainingRichText (read-only) for each module's content. Content before the
- * first H2 renders as an untitled intro block; no H2 → a single block.
+ * at each "Modul/Module/Módulo N" marker. Purely visual: reuses the existing
+ * TrainingRichText (read-only) for each module's text. Within a module, a line
+ * that is exactly `[bild: key]` is replaced by the matching inline illustration.
  */
 export function CourseModules({ body, language }: { body: unknown; language: string }) {
   const modules = splitDocByModule(body);
@@ -18,6 +19,7 @@ export function CourseModules({ body, language }: { body: unknown; language: str
       {modules.map((m, i) => {
         const numbered = m.title != null;
         if (numbered) n++;
+        const segments = splitNodesByImageMarker(m.doc);
         return (
           <div
             key={i}
@@ -34,12 +36,34 @@ export function CourseModules({ body, language }: { body: unknown; language: str
                 <h3 className="font-semibold leading-tight">{stripModulePrefix(m.title!)}</h3>
               </div>
             )}
-            <div className="px-4 py-3">
-              <TrainingRichText content={m.doc} readOnly key={language} />
+            <div className="space-y-3 px-4 py-3">
+              {segments.map((seg, j) =>
+                seg.kind === "image" ? (
+                  <CourseIllustration key={`img-${j}`} keyName={seg.key} />
+                ) : (
+                  <TrainingRichText key={`${language}-${j}`} content={seg.doc} readOnly />
+                ),
+              )}
             </div>
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function CourseIllustration({ keyName }: { keyName: string }) {
+  const Illo = getIllustration(keyName);
+  if (!Illo) {
+    return (
+      <div className="rounded-lg border border-dashed border-border bg-muted/40 px-4 py-6 text-center text-xs text-muted-foreground">
+        Illustration "{keyName}" saknas
+      </div>
+    );
+  }
+  return (
+    <div className="my-2 flex justify-center">
+      <Illo className="max-w-sm" />
     </div>
   );
 }
