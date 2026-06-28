@@ -10,6 +10,7 @@ import { useTrainingAccess } from "@/hooks/useTrainingAccess";
 import { useTrainingCategories } from "@/hooks/useTrainingCategories";
 import { useTrainingItems, type TrainingItem } from "@/hooks/useTrainingItems";
 import { TrainingRichText } from "@/components/training/TrainingRichText";
+import { CourseModules } from "@/components/training/CourseModules";
 import { TrainingItemEditor } from "@/components/training/TrainingItemEditor";
 import { TrainingCategoryManager } from "@/components/training/TrainingCategoryManager";
 import { SandboxApp } from "@/components/training/sandbox/SandboxApp";
@@ -128,6 +129,7 @@ export default function TrainingPage() {
         ) : (
           <CategoryContent
             categoryId={activeCategory!.id}
+            categorySlug={activeCategory!.slug}
             canEdit={canEdit}
             onEdit={(item) => {
               setEditingItem(item);
@@ -152,13 +154,18 @@ export default function TrainingPage() {
 
 function CategoryContent({
   categoryId,
+  categorySlug,
   canEdit,
   onEdit,
 }: {
   categoryId: string;
+  categorySlug: string;
   canEdit: boolean;
   onEdit: (item: TrainingItem) => void;
 }) {
+  // Courses are split into numbered module blocks (at H2 headings); other
+  // content categories keep their plain rich-text rendering.
+  const asCourse = categorySlug === "kurser";
   const { t, language } = useTranslation();
   const { toast } = useToast();
   const { items, isLoading, deleteItem } = useTrainingItems(categoryId);
@@ -236,7 +243,12 @@ function CategoryContent({
                 </a>
               ))}
 
-            {body != null && <TrainingRichText content={body} readOnly key={language} />}
+            {body != null &&
+              (asCourse ? (
+                <CourseModules body={body} language={language} />
+              ) : (
+                <TrainingRichText content={body} readOnly key={language} />
+              ))}
           </article>
         );
       })}
