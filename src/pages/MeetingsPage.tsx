@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { MeetingCalendar } from "@/components/meetings/MeetingCalendar";
 import { AvailabilitySettings } from "@/components/meetings/AvailabilitySettings";
 import { CreateMeetingDialog } from "@/components/meetings/CreateMeetingDialog";
-import { Calendar, Clock, Plus, Link2, Copy } from "lucide-react";
+import { InternalMeetingsTab } from "@/components/meetings/InternalMeetingsTab";
+import { Calendar, Clock, Plus, Link2, Copy, Users } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
@@ -70,6 +71,10 @@ export default function MeetingsPage() {
               <Clock className="h-4 w-4" />
               <span className="hidden sm:inline">{t("meetings.tabAvailability")}</span>
             </TabsTrigger>
+            <TabsTrigger value="internal" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Möte med oss</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="calendar" className="mt-6">
@@ -78,6 +83,10 @@ export default function MeetingsPage() {
 
           <TabsContent value="availability" className="mt-6">
             <AvailabilitySettings />
+          </TabsContent>
+
+          <TabsContent value="internal" className="mt-6">
+            <InternalMeetingsTab />
           </TabsContent>
         </Tabs>
 
