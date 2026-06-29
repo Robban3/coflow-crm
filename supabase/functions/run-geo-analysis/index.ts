@@ -102,7 +102,11 @@ serve(async (req) => {
     const analysisId = analysis.id;
 
     try {
-      // STEP A: Crawl site (up to 25 pages using Firecrawl)
+      // STEP A: Crawl site (up to 8 pages using Firecrawl). Each scraped page
+      // costs a Firecrawl credit, so we cap at the homepage + a handful of
+      // high-signal pages (services/about/contact/faq) instead of the whole
+      // sitemap — enough to judge AI-visibility without burning ~25 credits.
+      const MAX_PAGES = 8;
       const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
       const pages: any[] = [];
 
@@ -115,13 +119,25 @@ serve(async (req) => {
               Authorization: `Bearer ${firecrawlKey}`,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ url: domain, limit: 25 }),
+            body: JSON.stringify({ url: domain, limit: MAX_PAGES }),
           });
 
           let urls: string[] = [domain];
           if (mapRes.ok) {
             const mapData = await mapRes.json();
-            urls = (mapData.links || mapData.urls || [domain]).slice(0, 25);
+            const allUrls: string[] = mapData.links || mapData.urls || [];
+            // Prioritise the pages that matter most for GEO/AI-visibility so
+            // the 8-page budget is spent on signal, not random deep links.
+            const priorityPaths = [
+              /\/(tjanster|tjänster|services|kontakt|contact|om-oss|about|about-us|faq|vanliga-fragor|vanliga-frågor|produkter|products)/i,
+            ];
+            const priority = allUrls.filter(
+              (u) => u !== domain && priorityPaths.some((p) => p.test(u)),
+            );
+            const rest = allUrls.filter(
+              (u) => u !== domain && !priority.includes(u),
+            );
+            urls = [domain, ...priority, ...rest].slice(0, MAX_PAGES);
             if (urls.length === 0) urls = [domain];
           }
 
