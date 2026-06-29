@@ -1,13 +1,14 @@
 import { cn } from "@/lib/utils";
 import { TrainingRichText } from "./TrainingRichText";
-import { splitDocByModule, splitNodesByImageMarker, stripModulePrefix, illustrationForModule } from "@/lib/trainingModules";
-import { getIllustration } from "./illustrations";
+import { splitDocByModule, splitNodesByImageMarker, stripModulePrefix } from "@/lib/trainingModules";
 
 /**
  * Renders a course's rich-text body as separate, numbered module blocks — split
  * at each "Modul/Module/Módulo N" marker. Purely visual: reuses the existing
- * TrainingRichText (read-only) for each module's text. Within a module, a line
- * that is exactly `[bild: key]` is replaced by the matching inline illustration.
+ * TrainingRichText (read-only) for each module's text.
+ *
+ * Illustrations are currently disabled — any `[bild: key]` marker lines are
+ * still stripped out (so they don't show as raw text), but no image is drawn.
  */
 export function CourseModules({ body, language }: { body: unknown; language: string }) {
   const modules = splitDocByModule(body);
@@ -19,14 +20,9 @@ export function CourseModules({ body, language }: { body: unknown; language: str
       {modules.map((m, i) => {
         const numbered = m.title != null;
         if (numbered) n++;
-        const segments = splitNodesByImageMarker(m.doc);
-        // Auto-place a fitting illustration at the top of a module — unless the
-        // author already put an explicit [bild: …] marker in it.
-        const hasExplicitImage = segments.some((s) => s.kind === "image");
-        const autoKey =
-          numbered && !hasExplicitImage
-            ? illustrationForModule(stripModulePrefix(m.title!)) ?? illustrationForModule(JSON.stringify(m.doc))
-            : null;
+        // Keep splitting so `[bild: …]` marker lines are removed from the text,
+        // but only render the text segments — illustrations are hidden.
+        const segments = splitNodesByImageMarker(m.doc).filter((s) => s.kind === "text");
         return (
           <div
             key={i}
@@ -44,34 +40,13 @@ export function CourseModules({ body, language }: { body: unknown; language: str
               </div>
             )}
             <div className="space-y-3 px-4 py-3">
-              {autoKey && <CourseIllustration keyName={autoKey} />}
-              {segments.map((seg, j) =>
-                seg.kind === "image" ? (
-                  <CourseIllustration key={`img-${j}`} keyName={seg.key} />
-                ) : (
-                  <TrainingRichText key={`${language}-${j}`} content={seg.doc} readOnly />
-                ),
-              )}
+              {segments.map((seg, j) => (
+                <TrainingRichText key={`${language}-${j}`} content={(seg as { doc: unknown }).doc} readOnly />
+              ))}
             </div>
           </div>
         );
       })}
-    </div>
-  );
-}
-
-function CourseIllustration({ keyName }: { keyName: string }) {
-  const Illo = getIllustration(keyName);
-  if (!Illo) {
-    return (
-      <div className="rounded-lg border border-dashed border-border bg-muted/40 px-4 py-6 text-center text-xs text-muted-foreground">
-        Illustration "{keyName}" saknas
-      </div>
-    );
-  }
-  return (
-    <div className="my-2 flex justify-center">
-      <Illo className="max-w-sm" />
     </div>
   );
 }
