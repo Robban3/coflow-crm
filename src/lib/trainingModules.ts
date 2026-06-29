@@ -70,6 +70,31 @@ export function splitDocByModule(body: unknown): CourseModule[] {
   return modules;
 }
 
+// Pick a fitting illustration for a module from its title/text. Order matters —
+// more specific topics first so e.g. "överlämning" wins over the generic
+// "process". Covers sv/en/es keywords. Returns an illustration key or null.
+const TOPIC_KEYWORDS: Array<[string, RegExp]> = [
+  ["overlamning", /överlämn|overlamn|handoff|implementer|traspas/i],
+  ["avslut", /avslut|\bclose\b|avtal|signer|cierre|cerrar/i],
+  ["invandningar", /invändning|invandning|objection|bemöt|objeci/i],
+  ["behovsanalys", /behov|\bneeds\b|lyssna|fråg|necesidad/i],
+  ["prospektering", /prospekter|hitta rätt|kvalificer|köpsignal|prospect|encontrar/i],
+  ["pitch", /pitch|presenter|förslag|presentaci|propuesta/i],
+  ["misstag", /misstag|undvik|mistake|\berror|errores/i],
+  ["ova", /\böva\b|övning|practice|facit|practica|ejercicio/i],
+  ["tillvaxt", /tillväxt|växa|growth|skala|crecim/i],
+  ["kontakt", /\bkontakt|outreach|contacto|första kontakt/i],
+  ["analys", /analys|\bmät|statistik|rapport|análisis|datos/i],
+  ["process", /process|stegen|överblick|flöde|proceso|pasos/i],
+];
+
+export function illustrationForModule(text: string): string | null {
+  for (const [key, re] of TOPIC_KEYWORDS) {
+    if (re.test(text)) return key;
+  }
+  return null;
+}
+
 /** Strip the leading "Modul N – " marker from a title, leaving just the label. */
 export function stripModulePrefix(title: string): string {
   const cleaned = title.replace(/^\s*m[oó]dul[oe]?\s*\d+\s*[–\-:·.]*\s*/i, "").trim();

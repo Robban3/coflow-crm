@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { TrainingRichText } from "./TrainingRichText";
-import { splitDocByModule, splitNodesByImageMarker, stripModulePrefix } from "@/lib/trainingModules";
+import { splitDocByModule, splitNodesByImageMarker, stripModulePrefix, illustrationForModule } from "@/lib/trainingModules";
 import { getIllustration } from "./illustrations";
 
 /**
@@ -20,6 +20,13 @@ export function CourseModules({ body, language }: { body: unknown; language: str
         const numbered = m.title != null;
         if (numbered) n++;
         const segments = splitNodesByImageMarker(m.doc);
+        // Auto-place a fitting illustration at the top of a module — unless the
+        // author already put an explicit [bild: …] marker in it.
+        const hasExplicitImage = segments.some((s) => s.kind === "image");
+        const autoKey =
+          numbered && !hasExplicitImage
+            ? illustrationForModule(stripModulePrefix(m.title!)) ?? illustrationForModule(JSON.stringify(m.doc))
+            : null;
         return (
           <div
             key={i}
@@ -37,6 +44,7 @@ export function CourseModules({ body, language }: { body: unknown; language: str
               </div>
             )}
             <div className="space-y-3 px-4 py-3">
+              {autoKey && <CourseIllustration keyName={autoKey} />}
               {segments.map((seg, j) =>
                 seg.kind === "image" ? (
                   <CourseIllustration key={`img-${j}`} keyName={seg.key} />
