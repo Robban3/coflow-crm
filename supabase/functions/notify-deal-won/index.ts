@@ -98,6 +98,30 @@ serve(async (req) => {
     if (!resendApiKey) throw new Error("RESEND_API_KEY not configured");
     const resend = new Resend(resendApiKey);
 
+    // ── Guaranteed in-app notifications for every admin ──────────────────
+    // Email is best-effort (and silently fails if the Resend domain/key is
+    // misconfigured), so always drop an in-app notification too — that way the
+    // admins get the signal in the CRM regardless of email delivery.
+    if (adminIds.length > 0) {
+      const inAppHeadline = dealEvent === "sent" ? "Offert skickad" : "Ny affär vunnen";
+      const inAppMsg =
+        dealEvent === "sent"
+          ? `${sellerName} har skickat ${dealLabel}.${extra}`.trim()
+          : `${sellerName} har vunnit en ${dealType}: ${dealLabel}.${extra}`.trim();
+      await supabase.from("notifications").insert(
+        adminIds.map((uid) => ({
+          user_id: uid,
+          type: dealEvent === "sent" ? "offer_sent" : "deal_won",
+          title: inAppHeadline,
+          message: inAppMsg,
+          link: dealEvent === "sent" ? "/offers" : "/pipeline",
+          metadata: { quoteId, leadId, documentId, sellerId: seller, event: dealEvent },
+        })),
+      ).then(({ error }) => {
+        if (error) console.error("[notify-deal-won] in-app notification insert failed:", error.message);
+      });
+    }
+
     const headline = dealEvent === "sent" ? "Offert skickad" : "Ny affär vunnen";
     const action =
       dealEvent === "sent"
@@ -118,15 +142,25 @@ serve(async (req) => {
         <p style="margin:16px 0 0;color:#999;font-size:12px">Skickat automatiskt av ${orgName}</p>
       </div>`;
 
-    await resend.emails.send({
+    // Resend does NOT throw on API errors (e.g. unverified sender domain or a
+    // bad key) — it resolves with { error }. Check it explicitly and log, so a
+    // misconfiguration is visible instead of silently reporting success.
+    const { data: sendData, error: sendError } = await resend.emails.send({
       from: `${orgName} <mail@coflow.se>`,
       to: recipients,
       subject,
       html,
     });
 
-    return json({ sent: true, recipients: recipients.length });
+    if (sendError) {
+      console.error("[notify-deal-won] Resend error:", JSON.stringify(sendError), "recipients:", recipients);
+      return json({ sent: false, recipients: recipients.length, resendError: sendError }, 502);
+    }
+
+    console.log("[notify-deal-won] Email sent:", sendData?.id, "to", recipients.length, "recipient(s)");
+    return json({ sent: true, recipients: recipients.length, id: sendData?.id });
   } catch (e) {
+    console.error("[notify-deal-won] FATAL:", String(e));
     return json({ sent: false, error: String(e) }, 500);
   }
 });
