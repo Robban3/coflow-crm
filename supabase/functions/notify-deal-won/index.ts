@@ -88,10 +88,22 @@ serve(async (req) => {
     }
     const recipients = [...new Set([...GUARANTEED, ...adminEmails])];
 
+    // Send FROM the org's own verified sender when they have one configured —
+    // the exact same address the (working) customer emails use. Internal
+    // notifications were hardcoded to mail@coflow.se, which fails if that domain
+    // isn't verified on the Resend account even though the org's own domain is.
     let orgName = "CoFlow";
+    let fromEmail = "mail@coflow.se";
     if (organizationId) {
-      const { data: org } = await supabase.from("organizations").select("name").eq("id", organizationId).single();
-      orgName = org?.name || "CoFlow";
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("name, sender_email, sender_name, resend_api_key_configured")
+        .eq("id", organizationId)
+        .single();
+      orgName = org?.sender_name || org?.name || "CoFlow";
+      if (org?.resend_api_key_configured && org?.sender_email) {
+        fromEmail = org.sender_email;
+      }
     }
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY_PLATFORM") || Deno.env.get("RESEND_API_KEY");
@@ -143,22 +155,36 @@ serve(async (req) => {
       </div>`;
 
     // Resend does NOT throw on API errors (e.g. unverified sender domain or a
-    // bad key) — it resolves with { error }. Check it explicitly and log, so a
-    // misconfiguration is visible instead of silently reporting success.
-    const { data: sendData, error: sendError } = await resend.emails.send({
-      from: `${orgName} <mail@coflow.se>`,
-      to: recipients,
-      subject,
-      html,
-    });
+    // bad key) — it resolves with { error }. Try the org's verified sender
+    // first; if it's rejected, fall back to mail@coflow.se. Whichever domain is
+    // actually verified on the Resend account will deliver. Log every outcome.
+    const fromCandidates = [...new Set([fromEmail, "mail@coflow.se"])];
+    let sentId: string | null = null;
+    let lastError: unknown = null;
 
-    if (sendError) {
-      console.error("[notify-deal-won] Resend error:", JSON.stringify(sendError), "recipients:", recipients);
-      return json({ sent: false, recipients: recipients.length, resendError: sendError }, 502);
+    for (const addr of fromCandidates) {
+      const { data: sendData, error: sendError } = await resend.emails.send({
+        from: `${orgName} <${addr}>`,
+        to: recipients,
+        subject,
+        html,
+      });
+      if (sendError) {
+        lastError = sendError;
+        console.error(`[notify-deal-won] Resend error from ${addr}:`, JSON.stringify(sendError));
+        continue;
+      }
+      sentId = sendData?.id ?? null;
+      console.log(`[notify-deal-won] Email sent from ${addr}:`, sentId, "to", recipients.length, "recipient(s)");
+      break;
     }
 
-    console.log("[notify-deal-won] Email sent:", sendData?.id, "to", recipients.length, "recipient(s)");
-    return json({ sent: true, recipients: recipients.length, id: sendData?.id });
+    if (!sentId) {
+      console.error("[notify-deal-won] All senders failed. recipients:", recipients);
+      return json({ sent: false, recipients: recipients.length, resendError: lastError, tried: fromCandidates }, 502);
+    }
+
+    return json({ sent: true, recipients: recipients.length, id: sentId });
   } catch (e) {
     console.error("[notify-deal-won] FATAL:", String(e));
     return json({ sent: false, error: String(e) }, 500);
