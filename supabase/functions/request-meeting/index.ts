@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import { resolveOrgSender, sendWithFallback } from "../_shared/org-sender.ts";
 
 // A salesperson requests an internal meeting with Robert and/or Oliver. Creates
 // a meeting_requests row, emails the chosen recipients and drops an in-CRM
@@ -105,8 +106,8 @@ serve(async (req) => {
           <div style="padding:12px 16px;border:1px solid #eee;border-radius:10px;background:#fafafa">${description.replace(/\n/g, "<br/>")}</div>
           <p style="margin:16px 0 0;color:#999;font-size:12px">Bekräfta i CRM:et under Möten.</p>
         </div>`;
-      await resend.emails.send({
-        from: "CoFlow <mail@coflow.se>",
+      const sender = await resolveOrgSender(supabase, orgId);
+      await sendWithFallback(resend, sender, {
         to: recipientEmails,
         subject: `Möteförfrågan (${catLabel}) – från ${sellerName}`,
         html,

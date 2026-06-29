@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import { resolveOrgSender, sendWithFallback } from "../_shared/org-sender.ts";
 
 // Emails the onboarding/handoff details (filled in by the seller when a deal is
 // won) to the onboarding recipient. Best-effort.
@@ -39,8 +40,8 @@ serve(async (req) => {
       const { data: p } = await supabase.from("profiles").select("full_name, email").eq("id", h.created_by).single();
       sellerName = p?.full_name || p?.email || sellerName;
     }
-    const { data: org } = await supabase.from("organizations").select("name").eq("id", h.organization_id).single();
-    const orgName = org?.name || "CoFlow";
+    const sender = await resolveOrgSender(supabase, h.organization_id);
+    const orgName = sender.fromName;
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY_PLATFORM") || Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) throw new Error("RESEND_API_KEY not configured");
@@ -64,14 +65,17 @@ serve(async (req) => {
         <p style="margin:18px 0 0;color:#999;font-size:12px">Skickat automatiskt av ${orgName}</p>
       </div>`;
 
-    await resend.emails.send({
-      from: `${orgName} <mail@coflow.se>`,
+    const { id: sentId, error: sendError } = await sendWithFallback(resend, sender, {
       to: RECIPIENTS,
       subject: `Vunnen affär: ${h.company_name} – av ${sellerName}`,
       html,
     });
+    if (!sentId) {
+      console.error("[notify-deal-handoff] All senders failed:", JSON.stringify(sendError));
+      return json({ sent: false, resendError: sendError }, 502);
+    }
 
-    return json({ sent: true });
+    return json({ sent: true, id: sentId });
   } catch (e) {
     return json({ sent: false, error: String(e) }, 500);
   }

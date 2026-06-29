@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import { resolveOrgSender, sendWithFallback } from "../_shared/org-sender.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,8 +143,8 @@ serve(async (req) => {
       </html>`;
 
       try {
-        await resend.emails.send({
-          from: `CoFlow <mail@coflow.se>`,
+        const sender = await resolveOrgSender(supabase, hostProfile?.organization_id ?? null);
+        await sendWithFallback(resend, sender, {
           to: [hostProfile?.email || "robert@applabbet.com"],
           subject: `Ny genomgång: ${companyName || guestName}${domain ? ` (${domain})` : ""}`,
           html: htmlBody,
