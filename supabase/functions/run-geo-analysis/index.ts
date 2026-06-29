@@ -21,6 +21,10 @@ serve(async (req) => {
     const aiLang = LANG_BY_UI[String(body.language || "").toLowerCase()]
       || LANG_BY_MARKET[(body.market || "SE").toUpperCase()]
       || "svenska";
+    // Short language code (sv|en|es) for the rule-based findings, which are
+    // built from hardcoded text rather than the AI prompt.
+    const LANG_CODE: Record<string, string> = { svenska: "sv", engelska: "en", spanska: "es" };
+    const geoLang = LANG_CODE[aiLang] || "sv";
     if (!leadId && !directDomain) throw new Error("leadId or domain required");
 
     const authHeader = req.headers.get("Authorization");
@@ -217,34 +221,23 @@ serve(async (req) => {
       }
 
       // STEP C: GEO heuristic checks
-      const findings = runGeoChecks(parsedPages, domainHost);
+      const findings = runGeoChecks(parsedPages, domainHost, geoLang);
 
       // STEP D: Compute geo_score
       const geoScore = computeGeoScore(findings, parsedPages);
 
-      // Insert findings
-      if (findings.length > 0) {
-        await supabase.from("geo_findings").insert(
-          findings.map((f) => ({
-            geo_analysis_id: analysisId,
-            category: f.category,
-            severity: f.severity,
-            title: f.title,
-            description: f.description,
-            evidence: f.evidence,
-            recommendation: f.recommendation,
-          }))
-        );
-      }
-
-      // STEP E: AI-generated summary + actions
+      // STEP E: AI-generated summary + actions + site-specific finding text.
+      // The deterministic checks above decide WHICH problems exist and the
+      // geo_score (consistent, no hallucination); the AI rewrites each detected
+      // problem's text tailored to this site, in the reader's language. If the
+      // AI is unavailable or omits a finding, we keep the localized template.
       const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
       let summary = "";
       let actions: any[] = [];
 
-      if (GEMINI_API_KEY) {
-        const findingsSummary = findings
-          .map((f) => `[${f.severity.toUpperCase()}] ${f.title}: ${f.description}`)
+      if (GEMINI_API_KEY && findings.length >= 0) {
+        const findingsContext = findings
+          .map((f) => `- key=${f.key} | [${f.severity.toUpperCase()}] ${f.title} | evidence=${JSON.stringify(f.evidence)}`)
           .join("\n");
 
         const pagesContext = parsedPages
@@ -260,18 +253,22 @@ serve(async (req) => {
 CRAWLADE SIDOR (${parsedPages.length} st):
 ${pagesContext}
 
-IDENTIFIERADE PROBLEM:
-${findingsSummary}
+IDENTIFIERADE PROBLEM (regelbaserade — använd EXAKT dessa keys, hitta inte på nya problem):
+${findingsContext}
 
 GEO-POÄNG: ${geoScore}/100
 
 Ge mig:
-1. En kort sammanfattning (max 200 ord) på ${aiLang} om webbplatsens GEO/AI-synlighet
-2. Topp 10 prioriterade åtgärder grupperade i quick_win, medium, long_term
+1. En kort sammanfattning (max 200 ord) på ${aiLang} om webbplatsens GEO/AI-synlighet.
+2. För VARJE identifierat problem ovan: en sajt-specifik titel, beskrivning och rekommendation som refererar till konkreta sidor/observationer i datan (inte generiska fraser). Behåll samma "key".
+3. Topp 10 prioriterade åtgärder grupperade i quick_win, medium, long_term.
 
-Svara som JSON:
+Skriv ALLA textfält på ${aiLang}. Svara som JSON:
 {
   "summary": "...",
+  "findings": [
+    {"key": "<samma key>", "title": "...", "description": "...", "recommendation": "..."}
+  ],
   "actions": [
     {"priority": "quick_win|medium|long_term", "title": "...", "steps": "...", "estimated_impact": "hög|medium|låg", "estimated_effort": "liten|medium|stor"}
   ]
@@ -304,11 +301,26 @@ Svara som JSON:
             const aiData = await aiRes.json();
             const content = aiData.choices?.[0]?.message?.content || "";
             try {
-              const jsonMatch = content.match(/\{[\s\S]*"summary"[\s\S]*"actions"[\s\S]*\}/);
+              const jsonMatch = content.match(/\{[\s\S]*"summary"[\s\S]*\}/);
               if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[0]);
                 summary = parsed.summary || "";
                 actions = parsed.actions || [];
+                // Merge AI's site-specific text into the deterministic findings
+                // by key; anything the AI skipped keeps its localized template.
+                if (Array.isArray(parsed.findings)) {
+                  const byKey = new Map<string, any>(
+                    parsed.findings.filter((x: any) => x && x.key).map((x: any) => [String(x.key), x]),
+                  );
+                  for (const f of findings) {
+                    const ai = byKey.get(f.key);
+                    if (ai) {
+                      if (typeof ai.title === "string" && ai.title.trim()) f.title = ai.title.trim();
+                      if (typeof ai.description === "string" && ai.description.trim()) f.description = ai.description.trim();
+                      if (typeof ai.recommendation === "string" && ai.recommendation.trim()) f.recommendation = ai.recommendation.trim();
+                    }
+                  }
+                }
               }
             } catch {
               summary = content.substring(0, 500);
@@ -317,6 +329,21 @@ Svara som JSON:
         } catch (e) {
           console.error("AI error:", e);
         }
+      }
+
+      // Insert findings (with AI-tailored text merged in, or localized fallback).
+      if (findings.length > 0) {
+        await supabase.from("geo_findings").insert(
+          findings.map((f) => ({
+            geo_analysis_id: analysisId,
+            category: f.category,
+            severity: f.severity,
+            title: f.title,
+            description: f.description,
+            evidence: f.evidence,
+            recommendation: f.recommendation,
+          }))
+        );
       }
 
       // Insert actions
@@ -460,6 +487,7 @@ function extractFirst(text: string, regex: RegExp): string | null {
 }
 
 interface Finding {
+  key: string;
   category: string;
   severity: string;
   title: string;
@@ -468,8 +496,151 @@ interface Finding {
   recommendation: string;
 }
 
-function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
+// Localized text for the rule-based GEO findings (title/description/
+// recommendation). The salesperson reads the report, so it follows the UI
+// language (sv|en|es). Description builders take the computed numbers.
+type FT = { title: string; description: string; recommendation: string };
+const GEO_TEXT: Record<string, {
+  faq: FT;
+  orgSchema: FT;
+  meta: (missing: number, total: number) => FT;
+  thin: (thin: number, total: number) => FT;
+  servicePages: FT;
+  internalLinks: (avg: string) => FT;
+  noindex: (count: number) => FT;
+  contact: FT;
+}> = {
+  sv: {
+    faq: {
+      title: "Saknar FAQ-sektion",
+      description: "Webbplatsen har ingen synlig FAQ-sektion. FAQ-innehåll indexeras ofta av AI-motorer som svar på användarfrågor.",
+      recommendation: "Lägg till en FAQ-sida med vanliga frågor om era tjänster. Använd FAQPage-schema markup.",
+    },
+    orgSchema: {
+      title: "Saknar Organization/Service schema",
+      description: "Ingen strukturerad data för företaget hittades. AI-motorer använder schema.org för att förstå och referera till verksamheter.",
+      recommendation: "Lägg till Organization eller LocalBusiness schema med namn, adress, kontaktinfo och tjänstebeskrivningar.",
+    },
+    meta: (m, t) => ({
+      title: "Många sidor saknar meta-beskrivning",
+      description: `${m} av ${t} sidor saknar meta-beskrivning. Detta påverkar hur AI-motorer sammanfattar ert innehåll.`,
+      recommendation: "Skriv unika, informativa meta-beskrivningar (120-160 tecken) för varje sida.",
+    }),
+    thin: (th, t) => ({
+      title: "Tunt innehåll på många sidor",
+      description: `${th} av ${t} sidor har under 300 ord. AI-motorer föredrar utförligt, informativt innehåll.`,
+      recommendation: "Utöka innehållet med mer detaljerad information, definitioner och förklaringar.",
+    }),
+    servicePages: {
+      title: "Saknar tydliga tjänstesidor",
+      description: 'Inga dedikerade sidor för "Om oss" eller "Tjänster" hittades. Dessa sidor hjälper AI att förstå vad företaget gör.',
+      recommendation: "Skapa tydliga sidor som beskriver era tjänster, processer och erbjudanden i detalj.",
+    },
+    internalLinks: (avg) => ({
+      title: "Svag intern länkning",
+      description: `Genomsnittligt ${avg} interna länkar per sida. Bra intern länkning hjälper AI-motorer att förstå er webbplats struktur.`,
+      recommendation: "Länka mellan relaterade sidor. Varje sida bör ha minst 3-5 interna länkar.",
+    }),
+    noindex: (c) => ({
+      title: "Sidor blockerade från indexering",
+      description: `${c} sida/sidor har noindex-taggar och kan inte hittas av vare sig sökmotorer eller AI-motorer.`,
+      recommendation: "Kontrollera att viktiga sidor inte har noindex. Ta bort noindex från sidor som ska vara synliga.",
+    }),
+    contact: {
+      title: "Ingen dedikerad kontaktsida",
+      description: "Ingen tydlig kontaktsida hittades. AI-motorer behöver kontaktinfo för att korrekt representera företaget.",
+      recommendation: "Skapa en kontaktsida med adress, telefon, e-post och öppettider.",
+    },
+  },
+  en: {
+    faq: {
+      title: "Missing FAQ section",
+      description: "The site has no visible FAQ section. FAQ content is often indexed by AI engines as answers to user questions.",
+      recommendation: "Add an FAQ page with common questions about your services. Use FAQPage schema markup.",
+    },
+    orgSchema: {
+      title: "Missing Organization/Service schema",
+      description: "No structured data for the company was found. AI engines use schema.org to understand and reference businesses.",
+      recommendation: "Add Organization or LocalBusiness schema with name, address, contact info and service descriptions.",
+    },
+    meta: (m, t) => ({
+      title: "Many pages missing meta description",
+      description: `${m} of ${t} pages are missing a meta description. This affects how AI engines summarize your content.`,
+      recommendation: "Write unique, informative meta descriptions (120-160 characters) for every page.",
+    }),
+    thin: (th, t) => ({
+      title: "Thin content on many pages",
+      description: `${th} of ${t} pages have under 300 words. AI engines prefer thorough, informative content.`,
+      recommendation: "Expand the content with more detailed information, definitions and explanations.",
+    }),
+    servicePages: {
+      title: "Missing clear service pages",
+      description: 'No dedicated "About" or "Services" pages were found. These pages help AI understand what the company does.',
+      recommendation: "Create clear pages describing your services, processes and offerings in detail.",
+    },
+    internalLinks: (avg) => ({
+      title: "Weak internal linking",
+      description: `On average ${avg} internal links per page. Good internal linking helps AI engines understand your site structure.`,
+      recommendation: "Link between related pages. Each page should have at least 3-5 internal links.",
+    }),
+    noindex: (c) => ({
+      title: "Pages blocked from indexing",
+      description: `${c} page(s) have noindex tags and cannot be found by either search engines or AI engines.`,
+      recommendation: "Make sure important pages don't have noindex. Remove noindex from pages that should be visible.",
+    }),
+    contact: {
+      title: "No dedicated contact page",
+      description: "No clear contact page was found. AI engines need contact info to represent the company correctly.",
+      recommendation: "Create a contact page with address, phone, email and opening hours.",
+    },
+  },
+  es: {
+    faq: {
+      title: "Falta sección de preguntas frecuentes (FAQ)",
+      description: "El sitio no tiene una sección de FAQ visible. El contenido de FAQ suele ser indexado por los motores de IA como respuestas a las preguntas de los usuarios.",
+      recommendation: "Añade una página de FAQ con preguntas habituales sobre vuestros servicios. Usa el marcado de esquema FAQPage.",
+    },
+    orgSchema: {
+      title: "Falta esquema Organization/Service",
+      description: "No se encontraron datos estructurados de la empresa. Los motores de IA usan schema.org para entender y referenciar a los negocios.",
+      recommendation: "Añade el esquema Organization o LocalBusiness con nombre, dirección, datos de contacto y descripciones de servicios.",
+    },
+    meta: (m, t) => ({
+      title: "Muchas páginas sin meta descripción",
+      description: `${m} de ${t} páginas no tienen meta descripción. Esto afecta a cómo los motores de IA resumen vuestro contenido.`,
+      recommendation: "Escribe meta descripciones únicas e informativas (120-160 caracteres) para cada página.",
+    }),
+    thin: (th, t) => ({
+      title: "Contenido escaso en muchas páginas",
+      description: `${th} de ${t} páginas tienen menos de 300 palabras. Los motores de IA prefieren contenido extenso e informativo.`,
+      recommendation: "Amplía el contenido con información más detallada, definiciones y explicaciones.",
+    }),
+    servicePages: {
+      title: "Faltan páginas de servicios claras",
+      description: 'No se encontraron páginas dedicadas de "Quiénes somos" o "Servicios". Estas páginas ayudan a la IA a entender qué hace la empresa.',
+      recommendation: "Crea páginas claras que describan vuestros servicios, procesos y ofertas en detalle.",
+    },
+    internalLinks: (avg) => ({
+      title: "Enlazado interno débil",
+      description: `Una media de ${avg} enlaces internos por página. Un buen enlazado interno ayuda a los motores de IA a entender la estructura de vuestro sitio.`,
+      recommendation: "Enlaza entre páginas relacionadas. Cada página debería tener al menos 3-5 enlaces internos.",
+    }),
+    noindex: (c) => ({
+      title: "Páginas bloqueadas para la indexación",
+      description: `${c} página(s) tienen etiquetas noindex y no pueden ser encontradas ni por los buscadores ni por los motores de IA.`,
+      recommendation: "Comprueba que las páginas importantes no tengan noindex. Quita noindex de las páginas que deban ser visibles.",
+    }),
+    contact: {
+      title: "Sin página de contacto dedicada",
+      description: "No se encontró una página de contacto clara. Los motores de IA necesitan datos de contacto para representar a la empresa correctamente.",
+      recommendation: "Crea una página de contacto con dirección, teléfono, correo y horario.",
+    },
+  },
+};
+
+function runGeoChecks(pages: ParsedPage[], domain: string, lang: string): Finding[] {
   const findings: Finding[] = [];
+  const TX = GEO_TEXT[lang] || GEO_TEXT.sv;
 
   // Check for FAQ content
   const hasFaq = pages.some(
@@ -480,14 +651,11 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
   );
   if (!hasFaq) {
     findings.push({
+      key: "faq",
       category: "geo",
       severity: "high",
-      title: "Saknar FAQ-sektion",
-      description:
-        "Webbplatsen har ingen synlig FAQ-sektion. FAQ-innehåll indexeras ofta av AI-motorer som svar på användarfrågor.",
+      ...TX.faq,
       evidence: { pagesChecked: pages.length },
-      recommendation:
-        "Lägg till en FAQ-sida med vanliga frågor om era tjänster. Använd FAQPage-schema markup.",
     });
   }
 
@@ -500,18 +668,15 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
   );
   if (!hasOrgSchema) {
     findings.push({
+      key: "orgSchema",
       category: "entity",
       severity: "high",
-      title: "Saknar Organization/Service schema",
-      description:
-        "Ingen strukturerad data för företaget hittades. AI-motorer använder schema.org för att förstå och referera till verksamheter.",
+      ...TX.orgSchema,
       evidence: {
         schemasFound: [
           ...new Set(pages.flatMap((p) => p.schemaTypes)),
         ],
       },
-      recommendation:
-        "Lägg till Organization eller LocalBusiness schema med namn, adress, kontaktinfo och tjänstebeskrivningar.",
     });
   }
 
@@ -519,12 +684,11 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
   const missingMeta = pages.filter((p) => !p.metaDescription);
   if (missingMeta.length > pages.length * 0.3) {
     findings.push({
+      key: "meta",
       category: "seo",
       severity: "medium",
-      title: "Många sidor saknar meta-beskrivning",
-      description: `${missingMeta.length} av ${pages.length} sidor saknar meta-beskrivning. Detta påverkar hur AI-motorer sammanfattar ert innehåll.`,
+      ...TX.meta(missingMeta.length, pages.length),
       evidence: { missingCount: missingMeta.length, total: pages.length },
-      recommendation: "Skriv unika, informativa meta-beskrivningar (120-160 tecken) för varje sida.",
     });
   }
 
@@ -532,14 +696,13 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
   const thinPages = pages.filter((p) => p.wordCount < 300);
   if (thinPages.length > pages.length * 0.5) {
     findings.push({
+      key: "thin",
       category: "content",
       severity: "medium",
-      title: "Tunt innehåll på många sidor",
-      description: `${thinPages.length} av ${pages.length} sidor har under 300 ord. AI-motorer föredrar utförligt, informativt innehåll.`,
+      ...TX.thin(thinPages.length, pages.length),
       evidence: {
         thinPages: thinPages.map((p) => ({ url: p.url, words: p.wordCount })).slice(0, 5),
       },
-      recommendation: "Utöka innehållet med mer detaljerad information, definitioner och förklaringar.",
     });
   }
 
@@ -553,14 +716,11 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
   );
   if (!hasDefinitions) {
     findings.push({
+      key: "servicePages",
       category: "geo",
       severity: "medium",
-      title: "Saknar tydliga tjänstesidor",
-      description:
-        'Inga dedikerade sidor för "Om oss" eller "Tjänster" hittades. Dessa sidor hjälper AI att förstå vad företaget gör.',
+      ...TX.servicePages,
       evidence: { urls: pages.map((p) => p.url).slice(0, 10) },
-      recommendation:
-        "Skapa tydliga sidor som beskriver era tjänster, processer och erbjudanden i detalj.",
     });
   }
 
@@ -569,13 +729,11 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
     pages.reduce((sum, p) => sum + p.internalLinks, 0) / (pages.length || 1);
   if (avgInternalLinks < 3) {
     findings.push({
+      key: "internalLinks",
       category: "indexing",
       severity: "low",
-      title: "Svag intern länkning",
-      description: `Genomsnittligt ${avgInternalLinks.toFixed(1)} interna länkar per sida. Bra intern länkning hjälper AI-motorer att förstå er webbplats struktur.`,
+      ...TX.internalLinks(avgInternalLinks.toFixed(1)),
       evidence: { avgLinks: avgInternalLinks.toFixed(1) },
-      recommendation:
-        "Länka mellan relaterade sidor. Varje sida bör ha minst 3-5 interna länkar.",
     });
   }
 
@@ -583,12 +741,11 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
   const nonIndexable = pages.filter((p) => !p.indexable);
   if (nonIndexable.length > 0) {
     findings.push({
+      key: "noindex",
       category: "indexing",
       severity: "high",
-      title: "Sidor blockerade från indexering",
-      description: `${nonIndexable.length} sida/sidor har noindex-taggar och kan inte hittas av vare sig sökmotorer eller AI-motorer.`,
+      ...TX.noindex(nonIndexable.length),
       evidence: { blockedUrls: nonIndexable.map((p) => p.url) },
-      recommendation: "Kontrollera att viktiga sidor inte har noindex. Ta bort noindex från sidor som ska vara synliga.",
     });
   }
 
@@ -600,14 +757,11 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
   );
   if (!hasContactPage) {
     findings.push({
+      key: "contact",
       category: "entity",
       severity: "low",
-      title: "Ingen dedikerad kontaktsida",
-      description:
-        "Ingen tydlig kontaktsida hittades. AI-motorer behöver kontaktinfo för att korrekt representera företaget.",
+      ...TX.contact,
       evidence: {},
-      recommendation:
-        "Skapa en kontaktsida med adress, telefon, e-post och öppettider.",
     });
   }
 
