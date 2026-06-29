@@ -285,7 +285,6 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
     [],
   );
   const poolLeads = useMemo(() => leads.filter(isPoolLead), [leads, isPoolLead]);
-  const poolCount = poolLeads.length;
 
   const handleClaim = async (lead: LeadWithOutreachStatus) => {
     setClaimingId(lead.id);
@@ -330,11 +329,12 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
 
   // Filter by lead status (hide not interested / invalid phone). Pool leads are
   // shown only under the dedicated "pool" filter, never mixed into normal views.
+  // Non-pool leads after the hide/test filters — the base both the list AND the
+  // owner-dropdown counts are derived from, so the counts match what's shown.
   const statusFilteredLeads = useMemo(() => {
     // Test/demo leads are hidden from everyone; an admin can reveal them with
     // the "Visa test"-toggle.
     const notTest = (l: LeadWithOutreachStatus) => (isAdmin && showTest) || !l.is_test;
-    if (ownerFilter === "pool") return poolLeads.filter(notTest);
     // While searching, show every matching saved lead regardless of the
     // hide-worked / hide-not-interested toggles — otherwise a lead you've
     // already called or marked "ej intresserad" can't be found at all.
@@ -348,11 +348,16 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
       const status = (lead as any).lead_status || "active";
       return status === "active" || status === "customer";
     });
-  }, [leads, poolLeads, isPoolLead, hideNotInterested, hideWorked, ownerFilter, searchQuery, isAdmin, showTest]);
+  }, [leads, isPoolLead, hideNotInterested, hideWorked, searchQuery, isAdmin, showTest]);
+
+  const poolVisible = useMemo(
+    () => poolLeads.filter((l) => (isAdmin && showTest) || !l.is_test),
+    [poolLeads, isAdmin, showTest],
+  );
 
   // Filter by owner (using member_ids from lead_members table)
   const ownerFilteredLeads = useMemo(() => {
-    if (ownerFilter === "pool") return statusFilteredLeads;
+    if (ownerFilter === "pool") return poolVisible;
     return statusFilteredLeads.filter((lead) => {
       if (ownerFilter === "all") return true;
       if (ownerFilter === "mine") return lead.member_ids?.includes(user?.id || "") || lead.assigned_to === user?.id;
@@ -360,7 +365,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
       // Filter by specific team member
       return lead.member_ids?.includes(ownerFilter) || lead.assigned_to === ownerFilter;
     });
-  }, [statusFilteredLeads, ownerFilter, user?.id]);
+  }, [statusFilteredLeads, poolVisible, ownerFilter, user?.id]);
 
   // Filter by enrichment status
   const enrichmentFilteredLeads = useMemo(() => {
@@ -663,8 +668,11 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
     }
   };
 
-  const mineCount = leads.filter(l => l.member_ids?.includes(user?.id || "") || l.assigned_to === user?.id).length;
-  const unassignedCount = leads.filter(l => (!l.member_ids || l.member_ids.length === 0) && l.assigned_to === null).length;
+  // Counts shown in the owner dropdown — derived from the SAME filtered base as
+  // the visible list, so e.g. "Mina (N)" matches the number of leads shown.
+  const mineCount = statusFilteredLeads.filter(l => l.member_ids?.includes(user?.id || "") || l.assigned_to === user?.id).length;
+  const unassignedCount = statusFilteredLeads.filter(l => (!l.member_ids || l.member_ids.length === 0) && l.assigned_to === null).length;
+  const poolCount = poolVisible.length;
 
   return (
     <div className="space-y-3">
@@ -750,7 +758,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                       {members
                         .filter(m => m.id !== user?.id)
                         .map((member) => {
-                          const memberLeads = leads.filter(l => l.member_ids?.includes(member.id) || l.assigned_to === member.id).length;
+                          const memberLeads = statusFilteredLeads.filter(l => l.member_ids?.includes(member.id) || l.assigned_to === member.id).length;
                           return (
                             <SelectItem key={member.id} value={member.id}>
                               <div className="flex items-center gap-2">
