@@ -10,7 +10,7 @@ import {
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
-import { Plus, Search, Filter, Calendar, CheckSquare, Loader2, Building2, UserPlus } from "lucide-react";
+import { Plus, Search, Filter, Calendar, CheckSquare, Loader2, Building2, UserPlus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -45,6 +45,7 @@ interface Task {
   priority: 'low' | 'medium' | 'high' | 'urgent';
   due_date: string | null;
   assigned_to: string | null;
+  created_by: string | null;
   created_at: string;
   lead_id: string | null;
   lead?: { id: string; company_name: string | null; contact_name: string | null } | null;
@@ -72,6 +73,10 @@ export default function TasksPage() {
 
       if (statusFilter !== "all") {
         query = query.eq("status", statusFilter as any);
+      } else {
+        // Completed tasks drop out of the default list (still reachable via the
+        // "Klar"-filter).
+        query = query.neq("status", "completed" as any);
       }
       const { data, error } = await query;
       if (error) throw error;
@@ -91,6 +96,18 @@ export default function TasksPage() {
     if (error) {
       toast({ title: t("tasks.toastError"), description: t("tasks.toastUpdateFail"), variant: "destructive" });
     } else {
+      invalidate();
+    }
+  };
+
+  const handleDeleteTask = async (task: Task, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm(t("tasks.deleteConfirm"))) return;
+    const { error } = await supabase.from("tasks").delete().eq("id", task.id);
+    if (error) {
+      toast({ title: t("tasks.toastError"), description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: t("tasks.taskDeleted") });
       invalidate();
     }
   };
@@ -240,6 +257,17 @@ export default function TasksPage() {
                           <Calendar className="mr-1 h-3 w-3" />
                           {format(new Date(task.due_date), "d MMM", { locale: dateLocale })}
                         </div>
+                      )}
+                      {(task.created_by === user?.id || task.assigned_to === user?.id) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          title={t("tasks.delete")}
+                          onClick={(e) => handleDeleteTask(task, e)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       )}
                     </div>
                   </div>
