@@ -12,6 +12,11 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const CATEGORY_LABEL: Record<string, string> = {
+  teknisk: "Teknisk fråga", salj: "Säljstöd / coachning", offert: "Offert & prissättning",
+  kund: "Kund & leverans", ovrigt: "Övrigt",
+};
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -55,8 +60,28 @@ serve(async (req) => {
       responded_at: new Date().toISOString(),
     }).eq("id", id);
 
-    // Notify the requester.
     const responder = me?.full_name || me?.email || "Teamet";
+
+    // On confirm with a time, create a real calendar meeting (shows under Möten).
+    if (action === "confirm" && scheduledTime && reqRow.status === "pending") {
+      const start = new Date(scheduledTime);
+      const end = new Date(start.getTime() + 30 * 60_000);
+      await supabase.from("meetings").insert({
+        organization_id: reqRow.organization_id,
+        host_user_id: reqRow.requested_by,
+        lead_id: reqRow.lead_id,
+        guest_name: responder,
+        guest_email: me?.email ?? null,
+        title: `Internt möte: ${CATEGORY_LABEL[reqRow.category] || reqRow.category}`,
+        description: reqRow.description,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        meeting_link: meetingLink || null,
+        status: "scheduled",
+      }).catch(() => {});
+    }
+
+    // Notify the requester.
     const title = action === "confirm" ? "Möte bekräftat" : "Möteförfrågan avböjd";
     const whenStr = scheduledTime ? ` – ${new Date(scheduledTime).toLocaleString("sv-SE")}` : "";
     await supabase.from("notifications").insert({
