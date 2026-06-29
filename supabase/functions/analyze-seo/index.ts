@@ -642,9 +642,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { url, webAnalysisId, leadId, organizationId, market } = await req.json();
+    const { url, webAnalysisId, leadId, organizationId, market, language } = await req.json();
     const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska" };
-    const aiLang = LANG_BY_MARKET[(market || "SE").toUpperCase()] || "svenska";
+    // The reader's UI language wins (the report is shown to the salesperson),
+    // falling back to the prospect's market language, then Swedish.
+    const LANG_BY_UI: Record<string, string> = { sv: "svenska", en: "engelska", es: "spanska" };
+    const aiLang = LANG_BY_UI[String(language || "").toLowerCase()]
+      || LANG_BY_MARKET[(market || "SE").toUpperCase()]
+      || "svenska";
 
     if (!url) {
       return new Response(

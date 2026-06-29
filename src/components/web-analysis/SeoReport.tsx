@@ -82,7 +82,7 @@ interface SeoReportProps {
 }
 
 export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoReportProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [seoData, setSeoData] = useState<SeoAnalysis | null>(null);
@@ -158,11 +158,12 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
     setIsAnalyzing(true);
     try {
       const { data, error } = await supabase.functions.invoke('analyze-seo', {
-        body: { 
-          url, 
+        body: {
+          url,
           webAnalysisId,
           leadId,
           organizationId,
+          language,
         },
       });
 

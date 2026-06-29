@@ -229,7 +229,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
     setIsRunningGeo(true);
     try {
       const res = await supabase.functions.invoke("run-geo-analysis", {
-        body: { leadId, market: getActiveMarket() },
+        body: { leadId, market: getActiveMarket(), language },
       });
       if (res.error) throw new Error(res.error.message);
       toast({ title: t("leadDetail.ac_toastGeoDoneTitle"), description: t("leadDetail.ac_toastGeoDoneDesc", { score: res.data.geo_score }) });
@@ -261,7 +261,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
       }
 
       const res = await supabase.functions.invoke("analyze-seo", {
-        body: { url: website, leadId, organizationId, market: getActiveMarket() },
+        body: { url: website, leadId, organizationId, market: getActiveMarket(), language },
       });
       if (res.error) throw new Error(res.error.message);
       if (!res.data?.success) throw new Error(res.data?.error || t("leadDetail.ac_seoAnalysisFailed"));

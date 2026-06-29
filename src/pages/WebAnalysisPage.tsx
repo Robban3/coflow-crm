@@ -555,7 +555,7 @@ export default function WebAnalysisPage() {
                         ? { leadId: linkedLead.id }
                         : { domain: currentUrl };
                       const res = await supabase.functions.invoke("run-geo-analysis", {
-                        body: { ...body, market: getActiveMarket() },
+                        body: { ...body, market: getActiveMarket(), language },
                       });
                       if (res.error) throw new Error(res.error.message);
                       toast({ title: t("webAnalysis.geoDoneTitle"), description: t("webAnalysis.geoScoreDesc", { score: res.data.geo_score }) });

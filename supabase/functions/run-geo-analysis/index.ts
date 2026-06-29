@@ -15,7 +15,12 @@ serve(async (req) => {
     const body = await req.json();
     const { leadId, domain: directDomain } = body;
     const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska" };
-    const aiLang = LANG_BY_MARKET[(body.market || "SE").toUpperCase()] || "svenska";
+    // The reader's UI language wins (the report is shown to the salesperson),
+    // falling back to the prospect's market language, then Swedish.
+    const LANG_BY_UI: Record<string, string> = { sv: "svenska", en: "engelska", es: "spanska" };
+    const aiLang = LANG_BY_UI[String(body.language || "").toLowerCase()]
+      || LANG_BY_MARKET[(body.market || "SE").toUpperCase()]
+      || "svenska";
     if (!leadId && !directDomain) throw new Error("leadId or domain required");
 
     const authHeader = req.headers.get("Authorization");
