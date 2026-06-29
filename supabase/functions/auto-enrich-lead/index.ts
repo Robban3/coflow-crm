@@ -704,6 +704,12 @@ Deno.serve(async (req) => {
     leadId = body.lead_id || body.record?.id;
     let callerUserId = body.user_id || null;
     const isManual = !!body.lead_id && !body.record;
+    // Light mode (used by the import queue): enrich the cheap, reliable company
+    // data + draft, but SKIP the heavy website work (Firecrawl scrape +
+    // PageSpeed/Lighthouse). The full web analysis is run on demand from the
+    // lead view instead — so imports don't burst Google PSI (which silently
+    // dropped the analysis) or burn Firecrawl credits on every imported lead.
+    const light = body.light === true;
 
     if (!leadId) {
       return new Response(
@@ -874,29 +880,36 @@ Deno.serve(async (req) => {
 
     const remainingMs = () => Math.max(deadline - Date.now(), 2000);
 
-    // ═══ STEP 1 + 2: Firecrawl + PageSpeed in parallel ═══
-    // PageSpeed gets a strict 12s cap so it doesn't eat the AI budget
-    const PAGESPEED_TIMEOUT = 12_000;
-    const [crawlSettled, pagespeedSettled] = await Promise.allSettled([
-      withTimeout(stepFirecrawlDeep(website), remainingMs(), "firecrawl"),
-      withTimeout(stepPageSpeed(website, leadId, orgId, supabase), Math.min(PAGESPEED_TIMEOUT, remainingMs()), "pagespeed"),
-    ]);
-
     let crawlResult: CrawlResult | null = null;
     let pagespeedResult: PageSpeedResult | null = null;
 
-    if (crawlSettled.status === "fulfilled") {
-      crawlResult = crawlSettled.value;
+    if (light) {
+      // Light mode: no website scrape, no PageSpeed. The draft below is built
+      // from the official company data instead, and the full web analysis runs
+      // later on demand.
+      console.log("[auto-enrich] LIGHT mode – skipping Firecrawl + PageSpeed");
     } else {
-      errors.push(`firecrawl: ${crawlSettled.reason?.message}`);
-      console.error("[auto-enrich] Firecrawl failed:", crawlSettled.reason?.message);
-    }
+      // ═══ STEP 1 + 2: Firecrawl + PageSpeed in parallel ═══
+      // PageSpeed gets a strict 12s cap so it doesn't eat the AI budget
+      const PAGESPEED_TIMEOUT = 12_000;
+      const [crawlSettled, pagespeedSettled] = await Promise.allSettled([
+        withTimeout(stepFirecrawlDeep(website), remainingMs(), "firecrawl"),
+        withTimeout(stepPageSpeed(website, leadId, orgId, supabase), Math.min(PAGESPEED_TIMEOUT, remainingMs()), "pagespeed"),
+      ]);
 
-    if (pagespeedSettled.status === "fulfilled") {
-      pagespeedResult = pagespeedSettled.value;
-    } else {
-      errors.push(`pagespeed: ${pagespeedSettled.reason?.message}`);
-      console.error("[auto-enrich] PageSpeed failed:", pagespeedSettled.reason?.message);
+      if (crawlSettled.status === "fulfilled") {
+        crawlResult = crawlSettled.value;
+      } else {
+        errors.push(`firecrawl: ${crawlSettled.reason?.message}`);
+        console.error("[auto-enrich] Firecrawl failed:", crawlSettled.reason?.message);
+      }
+
+      if (pagespeedSettled.status === "fulfilled") {
+        pagespeedResult = pagespeedSettled.value;
+      } else {
+        errors.push(`pagespeed: ${pagespeedSettled.reason?.message}`);
+        console.error("[auto-enrich] PageSpeed failed:", pagespeedSettled.reason?.message);
+      }
     }
 
     // ── Update lead with crawl data ──
@@ -920,7 +933,7 @@ Deno.serve(async (req) => {
     }
 
     // ═══ STEP 3: Problem scoring ═══
-    if (!crawlResult && !pagespeedResult) {
+    if (!light && !crawlResult && !pagespeedResult) {
       await supabase.from("leads").update({
         enrichment_status: "failed",
         enrichment_completed_at: new Date().toISOString(),
@@ -984,7 +997,9 @@ Deno.serve(async (req) => {
     }
 
     // ── Check if should skip (no real problems AND no business fit advantage) ──
-    if (scoring.shouldSkip && (!businessAnalysis || businessAnalysis.businessFitScore < 3)) {
+    // In light mode we have no scrape data to score, so never skip here — just
+    // produce a company-data draft and mark the lead ready.
+    if (!light && scoring.shouldSkip && (!businessAnalysis || businessAnalysis.businessFitScore < 3)) {
       console.log("[auto-enrich] STEP 3 – No sellable problems found, skipping draft");
       await supabase.from("leads").update({
         enrichment_status: "skipped",

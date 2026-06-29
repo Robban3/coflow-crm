@@ -120,7 +120,11 @@ Deno.serve(async (req) => {
               Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ lead_id: lead.id, user_id: callerUserId }),
+            // Light mode: enrich cheap company data + draft only. The heavy web
+            // analysis (Firecrawl scrape + PageSpeed) is deferred and run on
+            // demand from the lead view — so imports stay fast, reliable and
+            // don't burn Firecrawl credits on every lead.
+            body: JSON.stringify({ lead_id: lead.id, user_id: callerUserId, light: true }),
           },
         );
 
@@ -130,49 +134,11 @@ Deno.serve(async (req) => {
           console.log("[process-enrichment-queue] Using fallback enrichment for", lead.id);
 
           // === FALLBACK ENRICHMENT ===
+          // No website scrape here: the hybrid flow keeps imports credit-free,
+          // so the fallback only produces a company-data draft. The full web
+          // analysis is run on demand from the lead view.
           try {
-            let aiSummary = `Företag: ${lead.company_name || 'Okänt'}`;
-            let webData: any = null;
-
-            // Step a: Try Firecrawl if website exists
-            if (lead.website) {
-              console.log("[process-enrichment-queue] Fallback: scraping website for", lead.id, lead.website);
-              try {
-                let formattedUrl = lead.website.trim();
-                if (!formattedUrl.startsWith("http://") && !formattedUrl.startsWith("https://")) {
-                  formattedUrl = `https://${formattedUrl}`;
-                }
-                const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
-                if (firecrawlKey) {
-                  const fcRes = await fetch("https://api.firecrawl.dev/v1/scrape", {
-                    method: "POST",
-                    headers: {
-                      Authorization: `Bearer ${firecrawlKey}`,
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ url: formattedUrl, formats: ["markdown"], onlyMainContent: true }),
-                  });
-                  if (fcRes.ok) {
-                    const fcData = await fcRes.json();
-                    const markdown = fcData?.data?.markdown || fcData?.markdown || "";
-                    aiSummary = markdown.substring(0, 500) || aiSummary;
-                    webData = { markdown: markdown.substring(0, 2000), sourceUrl: formattedUrl };
-                    console.log("[process-enrichment-queue] Fallback: Firecrawl success for", lead.id);
-
-                    // NOTE: deliberately NOT writing a web_analyses row here. This
-                    // fallback has no Lighthouse scores, so a row would render as a
-                    // red (scoreless) analysis and could shadow a good one. The
-                    // markdown is still used below for the outreach draft.
-                  } else {
-                    console.warn("[process-enrichment-queue] Fallback: Firecrawl failed for", lead.id, fcRes.status);
-                  }
-                } else {
-                  console.warn("[process-enrichment-queue] Fallback: No FIRECRAWL_API_KEY configured");
-                }
-              } catch (fcErr) {
-                console.warn("[process-enrichment-queue] Fallback: Firecrawl exception for", lead.id, fcErr);
-              }
-            }
+            const aiSummary = `Företag: ${lead.company_name || 'Okänt'}`;
 
             // Step b: Generate outreach draft via the same flow as "Regenerera"
             console.log("[process-enrichment-queue] Fallback: generating outreach for", lead.id);
