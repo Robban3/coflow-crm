@@ -16,13 +16,25 @@ import {
   ArrowRight,
   Users,
   Calendar,
-  FileText
+  FileText,
+  Trash2,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { sv, enUS, es } from "date-fns/locale";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { WonDealDialog } from "@/components/deals/WonDealDialog";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { batchIn } from "@/lib/batchIn";
@@ -61,6 +73,22 @@ export default function PipelinePage() {
     | { leadId: string; prefill: { company_name?: string | null; contact_name?: string | null; email?: string | null; phone?: string | null } }
     | null
   >(null);
+  const [deleteDealTarget, setDeleteDealTarget] = useState<PipelineLead | null>(null);
+
+  // Admin-only: permanently delete a deal and all its sales artefacts (offers,
+  // quotes, tickets, handoff). Used to clean up test deals.
+  const deleteDeal = useMutation({
+    mutationFn: async (leadId: string) => {
+      const { error } = await (supabase.rpc as any)("admin_delete_deal", { _lead_id: leadId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pipeline-leads"] });
+      setDeleteDealTarget(null);
+      toast.success(t("pipeline.dealDeleted"));
+    },
+    onError: (e: any) => toast.error(e?.message || t("pipeline.dealDeleteError")),
+  });
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["pipeline-leads", user?.id, isAdmin],
@@ -279,7 +307,23 @@ export default function PipelinePage() {
                             >
                               {lead.company_name || t("pipeline.unnamedLead")}
                             </Link>
-                            <GripVertical className="h-4 w-4 text-muted-foreground/30 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="flex items-center gap-1 shrink-0">
+                              {isAdmin && stage.key === "won" && (
+                                <button
+                                  type="button"
+                                  title={t("pipeline.deleteDeal")}
+                                  className="text-muted-foreground/40 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    setDeleteDealTarget(lead);
+                                  }}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                              <GripVertical className="h-4 w-4 text-muted-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
                           </div>
 
                           {lead.contact_name && (
@@ -314,6 +358,27 @@ export default function PipelinePage() {
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
+
+      <AlertDialog open={!!deleteDealTarget} onOpenChange={(open) => !open && setDeleteDealTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("pipeline.deleteDealTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("pipeline.deleteDealConfirm", { name: deleteDealTarget?.company_name || t("pipeline.unnamedLead") })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("pipeline.deleteDealCancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteDealTarget && deleteDeal.mutate(deleteDealTarget.id)}
+              disabled={deleteDeal.isPending}
+            >
+              {deleteDeal.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("pipeline.deleteDeal")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <WonDealDialog
         open={!!wonDeal}

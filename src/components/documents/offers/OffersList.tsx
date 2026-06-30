@@ -20,8 +20,19 @@ import {
   Clock,
   Pencil,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { TemplatePickerDialog } from "./TemplatePickerDialog";
 import { format } from "date-fns";
@@ -90,11 +101,28 @@ export function OffersList() {
   const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const numberLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const orgId = useOrganizationId();
   const queryClient = useQueryClient();
   const [showPicker, setShowPicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<OfferRow | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: async (offer: OfferRow) => {
+      const { error } = offer.isLegacy
+        ? await supabase.from("quotes").delete().eq("id", offer.id)
+        : await fromTable("documents").delete().eq("id", offer.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: ["legacy_quotes"] });
+      setDeleteTarget(null);
+      toast.success(t("offers.list.deleted"));
+    },
+    onError: () => toast.error(t("offers.list.deleteError")),
+  });
 
   const { data: documents, isLoading } = useQuery({
     queryKey: ["documents", orgId],
@@ -365,7 +393,23 @@ export function OffersList() {
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-right">
-                      <StatusBadge status={offer.status} />
+                      <div className="flex items-center justify-end gap-2">
+                        <StatusBadge status={offer.status} />
+                        {isAdmin && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground/60 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                            title={t("offers.list.delete")}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTarget(offer);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -402,6 +446,27 @@ export function OffersList() {
         onSelect={(templateId) => createMutation.mutate(templateId)}
         isLoading={createMutation.isPending}
       />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("offers.list.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("offers.list.deleteConfirm", { title: deleteTarget?.title ?? "" })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("offers.list.deleteCancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("offers.list.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
