@@ -350,10 +350,12 @@ export default function ProspectingSearchTab() {
   );
 
   const results = accumulatedResults;
-  const filteredResults = results.filter((r) => !!r.website);
+  // Companies without a website are still valuable, callable leads (phone +
+  // address), so we show and import them too — no longer filtered out.
+  const filteredResults = results;
   const newResults = filteredResults.filter((r) => !getDuplicateInfo(r).isDuplicate);
   const duplicateResults = filteredResults.filter((r) => getDuplicateInfo(r).isDuplicate);
-  const noWebsiteCount = results.length - filteredResults.length;
+  const noWebsiteCount = results.filter((r) => !r.website).length;
 
   const allNewSelected = newResults.length > 0 && newResults.every((r) => selectedIds.has(r.placeId));
 
@@ -852,7 +854,7 @@ export default function ProspectingSearchTab() {
                   disabled={newResults.length === 0}
                 />
                 <div className="text-sm">
-                  <strong>{newResults.length}</strong> {t("prospecting.newLeadsWithSiteSuffix")}
+                  <strong>{newResults.length}</strong> {t("prospecting.newLeadsSuffix")}
                   {duplicateResults.length > 0 && (
                     <span className="text-muted-foreground ml-2">
                       {t("prospecting.alreadyInSystem", { count: duplicateResults.length })}
@@ -860,7 +862,7 @@ export default function ProspectingSearchTab() {
                   )}
                   {noWebsiteCount > 0 && (
                     <span className="text-muted-foreground ml-2">
-                      {t("prospecting.withoutSiteHidden", { count: noWebsiteCount })}
+                      {t("prospecting.withoutSite", { count: noWebsiteCount })}
                     </span>
                   )}
                   {accumulatedResults.length > 20 && (
@@ -927,6 +929,11 @@ export default function ProspectingSearchTab() {
                             : t("prospecting.alreadyExists")}
                         </Badge>
                       )}
+                      {!place.website && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">
+                          {t("prospecting.noWebsiteBadge")}
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                       <span className="truncate max-w-[200px]">{place.address}</span>
@@ -982,7 +989,7 @@ export default function ProspectingSearchTab() {
       {searchSource === "places" && submitted && !searchQuery.isFetching && filteredResults.length === 0 && !searchQuery.isError && (
         <div className="text-center py-16 text-muted-foreground">
           <Search className="h-8 w-8 mx-auto mb-3 opacity-40" />
-          <p className="text-sm">{t("prospecting.noResultsWithSite")}</p>
+          <p className="text-sm">{t("prospecting.noResults")}</p>
         </div>
       )}
 
