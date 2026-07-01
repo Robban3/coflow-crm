@@ -58,6 +58,7 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
       // Fetch all data sources in parallel - only select needed columns (avoid raw_data blobs)
       const [
         activitiesRes,
+        callLogsRes,
         sentEmailsRes,
         emailRepliesRes,
         webAnalysesRes,
@@ -65,6 +66,7 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
         tasksRes,
       ] = await Promise.all([
         supabase.from('activities').select('id, type, title, description, scheduled_at, completed_at, created_at, user_id').eq('lead_id', leadId).limit(200),
+        supabase.from('call_logs').select('id, outcome_label, note, created_at, created_by').eq('lead_id', leadId).limit(200),
         supabase.from('sent_emails').select('id, subject, recipient_email, created_at, sent_by, opened_at, opened_count, source').eq('lead_id', leadId).limit(200),
         supabase.from('email_replies').select('id, subject, from_email, from_name, received_at').eq('lead_id', leadId).limit(100),
         supabase.from('web_analyses').select('id, url, performance_score, seo_score, accessibility_score, best_practices_score, created_at, analyzed_by').eq('lead_id', leadId).limit(50),
@@ -95,6 +97,20 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
             description: activity.description,
             timestamp: activity.completed_at || activity.created_at,
             userId: activity.user_id,
+          });
+        }
+      }
+
+      // Logged calls (outcome + note) — from LogCallDialog / Power Call
+      if (callLogsRes.data) {
+        for (const call of callLogsRes.data) {
+          allEvents.push({
+            id: `call-${call.id}`,
+            type: 'call',
+            title: call.outcome_label,
+            description: call.note ?? undefined,
+            timestamp: call.created_at,
+            userId: call.created_by,
           });
         }
       }
