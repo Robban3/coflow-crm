@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
+import { qs } from "../_shared/quickScanText.ts";
+import { geoFindingText } from "../_shared/geoFindings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,6 +33,9 @@ serve(async (req) => {
 
     if (scanErr || !scan) throw new Error("Scan not found");
 
+    // The scan carries the creator's UI language; localize everything below.
+    const L = qs(scan.language);
+
     // Only process queued scans
     if (scan.status !== "queued") {
       console.log("Scan already", scan.status, "- skipping");
@@ -40,11 +45,11 @@ serve(async (req) => {
     }
 
     // ─── STEP 1: Set running ───
-    await updateProgress(supabase, scanId, "running", 1, "Tar emot uppgifter");
+    await updateProgress(supabase, scanId, "running", 1, L.receiving);
     console.log("Scan", scanId, "→ running");
 
     // ─── STEP 2: Crawl pages ───
-    await updateProgress(supabase, scanId, "running", 2, "Hämtar innehåll från webbplatsen");
+    await updateProgress(supabase, scanId, "running", 2, L.fetching);
 
     const pages: any[] = [];
     let errorCode: string | null = null;
@@ -136,16 +141,16 @@ serve(async (req) => {
     }
 
     if (pages.length === 0) {
-      throw Object.assign(new Error("Kunde inte hämta webbplatsinnehåll"), {
+      throw Object.assign(new Error(L.fetchError), {
         errorCode: errorCode || "fetch_error",
       });
     }
 
     // ─── STEP 3: Parse + score + AI ───
-    await updateProgress(supabase, scanId, "running", 3, "Skapar mini-rapport");
+    await updateProgress(supabase, scanId, "running", 3, L.building);
 
     const parsed = pages.map((p) => parsePage(p, scan.domain));
-    const findings = runGeoChecks(parsed, scan.domain);
+    const findings = runGeoChecks(parsed, scan.domain, scan.language);
     const geoScore = computeGeoScore(findings, parsed);
 
     // Top 3 findings
@@ -190,8 +195,8 @@ ${findingsSummary}
 
 GEO-POÄNG: ${geoScore}/100
 
-Ge mig:
-1. summary_short: svensk, professionell, max 500 tecken. Konkret om företagets AI-synlighet.
+Ge mig (skriv summary_short och alla title/steps på ${L.langName}):
+1. summary_short: professionell, max 500 tecken. Konkret om företagets AI-synlighet.
 2. top_actions: 3 åtgärder med priority (quick_win|medium|long_term), title, steps.
 
 Svara som JSON:
@@ -243,9 +248,7 @@ Svara som JSON:
 
     // Fallback summary
     if (!summaryShort) {
-      const label =
-        geoScore >= 80 ? "stark" : geoScore >= 50 ? "medel" : "låg";
-      summaryShort = `${scan.domain} har ${label} AI-synlighet (${geoScore}/100). ${sortedFindings.length} problem identifierade under snabbscanningen av ${parsed.length} sidor.`;
+      summaryShort = L.fallbackSummary(scan.domain, geoScore, sortedFindings.length, parsed.length);
     }
 
     // Fallback actions
@@ -268,7 +271,7 @@ Svara som JSON:
         top_actions: topActions,
         completed_at: new Date().toISOString(),
         progress_step: 3,
-        progress_label: "Klar",
+        progress_label: L.done,
       })
       .eq("id", scanId);
 
@@ -355,11 +358,12 @@ async function sendResultEmail(
   }
 
   const resend = new Resend(resendKey);
+  const L = qs(scan.language);
   const reportUrl = `https://coflow.se/r/geo/${scan.public_token}`;
   const bookingUrl = `https://kodcogeo.se/boka?email=${encodeURIComponent(scan.email)}&domain=${encodeURIComponent(scan.domain)}&score=${geoScore}&token=${scan.public_token}&utm_source=mini_report&utm_medium=email&utm_campaign=geo`;
 
   const scoreLabel =
-    geoScore >= 80 ? "Stark AI-synlighet" : geoScore >= 50 ? "Bra potential" : "Låg AI-synlighet";
+    geoScore >= 80 ? L.strong : geoScore >= 50 ? L.potential : L.low;
   const scoreColorVal =
     geoScore >= 80 ? "#22c55e" : geoScore >= 50 ? "#eab308" : "#ef4444";
 
@@ -387,7 +391,7 @@ async function sendResultEmail(
 
   <!-- Header -->
   <div style="text-align:center;margin-bottom:32px;">
-    <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin:0;">GEO-Rapport</p>
+    <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin:0;">${L.emailEyebrow}</p>
     <h1 style="font-size:22px;font-weight:700;color:#f1f5f9;margin:8px 0 4px;letter-spacing:-0.02em;">${companyLabel}</h1>
     <p style="font-size:13px;color:#475569;margin:0;">${scan.domain}</p>
   </div>
@@ -405,7 +409,7 @@ async function sendResultEmail(
 
   ${findings.length > 0 ? `<!-- Findings -->
   <div style="background:#111827;border-radius:16px;border:1px solid #1e293b;padding:24px;margin-bottom:24px;">
-    <p style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#64748b;font-weight:600;margin:0 0 16px;">Identifierade problem</p>
+    <p style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#64748b;font-weight:600;margin:0 0 16px;">${L.findingsHeading}</p>
     ${findings.map((f) => `<div style="display:flex;align-items:flex-start;padding:10px 0;border-bottom:1px solid #1e293b;">
       <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${f.severity === "high" ? "#ef4444" : f.severity === "medium" ? "#eab308" : "#3b82f6"};margin-top:5px;margin-right:12px;flex-shrink:0;"></span>
       <span style="font-size:13px;color:#94a3b8;line-height:1.5;">${f.title}</span>
@@ -414,7 +418,7 @@ async function sendResultEmail(
 
   ${actions.length > 0 ? `<!-- Actions -->
   <div style="background:#111827;border-radius:16px;border:1px solid #1e293b;padding:24px;margin-bottom:24px;">
-    <p style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#64748b;font-weight:600;margin:0 0 16px;">Rekommenderade åtgärder</p>
+    <p style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#64748b;font-weight:600;margin:0 0 16px;">${L.actionsHeading}</p>
     ${actions.map((a, i) => `<div style="display:flex;align-items:flex-start;padding:10px 0;${i < actions.length - 1 ? "border-bottom:1px solid #1e293b;" : ""}">
       <span style="display:inline-block;width:22px;height:22px;line-height:22px;border-radius:50%;background:#3b82f615;color:#60a5fa;font-size:11px;font-weight:700;text-align:center;margin-right:12px;flex-shrink:0;border:1px solid #3b82f630;">${i + 1}</span>
       <span style="font-size:13px;color:#94a3b8;line-height:1.5;">${a.title}</span>
@@ -423,16 +427,16 @@ async function sendResultEmail(
 
   <!-- CTA -->
   <div style="text-align:center;margin-bottom:32px;">
-    <a href="${reportUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#3b82f6 0%,#6366f1 100%);color:#fff;border-radius:14px;text-decoration:none;font-weight:600;font-size:14px;letter-spacing:-0.01em;box-shadow:0 4px 20px #3b82f633;">Öppna din rapport →</a>
+    <a href="${reportUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#3b82f6 0%,#6366f1 100%);color:#fff;border-radius:14px;text-decoration:none;font-weight:600;font-size:14px;letter-spacing:-0.01em;box-shadow:0 4px 20px #3b82f633;">${L.openReport}</a>
     <div style="margin-top:12px;">
-      <a href="${bookingUrl}" style="font-size:13px;color:#60a5fa;text-decoration:none;font-weight:500;">Boka 15 min genomgång</a>
+      <a href="${bookingUrl}" style="font-size:13px;color:#60a5fa;text-decoration:none;font-weight:500;">${L.bookReview}</a>
     </div>
-    <p style="font-size:11px;color:#475569;margin:6px 0 0;">Öppnas i webbläsaren</p>
+    <p style="font-size:11px;color:#475569;margin:6px 0 0;">${L.opensInBrowser}</p>
   </div>
 
   <!-- Footer -->
   <div style="text-align:center;padding-top:24px;border-top:1px solid #1e293b;">
-    <p style="font-size:11px;color:#475569;margin:0;">Snabbscan av Kod & Co · <a href="https://kodcogeo.se" style="color:#64748b;text-decoration:none;">kodcogeo.se</a></p>
+    <p style="font-size:11px;color:#475569;margin:0;">${L.footerScan}<a href="https://kodcogeo.se" style="color:#64748b;text-decoration:none;">kodcogeo.se</a></p>
   </div>
 
 </div>
@@ -443,7 +447,7 @@ async function sendResultEmail(
     await resend.emails.send({
       from: "GEO Rapport <mail@coflow.se>",
       to: [scan.email],
-      subject: `Din AI-synlighet: ${geoScore}/100 – mini-rapport`,
+      subject: L.subject(geoScore),
       html,
     });
     console.log("Result email sent to", scan.email);
@@ -457,6 +461,7 @@ async function sendFailureEmail(scan: any) {
   if (!resendKey) return;
 
   const resend = new Resend(resendKey);
+  const L = qs(scan.language);
   const bookingUrl = `https://kodcogeo.se/boka?email=${encodeURIComponent(scan.email)}&domain=${encodeURIComponent(scan.domain)}&utm_source=mini_report&utm_medium=email&utm_campaign=geo_failed`;
 
   const failCompanyLabel = scan.company_name || scan.domain;
@@ -468,19 +473,19 @@ async function sendFailureEmail(scan: any) {
 <div style="max-width:560px;margin:0 auto;padding:40px 16px;">
 
   <div style="text-align:center;margin-bottom:32px;">
-    <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin:0;">GEO-Rapport</p>
+    <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin:0;">${L.emailEyebrow}</p>
     <h1 style="font-size:22px;font-weight:700;color:#f1f5f9;margin:8px 0 4px;letter-spacing:-0.02em;">${failCompanyLabel}</h1>
   </div>
 
   <div style="background:#111827;border-radius:20px;border:1px solid #1e293b;padding:36px 32px;text-align:center;margin-bottom:24px;">
     <div style="display:inline-block;width:56px;height:56px;line-height:56px;border-radius:50%;background:#eab30815;border:2px solid #eab30840;font-size:24px;margin-bottom:16px;">⚠️</div>
-    <h2 style="color:#f1f5f9;font-size:18px;margin:0 0 10px;font-weight:600;letter-spacing:-0.02em;">Vi kunde inte analysera webbplatsen</h2>
-    <p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">Vi kunde inte automatiskt analysera <strong style="color:#cbd5e1;">${scan.domain}</strong>. Det kan bero på att webbplatsen blockerar automatiska besök.</p>
+    <h2 style="color:#f1f5f9;font-size:18px;margin:0 0 10px;font-weight:600;letter-spacing:-0.02em;">${L.failHeading}</h2>
+    <p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">${L.failBody(scan.domain)}</p>
   </div>
 
   <div style="text-align:center;margin-bottom:32px;">
-    <a href="${bookingUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#3b82f6 0%,#6366f1 100%);color:#fff;border-radius:14px;text-decoration:none;font-weight:600;font-size:14px;letter-spacing:-0.01em;box-shadow:0 4px 20px #3b82f633;">Boka genomgång istället</a>
-    <p style="font-size:11px;color:#475569;margin:8px 0 0;">Öppnas i webbläsaren</p>
+    <a href="${bookingUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#3b82f6 0%,#6366f1 100%);color:#fff;border-radius:14px;text-decoration:none;font-weight:600;font-size:14px;letter-spacing:-0.01em;box-shadow:0 4px 20px #3b82f633;">${L.failCta}</a>
+    <p style="font-size:11px;color:#475569;margin:8px 0 0;">${L.opensInBrowser}</p>
   </div>
 
   <div style="text-align:center;padding-top:24px;border-top:1px solid #1e293b;">
@@ -495,7 +500,7 @@ async function sendFailureEmail(scan: any) {
     await resend.emails.send({
       from: "GEO Rapport <mail@coflow.se>",
       to: [scan.email],
-      subject: "Vi kunde inte analysera webbplatsen automatiskt",
+      subject: L.failSubject,
       html,
     });
   } catch (e) {
@@ -577,8 +582,9 @@ interface Finding {
   recommendation: string;
 }
 
-function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
+function runGeoChecks(pages: ParsedPage[], domain: string, language?: string): Finding[] {
   const findings: Finding[] = [];
+  const T = geoFindingText(language);
 
   const hasFaq = pages.some(
     (p) =>
@@ -588,16 +594,7 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
       p.url.toLowerCase().includes("vanliga-fragor")
   );
   if (!hasFaq) {
-    findings.push({
-      category: "geo",
-      severity: "high",
-      title: "Saknar FAQ-sektion",
-      description:
-        "Ingen FAQ hittad. FAQ-innehåll är en av de viktigaste signalerna för AI-motorer.",
-      evidence: {},
-      recommendation:
-        "Lägg till en FAQ-sida med vanliga frågor om era tjänster. Använd FAQPage-schema.",
-    });
+    findings.push({ category: "geo", severity: "high", ...T.faq, evidence: {} });
   }
 
   const hasOrgSchema = pages.some(
@@ -607,39 +604,17 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
       p.schemaTypes.includes("Service")
   );
   if (!hasOrgSchema) {
-    findings.push({
-      category: "entity",
-      severity: "high",
-      title: "Saknar Organization/Service schema",
-      description:
-        "Ingen strukturerad data för företaget. AI-motorer behöver schema.org för att referera korrekt.",
-      evidence: {},
-      recommendation: "Lägg till Organization eller LocalBusiness schema.",
-    });
+    findings.push({ category: "entity", severity: "high", ...T.orgSchema, evidence: {} });
   }
 
   const missingMeta = pages.filter((p) => !p.metaDescription);
   if (missingMeta.length > pages.length * 0.3) {
-    findings.push({
-      category: "seo",
-      severity: "medium",
-      title: "Sidor saknar meta-beskrivning",
-      description: `${missingMeta.length} av ${pages.length} sidor saknar meta-beskrivning.`,
-      evidence: {},
-      recommendation: "Skriv unika meta-beskrivningar (120-160 tecken) per sida.",
-    });
+    findings.push({ category: "seo", severity: "medium", ...T.meta(missingMeta.length, pages.length), evidence: {} });
   }
 
   const thinPages = pages.filter((p) => p.wordCount < 300);
   if (thinPages.length > pages.length * 0.5) {
-    findings.push({
-      category: "content",
-      severity: "medium",
-      title: "Tunt innehåll",
-      description: `${thinPages.length} av ${pages.length} sidor har under 300 ord.`,
-      evidence: {},
-      recommendation: "Utöka innehållet med detaljerad information och definitioner.",
-    });
+    findings.push({ category: "content", severity: "medium", ...T.thin(thinPages.length, pages.length), evidence: {} });
   }
 
   const hasServicePages = pages.some(
@@ -650,14 +625,7 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
       p.url.toLowerCase().includes("about")
   );
   if (!hasServicePages) {
-    findings.push({
-      category: "geo",
-      severity: "medium",
-      title: "Saknar tjänstesidor",
-      description: 'Inga dedikerade "Om oss" eller "Tjänster"-sidor hittades.',
-      evidence: {},
-      recommendation: "Skapa tydliga sidor som beskriver era tjänster i detalj.",
-    });
+    findings.push({ category: "geo", severity: "medium", ...T.servicePages, evidence: {} });
   }
 
   const hasContact = pages.some(
@@ -666,26 +634,12 @@ function runGeoChecks(pages: ParsedPage[], domain: string): Finding[] {
       p.url.toLowerCase().includes("contact")
   );
   if (!hasContact) {
-    findings.push({
-      category: "entity",
-      severity: "low",
-      title: "Ingen dedikerad kontaktsida",
-      description: "Ingen tydlig kontaktsida hittades.",
-      evidence: {},
-      recommendation: "Skapa en kontaktsida med adress, telefon och e-post.",
-    });
+    findings.push({ category: "entity", severity: "low", ...T.contact, evidence: {} });
   }
 
   const nonIndexable = pages.filter((p) => !p.indexable);
   if (nonIndexable.length > 0) {
-    findings.push({
-      category: "indexing",
-      severity: "high",
-      title: "Sidor blockerade från indexering",
-      description: `${nonIndexable.length} sida/sidor har noindex-taggar.`,
-      evidence: {},
-      recommendation: "Ta bort noindex från sidor som ska vara synliga.",
-    });
+    findings.push({ category: "indexing", severity: "high", ...T.noindex(nonIndexable.length), evidence: {} });
   }
 
   return findings;

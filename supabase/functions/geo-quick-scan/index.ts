@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { resolveLang } from "../_shared/analysisText.ts";
+import { qs } from "../_shared/quickScanText.ts";
 
 // ─── CORS ───
 const ALLOWED_ORIGINS = [
@@ -96,7 +98,8 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { companyName, email, website: rawWebsite, phone, message: leadMessage } = body;
+    const { companyName, email, website: rawWebsite, phone, message: leadMessage, language } = body;
+    const lang = resolveLang(language);
 
     // ─── Validation ───
     if (!email || !isValidEmail(email)) {
@@ -251,7 +254,8 @@ serve(async (req) => {
         expires_at: expiresAt,
         status: "queued",
         progress_step: 1,
-        progress_label: "Tar emot uppgifter",
+        progress_label: qs(lang).receiving,
+        language: lang,
       })
       .select("id")
       .single();

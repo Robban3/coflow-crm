@@ -714,7 +714,7 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
 // ──── Quick Scan Section ────
 
 function QuickScanSection({ leadId, website }: { leadId: string; website: string | null }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
 
@@ -765,6 +765,7 @@ function QuickScanSection({ leadId, website }: { leadId: string; website: string
           email: lead.email,
           website: website,
           leadId,
+          language,
         },
       });
       if (res.error) throw new Error(res.error.message);

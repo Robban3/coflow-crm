@@ -33,7 +33,7 @@ const priorityIcon = (p: string) => {
 };
 
 export default function PublicGeoReportPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const [scan, setScan] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +54,7 @@ export default function PublicGeoReportPage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({ token, lang: language }),
         }
       );
       if (!res.ok) {
@@ -78,7 +78,7 @@ export default function PublicGeoReportPage() {
     } catch {
       return "continue";
     }
-  }, [token]);
+  }, [token, language]);
 
   // Dynamic browser tab title + OG meta tags
   useEffect(() => {
