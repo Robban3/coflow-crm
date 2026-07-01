@@ -1,5 +1,6 @@
 import { getAuthenticatedUserId } from "../_shared/auth.ts";
 import { getCached, setCached } from "../_shared/cache.ts";
+import { at } from "../_shared/analysisText.ts";
 
 // Reuse a recent analysis of the same URL+strategy to avoid re-billing PSI.
 const PSI_CACHE_TTL_SECONDS = 24 * 60 * 60;
@@ -157,6 +158,7 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  let reqLang: string | undefined;
   try {
     const userId = await getAuthenticatedUserId(req);
     if (!userId) {
@@ -167,13 +169,14 @@ Deno.serve(async (req) => {
     }
 
     const { url, strategy = 'desktop', language } = await req.json();
+    reqLang = language;
     // Lighthouse localises audit titles/descriptions server-side via `locale`.
     // sv/en/es are valid PSI locales; default to Swedish (the app default).
     const locale = ['sv', 'en', 'es'].includes(String(language)) ? String(language) : 'sv';
 
     if (!url) {
       return new Response(
-        JSON.stringify({ success: false, error: 'URL krävs' }),
+        JSON.stringify({ success: false, error: at('urlRequired', language) }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -235,7 +238,7 @@ Deno.serve(async (req) => {
     const RETRYABLE_HTTP = new Set([408, 429, 500, 502, 503, 504]);
 
     let data: any = null;
-    let failureMessage = `Kunde inte analysera "${formattedUrl}". Försök igen om en stund.`;
+    let failureMessage = at('couldNotAnalyze', language);
     let failureCode: string | number = 'LIGHTHOUSE_ERROR';
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -245,7 +248,7 @@ Deno.serve(async (req) => {
       } catch (e) {
         // Network error or our own abort timeout — always retryable.
         console.warn(`PSI attempt ${attempt}/${MAX_ATTEMPTS} failed (network/timeout):`, String(e));
-        failureMessage = `Webbplatsen svarade för långsamt. Försök igen om en stund.`;
+        failureMessage = at('siteTooSlow', language);
         failureCode = 'TIMEOUT';
         if (attempt < MAX_ATTEMPTS) { await sleep(attempt * 1500); continue; }
         break;
@@ -260,15 +263,15 @@ Deno.serve(async (req) => {
         if (errorData?.error?.message) {
           const errorMessage = errorData.error.message as string;
           if (errorMessage.includes('FAILED_DOCUMENT_REQUEST') || errorMessage.includes('ERR_CONNECTION')) {
-            userMessage = `Kunde inte nå webbplatsen "${formattedUrl}". Kontrollera att adressen är korrekt och att webbplatsen är online.`;
+            userMessage = at('siteUnreachable', language);
           } else if (errorMessage.includes('DNS_FAILURE') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) {
-            userMessage = `Domänen "${formattedUrl}" kunde inte hittas. Kontrollera att adressen är korrekt stavad.`;
+            userMessage = at('domainNotFound', language);
           } else if (errorMessage.includes('PROTOCOL_TIMEOUT')) {
-            userMessage = `Webbplatsen svarade för långsamt. Försök igen senare.`;
+            userMessage = at('siteTooSlow', language);
           } else if (errorMessage.includes('INVALID_URL')) {
-            userMessage = `Ogiltig URL. Kontrollera att adressen är korrekt formaterad.`;
+            userMessage = at('invalidUrl', language);
           } else {
-            userMessage = `Analysen misslyckades: ${errorMessage.substring(0, 150)}`;
+            userMessage = at('analysisFailed', language);
           }
         }
 
@@ -298,7 +301,7 @@ Deno.serve(async (req) => {
       if (lhr.runtimeError || cats.performance?.score == null) {
         const rtMsg: string = lhr.runtimeError?.message || '';
         console.warn(`PSI attempt ${attempt}/${MAX_ATTEMPTS} runtimeError:`, rtMsg || '(no scores)');
-        failureMessage = `Kunde inte analysera "${formattedUrl}". Sajten kan vara för långsam, otillgänglig eller blockera automatiserade verktyg. Försök igen om en stund.${rtMsg ? ` (${rtMsg.substring(0, 140)})` : ''}`;
+        failureMessage = at('couldNotAnalyze', language);
         failureCode = 'LIGHTHOUSE_ERROR';
         if (attempt < MAX_ATTEMPTS) { await sleep(attempt * 2000); continue; }
         break;
@@ -427,7 +430,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error instanceof Error ? error.message : 'Ett fel uppstod vid analysen' 
+        error: error instanceof Error ? error.message : at('genericError', reqLang)
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

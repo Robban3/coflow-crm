@@ -1,5 +1,6 @@
 import { getAuthenticatedUserId } from "../_shared/auth.ts";
 import { callAI, AI_MODELS } from "../_shared/ai.ts";
+import { at } from "../_shared/analysisText.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -54,7 +55,7 @@ Deno.serve(async (req) => {
 
     if (!analysisData) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Analysdata krävs' }),
+        JSON.stringify({ success: false, error: at('analysisDataRequired', lang) }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -106,7 +107,7 @@ VIKTIGT: Skriv HELA svaret på ${lang}.`;
       temperature: 0.7,
       maxTokens: 1500,
     });
-    const summary = aiResult.choices?.[0]?.message?.content || 'Ingen sammanfattning genererad';
+    const summary = aiResult.choices?.[0]?.message?.content || at('noSummaryGenerated', lang);
 
     console.log('Summary generated successfully');
 
@@ -120,7 +121,7 @@ VIKTIGT: Skriv HELA svaret på ${lang}.`;
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error instanceof Error ? error.message : 'Ett fel uppstod' 
+        error: error instanceof Error ? error.message : 'An error occurred'
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

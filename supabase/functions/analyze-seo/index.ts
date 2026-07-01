@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { getAuthenticatedUserId } from "../_shared/auth.ts";
 import { fetchWithRetry } from "../_shared/http.ts";
 import { getCached, setCached } from "../_shared/cache.ts";
+import { at } from "../_shared/analysisText.ts";
 
 const FIRECRAWL_CACHE_TTL_SECONDS = 24 * 60 * 60;
 
@@ -543,7 +544,7 @@ VIKTIGT: Om sajten har sökord som rankar i Google, inkludera konkreta tips för
     console.error('AI insights error:', error);
     // Return fallback data
     return {
-      summary: 'SEO-analysen kunde inte generera AI-insikter. Grundläggande on-page data har samlats in.',
+      summary: at('seoFallbackSummary', lang),
       opportunities: [],
       estimatedKeywords: [],
       visibilityScore: baseScore,
@@ -653,7 +654,7 @@ Deno.serve(async (req) => {
 
     if (!url) {
       return new Response(
-        JSON.stringify({ success: false, error: 'URL krävs' }),
+        JSON.stringify({ success: false, error: at('urlRequired', language) }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { at } from "../_shared/analysisText.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -354,7 +355,7 @@ Skriv ALLA textfält på ${aiLang}. Svara som JSON:
             priority: ["quick_win", "medium", "long_term"].includes(a.priority)
               ? a.priority
               : "medium",
-            title: a.title || "Åtgärd",
+            title: a.title || at('defaultActionTitle', geoLang),
             steps: a.steps || null,
             estimated_impact: a.estimated_impact || null,
             estimated_effort: a.estimated_effort || null,

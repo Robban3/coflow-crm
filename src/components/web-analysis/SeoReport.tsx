@@ -353,9 +353,10 @@ export function SeoReport({ url, webAnalysisId, leadId, onSeoDataLoaded }: SeoRe
               />
               <p className="text-sm text-muted-foreground mt-2">
                 {t("webAnalysis.analyzedAt", {
-                  date: new Date(seoData.created_at).toLocaleDateString('sv-SE', {
-                    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                  })
+                  date: new Date(seoData.created_at).toLocaleDateString(
+                    language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'sv-SE',
+                    { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+                  )
                 })}
               </p>
             </div>
