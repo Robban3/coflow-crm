@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AuditDetail } from "@/lib/api/webAnalysis";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { localizedAuditTitle } from "@/lib/lighthouseAuditI18n";
 
 interface AuditListProps {
   audits: AuditDetail[];
@@ -15,7 +16,7 @@ interface AuditListProps {
 }
 
 export function AuditList({ audits, title, emptyMessage, showScore = true, defaultOpen = false }: AuditListProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const resolvedEmptyMessage = emptyMessage ?? t("webAnalysis.auditNoProblems");
 
@@ -61,7 +62,7 @@ export function AuditList({ audits, title, emptyMessage, showScore = true, defau
               {showScore && getScoreIcon(audit.score)}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium text-sm">{audit.title}</p>
+                  <p className="font-medium text-sm">{localizedAuditTitle(audit.id, audit.title, language)}</p>
                   {audit.savings && (
                     <Badge variant="outline" className="text-xs">
                       {t("webAnalysis.auditSave", { value: audit.savings })}

@@ -6,6 +6,7 @@ import { PageSpeedResult, webAnalysisApi } from "@/lib/api/webAnalysis";
 import { Sparkles, Loader2, ThumbsUp, ThumbsDown, AlertCircle, Zap, Target } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { localizedAuditTitle } from "@/lib/lighthouseAuditI18n";
 import ReactMarkdown from "react-markdown";
 
 interface CustomerReportProps {
@@ -18,7 +19,7 @@ interface CustomerReportProps {
 export function CustomerReport({ result, url, summary, onSummaryGenerated }: CustomerReportProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const handleGenerateSummary = async () => {
     setIsGenerating(true);
@@ -204,7 +205,7 @@ export function CustomerReport({ result, url, summary, onSummaryGenerated }: Cus
                     {index + 1}
                   </div>
                   <div>
-                    <p className="font-medium text-sm">{opp.title}</p>
+                    <p className="font-medium text-sm">{localizedAuditTitle(opp.id, opp.title, language)}</p>
                     {opp.savings && (
                       <Badge variant="secondary" className="mt-1 text-xs">
                         {t("webAnalysis.canSave", { value: opp.savings })}
