@@ -1104,9 +1104,14 @@ Deno.serve(async (req) => {
         enrichment_error: errors.length > 0 ? errors.join("; ") : null,
       }).eq("id", leadId);
     } else {
-      // If we have crawl data, the lead is still usable even without a draft
+      // No draft was produced. In light mode the lead has only had the cheap
+      // company-data enrichment — that isn't a failure, it just still needs the
+      // full (on-demand) web analysis, so mark it "needs_enrichment" (neutral)
+      // rather than "failed". In full mode, crawl data still makes it usable.
       const hasUsableData = !!crawlResult;
-      const enrichStatus = hasUsableData ? "ready" : (errors.length > 0 ? "failed" : "ready");
+      const enrichStatus = hasUsableData
+        ? "ready"
+        : (light ? "needs_enrichment" : (errors.length > 0 ? "failed" : "ready"));
       await supabase.from("leads").update({
         enrichment_status: enrichStatus,
         enrichment_completed_at: new Date().toISOString(),
@@ -1114,7 +1119,9 @@ Deno.serve(async (req) => {
       }).eq("id", leadId);
     }
 
-    const finalStatus = draft ? "ready" : (crawlResult ? "ready" : (errors.length > 0 ? "failed" : "ready"));
+    const finalStatus = draft
+      ? "ready"
+      : (crawlResult ? "ready" : (light ? "needs_enrichment" : (errors.length > 0 ? "failed" : "ready")));
     console.log(`[auto-enrich] === DONE lead=${leadId} status=${finalStatus} problems=${scoring.problems.length} fit=${businessAnalysis?.businessFitScore ?? "N/A"} errors=${errors.length} ===`);
 
     return new Response(

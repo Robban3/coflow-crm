@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Loader2, CheckCircle2, AlertCircle, RefreshCw, ExternalLink, ThumbsUp, RotateCcw, Trash2, Send } from "lucide-react";
+import { Clock, Loader2, CheckCircle2, AlertCircle, RefreshCw, ExternalLink, ThumbsUp, RotateCcw, Trash2, Send, Zap } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
@@ -18,7 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import { sv, enUS, es } from "date-fns/locale";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
-type EnrichmentStatus = "pending" | "processing" | "ready" | "failed" | "skipped";
+type EnrichmentStatus = "pending" | "processing" | "ready" | "failed" | "skipped" | "needs_enrichment";
 type FilterKey = "all" | "processing" | "ready" | "skipped" | "failed";
 
 interface QueueLead {
@@ -41,6 +41,7 @@ const STATUS_CONFIG: Record<EnrichmentStatus, { icon: React.ReactNode; className
   ready: { icon: <CheckCircle2 className="h-4 w-4" />, className: "text-primary" },
   failed: { icon: <AlertCircle className="h-4 w-4" />, className: "text-destructive" },
   skipped: { icon: <ThumbsUp className="h-4 w-4" />, className: "text-muted-foreground" },
+  needs_enrichment: { icon: <Zap className="h-4 w-4" />, className: "text-amber-600 dark:text-amber-400" },
 };
 
 const FILTER_KEYS: FilterKey[] = ["all", "processing", "ready", "skipped", "failed"];

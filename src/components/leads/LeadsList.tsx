@@ -656,6 +656,13 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
             {t("leadsList.enrFailed")}
           </Badge>
         );
+      case "needs_enrichment":
+        return (
+          <Badge variant="secondary" className="gap-1 text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800">
+            <Zap className="h-3 w-3" />
+            {t("leadsList.enrNeedsEnrichment")}
+          </Badge>
+        );
       case "skipped":
         return (
           <Badge variant="outline" className="gap-1 text-muted-foreground text-[10px]">

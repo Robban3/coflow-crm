@@ -986,7 +986,7 @@ export default function LeadDetailPage() {
                         no web analysis exists yet — imported leads get light
                         enrichment only, so this is how the salesperson runs the
                         heavy analysis (Firecrawl + PageSpeed) on demand. */}
-                    {(lead.enrichment_status === 'failed' || lead.auto_draft_generated === false || analyses.length === 0) && (
+                    {(lead.enrichment_status === 'failed' || lead.enrichment_status === 'needs_enrichment' || lead.auto_draft_generated === false || analyses.length === 0) && (
                       <div className="sm:col-span-2">
                         <AutoEnrichButton leadId={lead.id} onDone={invalidateLead} />
                       </div>

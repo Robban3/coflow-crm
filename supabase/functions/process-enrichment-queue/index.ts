@@ -227,8 +227,11 @@ Deno.serve(async (req) => {
             // Step 2: Even fallback failed
             const fallbackErrMsg = fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr);
             console.error("[process-enrichment-queue] Fallback also failed for", lead.id, fallbackErrMsg);
+            // Not a hard failure for the seller: the lead still just needs the
+            // full on-demand analysis, so mark it "needs_enrichment" (neutral)
+            // rather than a red "failed".
             await supabase.from("leads").update({
-              enrichment_status: "failed",
+              enrichment_status: "needs_enrichment",
               enrichment_error: `Both primary and fallback enrichment failed: ${fallbackErrMsg}`.substring(0, 500),
             }).eq("id", lead.id);
             errors.push({ lead_id: lead.id, error: `Fallback failed: ${fallbackErrMsg}`.substring(0, 200) });
@@ -245,9 +248,11 @@ Deno.serve(async (req) => {
       } catch (e) {
         const errMsg = e instanceof Error ? e.message : String(e);
         console.error("[process-enrichment-queue] Exception for lead", lead.id, ":", errMsg);
+        // Neutral status (not red "failed"): the lead can still be enriched on
+        // demand from the lead view.
         await supabase
           .from("leads")
-          .update({ enrichment_status: "failed", enrichment_error: errMsg.substring(0, 500) })
+          .update({ enrichment_status: "needs_enrichment", enrichment_error: errMsg.substring(0, 500) })
           .eq("id", lead.id);
         errors.push({ lead_id: lead.id, error: errMsg.substring(0, 200) });
         failedCount++;
