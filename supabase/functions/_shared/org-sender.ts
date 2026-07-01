@@ -1,17 +1,23 @@
 // Shared sender resolution for internal/transactional emails.
 //
-// Internal notifications used to be hardcoded to "mail@coflow.se". If that
-// domain isn't verified on the Resend account — but the organisation's own
-// sender domain is (the one used for customer emails) — those internal mails
-// failed silently while customer mail went through. This resolves the org's
-// configured, verified sender (the exact same one customer emails use) and
-// sends with a fallback to mail@coflow.se, so whichever domain is verified
-// actually delivers.
+// The org has two Resend accounts: the platform key (RESEND_API_KEY_PLATFORM,
+// which DKIM-signs mail@coflow.se) and the org's own key (RESEND_API_KEY_KODCO,
+// which DKIM-signs the org's configured sender domain). To pass DKIM at Gmail,
+// the signing KEY must match the From domain — exactly like the customer-outreach
+// functions (send-sequence-email). So each From candidate carries its own key
+// env; we try the org's verified sender first, then fall back to coflow.se.
+
+import { Resend } from "npm:resend@2.0.0";
+
+interface FromCandidate {
+  addr: string;
+  keyEnv: string;
+}
 
 interface OrgSender {
   fromName: string;
-  /** Sender addresses to try in order (org's verified sender first). */
-  fromCandidates: string[];
+  /** From addresses to try in order, each paired with its Resend key env. */
+  fromCandidates: FromCandidate[];
 }
 
 // deno-lint-ignore no-explicit-any
@@ -22,7 +28,8 @@ export async function resolveOrgSender(
   fallbackName = "CoFlow",
 ): Promise<OrgSender> {
   let fromName = fallbackName;
-  let fromEmail = "mail@coflow.se";
+  const platform: FromCandidate = { addr: "mail@coflow.se", keyEnv: "RESEND_API_KEY_PLATFORM" };
+  const candidates: FromCandidate[] = [];
   if (organizationId) {
     const { data: org } = await supabase
       .from("organizations")
@@ -31,26 +38,35 @@ export async function resolveOrgSender(
       .single();
     fromName = org?.sender_name || org?.name || fallbackName;
     if (org?.resend_api_key_configured && org?.sender_email) {
-      fromEmail = org.sender_email;
+      // Org's own verified domain → sign with the org's Resend key.
+      candidates.push({ addr: org.sender_email, keyEnv: "RESEND_API_KEY_KODCO" });
     }
   }
-  return { fromName, fromCandidates: [...new Set([fromEmail, "mail@coflow.se"])] };
+  // Always keep coflow.se (platform key) as the last-resort candidate.
+  if (!candidates.some((c) => c.addr === platform.addr)) candidates.push(platform);
+  return { fromName, fromCandidates: candidates };
 }
 
-// Sends an email trying each candidate sender until one is accepted by Resend.
-// Resend resolves with { error } (it does not throw) on a rejected sender, so
-// we check that and fall through to the next candidate.
-// deno-lint-ignore no-explicit-any
+// Sends an email trying each candidate From address with the Resend key that
+// matches its domain (so DKIM signs with the right account). Resend resolves
+// with { error } (it does not throw) on a rejected sender, so we check that —
+// and skip candidates whose key env isn't configured — and fall through.
 export async function sendWithFallback(
-  // deno-lint-ignore no-explicit-any
-  resend: any,
   sender: OrgSender,
   payload: { to: string[]; subject: string; html: string; replyTo?: string },
 ): Promise<{ id: string | null; error: unknown }> {
   let lastError: unknown = null;
-  for (const addr of sender.fromCandidates) {
+  for (const cand of sender.fromCandidates) {
+    const key = Deno.env.get(cand.keyEnv)
+      || Deno.env.get("RESEND_API_KEY_PLATFORM")
+      || Deno.env.get("RESEND_API_KEY");
+    if (!key) {
+      console.warn(`[org-sender] No Resend key for ${cand.addr} (${cand.keyEnv}); skipping`);
+      continue;
+    }
+    const resend = new Resend(key);
     const { data, error } = await resend.emails.send({
-      from: `${sender.fromName} <${addr}>`,
+      from: `${sender.fromName} <${cand.addr}>`,
       to: payload.to,
       subject: payload.subject,
       html: payload.html,
@@ -58,10 +74,10 @@ export async function sendWithFallback(
     });
     if (error) {
       lastError = error;
-      console.error(`[org-sender] Resend error from ${addr}:`, JSON.stringify(error));
+      console.error(`[org-sender] Resend error from ${cand.addr}:`, JSON.stringify(error));
       continue;
     }
-    console.log(`[org-sender] Email sent from ${addr}:`, data?.id);
+    console.log(`[org-sender] Email sent from ${cand.addr} (${cand.keyEnv}):`, data?.id);
     return { id: data?.id ?? null, error: null };
   }
   return { id: null, error: lastError };

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { Resend } from "npm:resend@2.0.0";
+import { resolveOrgSender, sendWithFallback } from "../_shared/org-sender.ts";
 
 // Emails the organisation's admins when a seller marks a quote or lead as a
 // won deal. Invoked (with the seller's JWT) from the quote editor and the
@@ -88,27 +88,11 @@ serve(async (req) => {
     }
     const recipients = [...new Set([...GUARANTEED, ...adminEmails])];
 
-    // Send FROM the org's own verified sender when they have one configured —
-    // the exact same address the (working) customer emails use. Internal
-    // notifications were hardcoded to mail@coflow.se, which fails if that domain
-    // isn't verified on the Resend account even though the org's own domain is.
-    let orgName = "CoFlow";
-    let fromEmail = "mail@coflow.se";
-    if (organizationId) {
-      const { data: org } = await supabase
-        .from("organizations")
-        .select("name, sender_email, sender_name, resend_api_key_configured")
-        .eq("id", organizationId)
-        .single();
-      orgName = org?.sender_name || org?.name || "CoFlow";
-      if (org?.resend_api_key_configured && org?.sender_email) {
-        fromEmail = org.sender_email;
-      }
-    }
-
-    const resendApiKey = Deno.env.get("RESEND_API_KEY_PLATFORM") || Deno.env.get("RESEND_API_KEY");
-    if (!resendApiKey) throw new Error("RESEND_API_KEY not configured");
-    const resend = new Resend(resendApiKey);
+    // Send FROM the org's own verified sender when configured, signed with the
+    // matching Resend key (so DKIM passes at Gmail) — falling back to
+    // mail@coflow.se on the platform key. The shared helper handles both.
+    const sender = await resolveOrgSender(supabase, organizationId);
+    const orgName = sender.fromName;
 
     // ── Guaranteed in-app notifications for every admin ──────────────────
     // Email is best-effort (and silently fails if the Resend domain/key is
@@ -154,34 +138,17 @@ serve(async (req) => {
         <p style="margin:16px 0 0;color:#999;font-size:12px">Skickat automatiskt av ${orgName}</p>
       </div>`;
 
-    // Resend does NOT throw on API errors (e.g. unverified sender domain or a
-    // bad key) — it resolves with { error }. Try the org's verified sender
-    // first; if it's rejected, fall back to mail@coflow.se. Whichever domain is
-    // actually verified on the Resend account will deliver. Log every outcome.
-    const fromCandidates = [...new Set([fromEmail, "mail@coflow.se"])];
-    let sentId: string | null = null;
-    let lastError: unknown = null;
-
-    for (const addr of fromCandidates) {
-      const { data: sendData, error: sendError } = await resend.emails.send({
-        from: `${orgName} <${addr}>`,
-        to: recipients,
-        subject,
-        html,
-      });
-      if (sendError) {
-        lastError = sendError;
-        console.error(`[notify-deal-won] Resend error from ${addr}:`, JSON.stringify(sendError));
-        continue;
-      }
-      sentId = sendData?.id ?? null;
-      console.log(`[notify-deal-won] Email sent from ${addr}:`, sentId, "to", recipients.length, "recipient(s)");
-      break;
-    }
+    // Each From candidate is signed with the Resend key that matches its domain
+    // (KODCO for the org domain, PLATFORM for coflow.se) so DKIM passes at Gmail.
+    const { id: sentId, error: lastError } = await sendWithFallback(sender, {
+      to: recipients,
+      subject,
+      html,
+    });
 
     if (!sentId) {
       console.error("[notify-deal-won] All senders failed. recipients:", recipients);
-      return json({ sent: false, recipients: recipients.length, resendError: lastError, tried: fromCandidates }, 502);
+      return json({ sent: false, recipients: recipients.length, resendError: lastError }, 502);
     }
 
     return json({ sent: true, recipients: recipients.length, id: sentId });

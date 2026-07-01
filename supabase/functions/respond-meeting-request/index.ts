@@ -112,7 +112,7 @@ serve(async (req) => {
           ${note ? `<div style="padding:12px 16px;border:1px solid #eee;border-radius:10px;background:#fafafa">${String(note).replace(/\n/g, "<br/>")}</div>` : ""}
         </div>`;
       const sender = await resolveOrgSender(supabase, reqRow.organization_id);
-      await sendWithFallback(resend, sender, {
+      await sendWithFallback(sender, {
         to: [reqProfile.email],
         subject: title,
         html,

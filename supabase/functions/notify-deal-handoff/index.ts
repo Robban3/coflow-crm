@@ -65,7 +65,7 @@ serve(async (req) => {
         <p style="margin:18px 0 0;color:#999;font-size:12px">Skickat automatiskt av ${orgName}</p>
       </div>`;
 
-    const { id: sentId, error: sendError } = await sendWithFallback(resend, sender, {
+    const { id: sentId, error: sendError } = await sendWithFallback(sender, {
       to: RECIPIENTS,
       subject: `Vunnen affär: ${h.company_name} – av ${sellerName}`,
       html,

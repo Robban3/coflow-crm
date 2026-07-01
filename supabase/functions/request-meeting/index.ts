@@ -107,7 +107,7 @@ serve(async (req) => {
           <p style="margin:16px 0 0;color:#999;font-size:12px">Bekräfta i CRM:et under Möten.</p>
         </div>`;
       const sender = await resolveOrgSender(supabase, orgId);
-      await sendWithFallback(resend, sender, {
+      await sendWithFallback(sender, {
         to: recipientEmails,
         subject: `Möteförfrågan (${catLabel}) – från ${sellerName}`,
         html,

@@ -144,7 +144,7 @@ serve(async (req) => {
 
       try {
         const sender = await resolveOrgSender(supabase, hostProfile?.organization_id ?? null);
-        await sendWithFallback(resend, sender, {
+        await sendWithFallback(sender, {
           to: [hostProfile?.email || "robert@applabbet.com"],
           subject: `Ny genomgång: ${companyName || guestName}${domain ? ` (${domain})` : ""}`,
           html: htmlBody,

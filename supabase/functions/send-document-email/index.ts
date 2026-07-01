@@ -63,12 +63,14 @@ serve(async (req) => {
 
     const senderDisplayName = profile?.sender_display_name || profile?.full_name || org?.sender_name || org?.name || "CoFlow";
 
-    // Determine Resend key and from-address
-    const resendApiKey = Deno.env.get("RESEND_API_KEY_PLATFORM") || Deno.env.get("RESEND_API_KEY");
-    let fromEmail = "mail@coflow.se";
-    if (org?.resend_api_key_configured && org?.sender_email) {
-      fromEmail = org.sender_email;
-    }
+    // Determine from-address and the Resend key that DKIM-signs its domain:
+    // the org's own domain → RESEND_API_KEY_KODCO, else coflow.se → PLATFORM.
+    // The signing key MUST match the From domain or Gmail fails DKIM.
+    const useCustomDomain = !!(org?.resend_api_key_configured && org?.sender_email);
+    const fromEmail = useCustomDomain ? org!.sender_email : "mail@coflow.se";
+    const resendApiKey = useCustomDomain
+      ? Deno.env.get("RESEND_API_KEY_KODCO")
+      : (Deno.env.get("RESEND_API_KEY_PLATFORM") || Deno.env.get("RESEND_API_KEY"));
 
     if (!resendApiKey) throw new Error("RESEND_API_KEY not configured");
 
