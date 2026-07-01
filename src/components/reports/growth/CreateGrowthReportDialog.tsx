@@ -29,7 +29,7 @@ interface Props {
 }
 
 export function CreateGrowthReportDialog({ open, onOpenChange, lead }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [isGenerating, setIsGenerating] = useState(false);
   const [modules, setModules] = useState<ModuleSelection>({ web: true, geo: true, seo: true });
   const [available, setAvailable] = useState<ModuleSelection>({ web: false, geo: false, seo: false });
@@ -71,7 +71,8 @@ export function CreateGrowthReportDialog({ open, onOpenChange, lead }: Props) {
 
       const snapshot = await buildGrowthReportSnapshot(
         { ...lead, organization_id: orgId },
-        modules
+        modules,
+        language
       );
 
       const { data: report, error } = await supabase

@@ -43,7 +43,7 @@ import {
 import type { GrowthReportData, GeoFinding, GeoAction } from "./types";
 import { DEFAULT_PACKAGE_BULLETS, TIER_FIT_LABELS } from "./types";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { ReportBookingDialog } from "../ReportBookingDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -96,7 +96,7 @@ const buildSeverityConfig = (t: TranslateFn): Record<string, { label: string; co
 });
 
 const buildPriorityConfig = (t: TranslateFn): Record<string, { label: string; timeline: string; icon: typeof Zap }> => ({
-  quick_win: { label: t("reports.renderer.priorityQuickWin"), timeline: "0–30 dagar", icon: Zap },
+  quick_win: { label: t("reports.renderer.priorityQuickWin"), timeline: t("reports.renderer.timelineQuickWin"), icon: Zap },
   medium: { label: t("reports.renderer.priorityMedium"), timeline: t("reports.renderer.timelineMedium"), icon: Target },
   long_term: { label: t("reports.renderer.priorityLongTerm"), timeline: t("reports.renderer.timelineLongTerm"), icon: Clock },
 });
@@ -142,7 +142,9 @@ function SectionDivider() {
 /* ─── Main Renderer ─── */
 
 export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCtaClick, onPdfClick, onShareClick }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
+  const numberLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
   const severityConfig = buildSeverityConfig(t);
   const priorityConfig = buildPriorityConfig(t);
   const tierLabels = buildTierLabels(t);
@@ -156,7 +158,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
   }>({ open: false });
 
   const createdDate = data.created_at
-    ? format(new Date(data.created_at), "d MMMM yyyy", { locale: sv })
+    ? format(new Date(data.created_at), "d MMMM yyyy", { locale: dateLocale })
     : null;
 
   const webScore = data.web?.performance_score ?? null;
@@ -429,7 +431,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                   <Badge className="text-[9px] bg-primary/10 text-primary border-primary/20 px-2 py-0.5">{t("reports.growth.recommended")}</Badge>
                 </div>
                 <h3 className="text-base font-semibold text-foreground mt-2">
-                  AI-synlighet – {tierLabels[recTier]}
+                  {t("reports.growth.aiVisibilityTier", { tier: tierLabels[recTier] })}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed max-w-[540px]">
                   {whyLines[0]}
@@ -646,7 +648,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
               {data.included_modules.web && <p>{t("reports.growth.techWeb")}</p>}
               {data.included_modules.geo && <p>{t("reports.growth.techGeo")}</p>}
               {data.included_modules.seo && <p>{t("reports.growth.techSeo")}</p>}
-              <p>Genererad: {new Date(data.created_at).toLocaleString("sv-SE")}</p>
+              <p>{t("reports.growth.techGenerated", { date: new Date(data.created_at).toLocaleString(numberLocale) })}</p>
             </div>
 
             {data.geo && data.geo.findings.length > 0 && (
@@ -864,7 +866,7 @@ function OrderModal({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-foreground">
-                AI-synlighet – {tierLabels[tier]}
+                {t("reports.growth.aiVisibilityTier", { tier: tierLabels[tier] })}
               </p>
               <p className="text-xs text-muted-foreground">{t("reports.order.monthlyService")}</p>
             </div>

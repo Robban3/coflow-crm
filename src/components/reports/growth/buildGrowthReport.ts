@@ -18,10 +18,56 @@ export interface ModuleSelection {
   seo: boolean;
 }
 
+type GLang = "sv" | "en" | "es";
+const gPick = (l?: string): GLang => (l === "en" ? "en" : l === "es" ? "es" : "sv");
+const GROWTH_L: Record<GLang, {
+  unknownCompany: string; perMonth: string;
+  webTitle: string; webDesc: (s: number) => string;
+  geoTitle: string; geoDesc: (s: number) => string;
+  seoTitle: string; seoDesc: (s: number) => string;
+  genTitle: string; genDesc: string;
+}> = {
+  sv: {
+    unknownCompany: "Okänt företag", perMonth: "/ mån",
+    webTitle: "Webbprestanda",
+    webDesc: (s) => `Er webbplats presterar på ${s}/100 vilket påverkar användarupplevelsen och er synlighet i sökmotorer.`,
+    geoTitle: "AI-synlighet (GEO)",
+    geoDesc: (s) => `Er GEO-poäng är ${s}/100. Det innebär att AI-drivna sökmotorer har svårt att rekommendera er.`,
+    seoTitle: "Sökmotoroptimering",
+    seoDesc: (s) => `Er SEO-poäng är ${s}/100 vilket begränsar er organiska synlighet.`,
+    genTitle: "Digital närvaro",
+    genDesc: "Vi saknar tillräckligt med analysdata för att identifiera huvudhindret. Vi rekommenderar en fullständig genomgång.",
+  },
+  en: {
+    unknownCompany: "Unknown company", perMonth: "/ mo",
+    webTitle: "Web performance",
+    webDesc: (s) => `Your website scores ${s}/100, which affects the user experience and your visibility in search engines.`,
+    geoTitle: "AI visibility (GEO)",
+    geoDesc: (s) => `Your GEO score is ${s}/100. That means AI-driven search engines struggle to recommend you.`,
+    seoTitle: "Search engine optimisation",
+    seoDesc: (s) => `Your SEO score is ${s}/100, which limits your organic visibility.`,
+    genTitle: "Digital presence",
+    genDesc: "We lack enough analysis data to identify the main barrier. We recommend a full review.",
+  },
+  es: {
+    unknownCompany: "Empresa desconocida", perMonth: "/ mes",
+    webTitle: "Rendimiento web",
+    webDesc: (s) => `Vuestro sitio web obtiene ${s}/100, lo que afecta a la experiencia de usuario y a vuestra visibilidad en los buscadores.`,
+    geoTitle: "Visibilidad IA (GEO)",
+    geoDesc: (s) => `Vuestra puntuación GEO es ${s}/100. Eso significa que a los buscadores con IA les cuesta recomendaros.`,
+    seoTitle: "Optimización para buscadores",
+    seoDesc: (s) => `Vuestra puntuación SEO es ${s}/100, lo que limita vuestra visibilidad orgánica.`,
+    genTitle: "Presencia digital",
+    genDesc: "Nos faltan datos de análisis suficientes para identificar la barrera principal. Recomendamos una revisión completa.",
+  },
+};
+
 export async function buildGrowthReportSnapshot(
   lead: LeadRow,
-  selectedModules?: ModuleSelection
+  selectedModules?: ModuleSelection,
+  language: string = "sv"
 ): Promise<GrowthReportData> {
+  const gtr = GROWTH_L[gPick(language)];
   const [webRes, geoRes, seoRes] = await Promise.all([
     supabase
       .from("web_analyses")
@@ -95,24 +141,24 @@ export async function buildGrowthReportSnapshot(
   if (scores.web !== null) {
     barrierCandidates.push({
       area: "web",
-      title: "Webbprestanda",
-      description: `Er webbplats presterar på ${scores.web}/100 vilket påverkar användarupplevelsen och er synlighet i sökmotorer.`,
+      title: gtr.webTitle,
+      description: gtr.webDesc(scores.web),
       score: scores.web,
     });
   }
   if (scores.geo !== null) {
     barrierCandidates.push({
       area: "geo",
-      title: "AI-synlighet (GEO)",
-      description: `Er GEO-poäng är ${scores.geo}/100. Det innebär att AI-drivna sökmotorer har svårt att rekommendera er.`,
+      title: gtr.geoTitle,
+      description: gtr.geoDesc(scores.geo),
       score: scores.geo,
     });
   }
   if (scores.webSeo !== null) {
     barrierCandidates.push({
       area: "seo",
-      title: "Sökmotoroptimering",
-      description: `Er SEO-poäng är ${scores.webSeo}/100 vilket begränsar er organiska synlighet.`,
+      title: gtr.seoTitle,
+      description: gtr.seoDesc(scores.webSeo),
       score: scores.webSeo,
     });
   }
@@ -120,8 +166,8 @@ export async function buildGrowthReportSnapshot(
   barrierCandidates.sort((a, b) => a.score - b.score);
   const biggest_barrier = barrierCandidates[0] || {
     area: "general",
-    title: "Digital närvaro",
-    description: "Vi saknar tillräckligt med analysdata för att identifiera huvudhindret. Vi rekommenderar en fullständig genomgång.",
+    title: gtr.genTitle,
+    description: gtr.genDesc,
   };
 
   // Fetch pricing (new unified model)
@@ -145,7 +191,7 @@ export async function buildGrowthReportSnapshot(
         website_rebuild_from: Number((pricingData as any).website_rebuild_from_price) || 18000,
         show_website_upsell: (pricingData as any).show_website_upsell !== false,
         currency: (pricingData as any).currency || "SEK",
-        billing_period_label: (pricingData as any).billing_period_label || "/ mån",
+        billing_period_label: (pricingData as any).billing_period_label || gtr.perMonth,
       };
 
       // Legacy pricing for backward compat
@@ -182,7 +228,7 @@ export async function buildGrowthReportSnapshot(
       seo: !!seoData,
     },
     company: {
-      name: lead.company_name || "Okänt företag",
+      name: lead.company_name || gtr.unknownCompany,
       domain: lead.website || null,
     },
     created_at: new Date().toISOString(),

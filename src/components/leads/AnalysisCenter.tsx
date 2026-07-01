@@ -303,7 +303,8 @@ export function AnalysisCenter({ leadId, website, analyses, seoData, onNavigateA
         leadInfo,
         latestGeo,
         geoDetails.findings,
-        geoDetails.actions
+        geoDetails.actions,
+        language
       );
 
       if (!validateReportSchema(payload)) {

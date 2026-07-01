@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import type { ReportSchema, ReportSection } from "./reportSchema";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 import { ReportBookingDialog } from "./ReportBookingDialog";
 
 interface Props {
@@ -315,12 +315,14 @@ function renderSection(section: ReportSection, t: TranslateFn, onBook?: () => vo
 /* ─── Main Renderer ──────────────────────────────────────────────────── */
 
 export function ReportRenderer({ data, publicMode, reportId, leadId }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
+  const numberLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : "sv-SE";
   const [techOpen, setTechOpen] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const geoScore = data.meta.scores?.geo ?? null;
   const createdDate = data.meta.createdAt
-    ? format(new Date(data.meta.createdAt), "d MMMM yyyy", { locale: sv })
+    ? format(new Date(data.meta.createdAt), "d MMMM yyyy", { locale: dateLocale })
     : null;
 
   // Split sections
@@ -405,7 +407,7 @@ export function ReportRenderer({ data, publicMode, reportId, leadId }: Props) {
             <div className="rounded-xl border bg-muted/20 p-5 text-xs text-muted-foreground leading-relaxed space-y-2">
               <p>{t("reports.renderer.techCrawlNote", { domain: data.meta.domain || t("reports.renderer.theWebsite") })}</p>
               <p>{t("reports.renderer.techMethod")}</p>
-              <p>{t("reports.renderer.techGenerated", { date: data.meta.createdAt ? new Date(data.meta.createdAt).toLocaleString("sv-SE") : t("reports.renderer.unknownDate") })}</p>
+              <p>{t("reports.renderer.techGenerated", { date: data.meta.createdAt ? new Date(data.meta.createdAt).toLocaleString(numberLocale) : t("reports.renderer.unknownDate") })}</p>
             </div>
           </CollapsibleContent>
         </Collapsible>

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv, enUS, es } from "date-fns/locale";
 
 interface Props {
   reportId: string;
@@ -148,7 +148,8 @@ function formatDuration(ms: number): string {
 }
 
 export function ReportInsightsPanel({ reportId, shareToken }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const dateLocale = language === "en" ? enUS : language === "es" ? es : sv;
   const SECTION_LABELS = sectionLabels(t);
   const EVENT_LABELS = eventLabels(t);
   const { data: insights, isLoading } = useQuery({
@@ -228,7 +229,7 @@ export function ReportInsightsPanel({ reportId, shareToken }: Props) {
           icon={<Eye className="h-3.5 w-3.5" />}
           label={t("reports.insights.opened")}
           value={t("reports.insights.yes")}
-          sub={d.first_opened ? format(new Date(d.first_opened), "d MMM HH:mm", { locale: sv }) : undefined}
+          sub={d.first_opened ? format(new Date(d.first_opened), "d MMM HH:mm", { locale: dateLocale }) : undefined}
         />
         <MetricCard
           icon={<Activity className="h-3.5 w-3.5" />}
@@ -288,7 +289,7 @@ export function ReportInsightsPanel({ reportId, shareToken }: Props) {
       {/* Last seen */}
       {d.last_opened && (
         <p className="text-[10px] text-muted-foreground">
-          {t("reports.insights.lastActive")}: {format(new Date(d.last_opened), "d MMM yyyy HH:mm", { locale: sv })}
+          {t("reports.insights.lastActive")}: {format(new Date(d.last_opened), "d MMM yyyy HH:mm", { locale: dateLocale })}
         </p>
       )}
 
