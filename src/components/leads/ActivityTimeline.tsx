@@ -19,6 +19,7 @@ import {
   Globe,
   Search,
   Inbox,
+  Trophy,
   Loader2
 } from "lucide-react";
 import { UserAvatar, usePrefetchProfiles } from "@/components/ui/user-avatar";
@@ -27,7 +28,7 @@ import { cn } from "@/lib/utils";
 
 interface TimelineEvent {
   id: string;
-  type: 'email_sent' | 'email_opened' | 'email_reply' | 'call' | 'meeting' | 'note' | 'task_completed' | 'task_created' | 'web_analysis' | 'seo_analysis' | 'report_opened' | 'lead_created';
+  type: 'email_sent' | 'email_opened' | 'email_reply' | 'call' | 'meeting' | 'note' | 'task_completed' | 'task_created' | 'offer_sent' | 'deal_won' | 'web_analysis' | 'seo_analysis' | 'report_opened' | 'lead_created';
   title: string;
   description?: string;
   timestamp: string;
@@ -64,6 +65,10 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
         webAnalysesRes,
         seoAnalysesRes,
         tasksRes,
+        meetingsRes,
+        documentsRes,
+        quotesRes,
+        dealHandoffsRes,
       ] = await Promise.all([
         supabase.from('activities').select('id, type, title, description, scheduled_at, completed_at, created_at, user_id').eq('lead_id', leadId).limit(200),
         supabase.from('call_logs').select('id, outcome_label, note, created_at, created_by').eq('lead_id', leadId).limit(200),
@@ -71,7 +76,11 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
         supabase.from('email_replies').select('id, subject, from_email, from_name, received_at').eq('lead_id', leadId).limit(100),
         supabase.from('web_analyses').select('id, url, performance_score, seo_score, accessibility_score, best_practices_score, created_at, analyzed_by').eq('lead_id', leadId).limit(50),
         supabase.from('seo_analyses').select('id, visibility_score, created_at, analyzed_by').eq('lead_id', leadId).limit(50),
-        supabase.from('tasks').select('id, title, description, completed_at, assigned_to').eq('lead_id', leadId).eq('status', 'completed').limit(100),
+        supabase.from('tasks').select('id, title, description, created_at, created_by, completed_at, assigned_to, status').eq('lead_id', leadId).limit(200),
+        supabase.from('meetings').select('id, title, start_time, created_at, host_user_id').eq('lead_id', leadId).limit(100),
+        supabase.from('documents').select('id, title, document_number, sent_at, created_by').eq('lead_id', leadId).not('sent_at', 'is', null).limit(100),
+        supabase.from('quotes').select('id, title, quote_number, sent_at, created_by').eq('lead_id', leadId).not('sent_at', 'is', null).limit(100),
+        (supabase.from('deal_handoffs' as any).select('id, company_name, created_at, created_by').eq('lead_id', leadId).limit(50) as any),
       ]);
 
       const allEvents: TimelineEvent[] = [];
@@ -214,9 +223,17 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
         }
       }
 
-      // Completed tasks
+      // Tasks — created (by whoever created it) and, if done, completed
       if (tasksRes.data) {
         for (const task of tasksRes.data) {
+          allEvents.push({
+            id: `task-created-${task.id}`,
+            type: 'task_created',
+            title: task.title,
+            description: task.description,
+            timestamp: task.created_at,
+            userId: task.created_by,
+          });
           if (task.completed_at) {
             allEvents.push({
               id: `task-completed-${task.id}`,
@@ -227,6 +244,49 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
               userId: task.assigned_to,
             });
           }
+        }
+      }
+
+      // Meetings booked
+      if (meetingsRes.data) {
+        for (const meeting of meetingsRes.data as any[]) {
+          allEvents.push({
+            id: `meeting-${meeting.id}`,
+            type: 'meeting',
+            title: meeting.title || t("leadDetail.at_labelMeeting"),
+            description: meeting.start_time
+              ? format(new Date(meeting.start_time), "d MMM yyyy HH:mm", { locale: dateLocale })
+              : undefined,
+            timestamp: meeting.created_at,
+            userId: meeting.host_user_id,
+          });
+        }
+      }
+
+      // Offers / quotes sent
+      for (const doc of [...((documentsRes.data as any[]) || []), ...((quotesRes.data as any[]) || [])]) {
+        const number = doc.document_number || doc.quote_number;
+        allEvents.push({
+          id: `offer-sent-${doc.id}`,
+          type: 'offer_sent',
+          title: [number ? `#${number}` : null, doc.title].filter(Boolean).join(" "),
+          description: undefined,
+          timestamp: doc.sent_at,
+          userId: doc.created_by,
+        });
+      }
+
+      // Deal won (handoff)
+      if (dealHandoffsRes.data) {
+        for (const handoff of dealHandoffsRes.data as any[]) {
+          allEvents.push({
+            id: `deal-won-${handoff.id}`,
+            type: 'deal_won',
+            title: handoff.company_name || t("leadDetail.at_labelDealWon"),
+            description: undefined,
+            timestamp: handoff.created_at,
+            userId: handoff.created_by,
+          });
         }
       }
 
@@ -293,6 +353,8 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
       case 'note': return FileText;
       case 'task_completed': return CheckCircle;
       case 'task_created': return ListTodo;
+      case 'offer_sent': return FileText;
+      case 'deal_won': return Trophy;
       case 'web_analysis': return BarChart3;
       case 'seo_analysis': return Search;
       case 'report_opened': return Globe;
@@ -311,6 +373,8 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
       case 'note': return 'bg-gray-500';
       case 'task_completed': return 'bg-green-600';
       case 'task_created': return 'bg-yellow-500';
+      case 'offer_sent': return 'bg-amber-500';
+      case 'deal_won': return 'bg-emerald-600';
       case 'web_analysis': return 'bg-indigo-500';
       case 'seo_analysis': return 'bg-pink-500';
       case 'report_opened': return 'bg-teal-500';
@@ -329,6 +393,8 @@ export function ActivityTimeline({ leadId, leadCreatedAt, leadSource }: Activity
       case 'note': return t("leadDetail.at_labelNote");
       case 'task_completed': return t("leadDetail.at_labelTaskCompleted");
       case 'task_created': return t("leadDetail.at_labelTaskCreated");
+      case 'offer_sent': return t("leadDetail.at_labelOfferSent");
+      case 'deal_won': return t("leadDetail.at_labelDealWon");
       case 'web_analysis': return t("leadDetail.at_labelWebAnalysis");
       case 'seo_analysis': return t("leadDetail.at_labelSeoAnalysis");
       case 'report_opened': return t("leadDetail.at_labelReportOpened");
