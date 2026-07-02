@@ -22,6 +22,38 @@ interface PlaceResult {
   lng?: number;
 }
 
+// Geocode a city/locality to its viewport rectangle so we can HARD-restrict the
+// text search to that area. Places searchText's text locality ("in Göteborg")
+// alone is only a weak bias — prominent chains (e.g. BASTA) leak in from other
+// cities — so we geocode and pass a locationRestriction rectangle. Returns null
+// on failure (e.g. Geocoding API not enabled) → caller falls back to text scoping.
+async function geocodeViewport(
+  location: string,
+  countryName: string,
+  regionCode: string,
+  apiKey: string,
+): Promise<{ low: { lat: number; lng: number }; high: { lat: number; lng: number } } | null> {
+  try {
+    const addr = encodeURIComponent(`${location}, ${countryName}`);
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${addr}&region=${regionCode.toLowerCase()}&key=${apiKey}`;
+    const res = await fetchWithRetry(url, {}, { timeoutMs: 10_000, label: "Geocode" });
+    const data = await res.json();
+    if (data.status !== "OK" || !data.results?.length) {
+      console.warn(`[geocode] status=${data.status} for "${location}"`);
+      return null;
+    }
+    const vp = data.results[0].geometry?.viewport;
+    if (!vp?.northeast || !vp?.southwest) return null;
+    return {
+      low: { lat: vp.southwest.lat, lng: vp.southwest.lng },
+      high: { lat: vp.northeast.lat, lng: vp.northeast.lng },
+    };
+  } catch (e) {
+    console.warn("[geocode] failed:", e instanceof Error ? e.message : String(e));
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -120,6 +152,7 @@ serve(async (req) => {
     //  - No city → hard-restrict to the country's bounding box so a broad search
     //    (e.g. "restaurang") can't return foreign (e.g. German) places, since
     //    regionCode alone is only a bias in Places API v1, not a filter.
+    let cityBox: { low: { lat: number; lng: number }; high: { lat: number; lng: number } } | null = null;
     if (locationBias) {
       requestBody.locationBias = {
         circle: {
@@ -130,7 +163,24 @@ serve(async (req) => {
           radius: locationBias.radius,
         },
       };
-    } else if (!location && cfg.bbox) {
+    } else if (location) {
+      // Hard-restrict to the city's geographic box when we can geocode it, so a
+      // city search stays in that city. If geocoding is unavailable, fall back to
+      // text scoping (the query already contains "in {city}, {country}") + the
+      // country post-filter below.
+      cityBox = await geocodeViewport(location, cfg.countryName, cfg.regionCode, apiKey);
+      if (cityBox) {
+        requestBody.locationRestriction = {
+          rectangle: {
+            low: { latitude: cityBox.low.lat, longitude: cityBox.low.lng },
+            high: { latitude: cityBox.high.lat, longitude: cityBox.high.lng },
+          },
+        };
+        console.log(`[places] city viewport restriction for "${location}"`);
+      } else {
+        console.log(`[places] no geocode for "${location}" — text scoping only`);
+      }
+    } else if (cfg.bbox) {
       requestBody.locationRestriction = {
         rectangle: {
           low: { latitude: cfg.bbox.low.lat, longitude: cfg.bbox.low.lng },
@@ -174,6 +224,21 @@ serve(async (req) => {
       if (countryCode && countryCode !== cfg.regionCode) {
         droppedForeign++;
         continue;
+      }
+
+      // City guard: when we geocoded the city, drop anything whose coordinates
+      // fall outside its viewport (belt-and-suspenders on the rectangle).
+      if (cityBox) {
+        const lat = place.location?.latitude;
+        const lng = place.location?.longitude;
+        if (
+          typeof lat === "number" && typeof lng === "number" &&
+          (lat < cityBox.low.lat || lat > cityBox.high.lat ||
+           lng < cityBox.low.lng || lng > cityBox.high.lng)
+        ) {
+          droppedForeign++;
+          continue;
+        }
       }
 
       results.push({
