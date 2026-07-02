@@ -236,14 +236,23 @@ export default function ProspectingSearchTab() {
       const sLocation = submitted!.location;
 
       // Återanvänd cachat resultat (24h) för att slippa onödiga betal-API-anrop
-      const cached = getCachedResults(sIndustry, sLocation);
+      const cached = getCachedResults(sIndustry, sLocation, market);
       if (cached && cached.length > 0) {
         const cachedResults = cached as PlaceResult[];
         seenPlaceIdsRef.current = new Set(cachedResults.map(r => r.placeId));
         setAccumulatedResults(cachedResults);
-        setSearchCenter(null);
+        // Recompute the centroid from cached coords so "Load more" still works on
+        // a cache hit (previously it was disabled, leaving users stuck at N).
+        const withCoords = cachedResults.filter(r => r.lat && r.lng);
+        const cachedCenter = withCoords.length > 0
+          ? {
+              lat: withCoords.reduce((s, r) => s + (r.lat as number), 0) / withCoords.length,
+              lng: withCoords.reduce((s, r) => s + (r.lng as number), 0) / withCoords.length,
+            }
+          : null;
+        setSearchCenter(cachedCenter);
         setLoadMoreIteration(0);
-        setCanLoadMore(false);
+        setCanLoadMore(!!cachedCenter && cachedResults.length >= 15);
         return cachedResults;
       }
 
@@ -263,7 +272,7 @@ export default function ProspectingSearchTab() {
       setCanLoadMore(data.hasMore ?? false);
 
       // Spara i cache för återanvändning vid identisk sökning inom 24h
-      cacheResults(sIndustry, sLocation, results as any);
+      cacheResults(sIndustry, sLocation, results as any, market);
 
       return results;
     },

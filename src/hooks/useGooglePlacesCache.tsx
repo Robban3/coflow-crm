@@ -15,11 +15,14 @@ interface PlaceResult {
 interface CachedSearch {
   query: string;
   location: string;
+  market: string;
   results: PlaceResult[];
   timestamp: number;
 }
 
-const CACHE_KEY = "google_places_searches";
+// Bumped to v2: the previous cache could hold pre-fix results (e.g. nationwide
+// results for a city search) and wasn't market-aware; v2 drops all old entries.
+const CACHE_KEY = "google_places_searches_v2";
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 const MAX_CACHED_SEARCHES = 10;
 
@@ -47,9 +50,9 @@ export function useGooglePlacesCache() {
     }
   }, []);
 
-  // Get cached results for a query
+  // Get cached results for a query (market-aware)
   const getCachedResults = useCallback(
-    (query: string, location: string): PlaceResult[] | null => {
+    (query: string, location: string, market = "SE"): PlaceResult[] | null => {
       const normalizedQuery = query.toLowerCase().trim();
       const normalizedLocation = location.toLowerCase().trim();
 
@@ -57,6 +60,7 @@ export function useGooglePlacesCache() {
         (s) =>
           s.query.toLowerCase().trim() === normalizedQuery &&
           s.location.toLowerCase().trim() === normalizedLocation &&
+          (s.market || "SE") === market &&
           Date.now() - s.timestamp < CACHE_DURATION_MS
       );
 
@@ -65,19 +69,20 @@ export function useGooglePlacesCache() {
     [cachedSearches]
   );
 
-  // Save results to cache
+  // Save results to cache (market-aware)
   const cacheResults = useCallback(
-    (query: string, location: string, results: PlaceResult[]) => {
+    (query: string, location: string, results: PlaceResult[], market = "SE") => {
       const normalizedQuery = query.toLowerCase().trim();
       const normalizedLocation = location.toLowerCase().trim();
 
       setCachedSearches((prev) => {
-        // Remove existing entry for same query
+        // Remove existing entry for same query + market
         const filtered = prev.filter(
           (s) =>
             !(
               s.query.toLowerCase().trim() === normalizedQuery &&
-              s.location.toLowerCase().trim() === normalizedLocation
+              s.location.toLowerCase().trim() === normalizedLocation &&
+              (s.market || "SE") === market
             )
         );
 
@@ -85,6 +90,7 @@ export function useGooglePlacesCache() {
         const newEntry: CachedSearch = {
           query,
           location,
+          market,
           results,
           timestamp: Date.now(),
         };
