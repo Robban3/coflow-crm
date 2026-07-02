@@ -194,7 +194,7 @@ export function PlaceWorkflowDialog({
       const language =
         (typeof localStorage !== "undefined" && localStorage.getItem("app-language")) || "sv";
       const { data, error } = await supabase.functions.invoke("pagespeed-analyze", {
-        body: { url: place.website, strategy: "mobile", language },
+        body: { url: place.website, strategy: "desktop", language },
       });
 
       if (error) throw error;

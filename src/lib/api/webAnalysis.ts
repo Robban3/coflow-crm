@@ -217,13 +217,13 @@ export const webAnalysisApi = {
     })) as Analysis[];
   },
 
-  async analyzeUrl(url: string, strategy: 'mobile' | 'desktop' = 'desktop'): Promise<AnalysisResponse> {
+  async analyzeUrl(url: string, strategy: 'mobile' | 'desktop' = 'desktop', forceRefresh = false): Promise<AnalysisResponse> {
     // Lighthouse audit titles/descriptions are localised server-side; pass the
     // user's current app language (persisted by the LanguageProvider).
     const language =
       (typeof localStorage !== 'undefined' && localStorage.getItem('app-language')) || 'sv';
     const { data, error } = await supabase.functions.invoke('pagespeed-analyze', {
-      body: { url, strategy, language },
+      body: { url, strategy, language, forceRefresh },
     });
 
     if (error) {

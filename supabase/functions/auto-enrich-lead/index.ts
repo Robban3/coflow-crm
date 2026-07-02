@@ -380,7 +380,7 @@ async function stepPageSpeed(website: string, leadId: string, orgId: string | nu
   }
 
   const apiKey = Deno.env.get("GOOGLE_PAGESPEED_API_KEY");
-  let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance&category=seo&category=accessibility&category=best-practices`;
+  let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=desktop&category=performance&category=seo&category=accessibility&category=best-practices`;
   if (apiKey) apiUrl += `&key=${apiKey}`;
 
   // Google PSI is flaky and frequently returns a transient 5xx/429 that succeeds

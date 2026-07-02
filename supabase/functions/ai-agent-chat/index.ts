@@ -878,7 +878,7 @@ async function executeToolCall(
       let rawData: any = null;
       
       try {
-        const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=SEO&category=ACCESSIBILITY&category=BEST_PRACTICES&strategy=mobile`;
+        const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=SEO&category=ACCESSIBILITY&category=BEST_PRACTICES&strategy=desktop`;
         const psRes = await fetch(psUrl);
         const psData = await psRes.json();
         
@@ -1039,7 +1039,7 @@ async function executeToolCall(
         let rawData: any = null;
         
         try {
-          const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=SEO&category=ACCESSIBILITY&category=BEST_PRACTICES&strategy=mobile`;
+          const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=SEO&category=ACCESSIBILITY&category=BEST_PRACTICES&strategy=desktop`;
           const psRes = await fetch(psUrl);
           const psData = await psRes.json();
           
@@ -1344,7 +1344,7 @@ async function executeToolCall(
           let rawData: any = null;
           
           try {
-            const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=SEO&category=ACCESSIBILITY&category=BEST_PRACTICES&strategy=mobile`;
+            const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=SEO&category=ACCESSIBILITY&category=BEST_PRACTICES&strategy=desktop`;
             const psRes = await fetch(psUrl);
             const psData = await psRes.json();
             
@@ -1711,7 +1711,7 @@ async function executeToolCall(
 
       // Also try PageSpeed for performance data
       try {
-        const pageSpeedUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=SEO&strategy=mobile`;
+        const pageSpeedUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=SEO&strategy=desktop`;
         const psRes = await fetch(pageSpeedUrl);
         const psData = await psRes.json();
 
@@ -1795,7 +1795,7 @@ async function executeToolCall(
         
         // Get PageSpeed scores
         try {
-          const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=SEO&strategy=mobile`;
+          const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=SEO&strategy=desktop`;
           const psRes = await fetch(psUrl);
           const psData = await psRes.json();
           

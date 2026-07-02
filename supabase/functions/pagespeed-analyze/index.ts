@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { url, strategy = 'desktop', language } = await req.json();
+    const { url, strategy = 'desktop', language, forceRefresh } = await req.json();
     reqLang = language;
     // Lighthouse localises audit titles/descriptions server-side via `locale`.
     // sv/en/es are valid PSI locales; default to Swedish (the app default).
@@ -200,15 +200,20 @@ Deno.serve(async (req) => {
 
     console.log('Analyzing URL:', asciiUrl, 'Strategy:', strategy);
 
-    // Serve a recent cached result for this exact URL + strategy + locale.
+    // Serve a recent cached result for this exact URL + strategy + locale —
+    // unless the caller forces a fresh run ("Kör om (färsk)").
     const cacheKey = `psi:${strategy}:${locale}:${asciiUrl}`;
-    const cached = await getCached<PageSpeedResult>(cacheKey);
-    if (cached) {
-      console.log('PSI cache hit for', cacheKey);
-      return new Response(
-        JSON.stringify({ success: true, data: cached, cached: true }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!forceRefresh) {
+      const cached = await getCached<PageSpeedResult>(cacheKey);
+      if (cached) {
+        console.log('PSI cache hit for', cacheKey);
+        return new Response(
+          JSON.stringify({ success: true, data: cached, cached: true }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      console.log('PSI forceRefresh — bypassing cache for', cacheKey);
     }
 
     // Get API key from environment

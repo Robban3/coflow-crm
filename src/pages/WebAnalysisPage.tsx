@@ -273,11 +273,13 @@ export default function WebAnalysisPage() {
     setLinkedLead(null);
 
     try {
-      const response = await webAnalysisApi.analyzeUrl(currentUrl, strategy);
+      // Force a truly fresh run: bypass the frontend dedup (we're already here)
+      // AND the server-side 24h PSI cache, so "Kör om" always re-measures.
+      const response = await webAnalysisApi.analyzeUrl(currentUrl, strategy, true);
 
       if (response.success && response.data) {
         setCurrentResult(response.data);
-        
+
         // Auto-save the new analysis (tagged with strategy)
         const saveResponse = await webAnalysisApi.saveAnalysis(currentUrl, { ...response.data, strategy });
         if (saveResponse.success && saveResponse.id) {
@@ -440,6 +442,12 @@ export default function WebAnalysisPage() {
                   {strategy === 'mobile' ? <Smartphone className="h-3 w-3 mr-1" /> : <Monitor className="h-3 w-3 mr-1" />}
                   {strategy === 'mobile' ? t("webAnalysis.mobile") : t("webAnalysis.desktop")}
                 </Badge>
+                {selectedAnalysis && (
+                  <Badge variant="outline" className="text-xs sm:text-sm">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {t("webAnalysis.savedOn", { date: new Date(selectedAnalysis.created_at).toLocaleDateString(dateStringLocale) })}
+                  </Badge>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button onClick={() => setShowOutreachDialog(true)} variant="outline" size="sm" className="text-xs sm:text-sm">
