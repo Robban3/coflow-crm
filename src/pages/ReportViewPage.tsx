@@ -20,8 +20,10 @@ import {
   Check,
   Loader2,
   RefreshCw,
+  Mail,
 } from "lucide-react";
 import { CreateGrowthReportDialog } from "@/components/reports/growth/CreateGrowthReportDialog";
+import { SendReportDialog } from "@/components/reports/SendReportDialog";
 
 export default function ReportViewPage() {
   const { t } = useTranslation();
@@ -30,6 +32,7 @@ export default function ReportViewPage() {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [showNewReportDialog, setShowNewReportDialog] = useState(false);
+  const [sendReportUrl, setSendReportUrl] = useState<string | null>(null);
 
   const { data: report, isLoading } = useQuery({
     queryKey: ["report", reportId],
@@ -51,7 +54,7 @@ export default function ReportViewPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("leads")
-        .select("id, company_name, website")
+        .select("id, company_name, website, email, contact_name")
         .eq("id", report!.lead_id!)
         .single();
       return data;
@@ -89,6 +92,31 @@ export default function ReportViewPage() {
   const shareUrl = share?.token
     ? `${window.location.origin}/r/${share.token}`
     : null;
+
+  // Ensure the report is publicly shared (enabled + token), then open the
+  // "email report" dialog with a working /r/{token} link.
+  const handleEmailReport = async () => {
+    if (!reportId) return;
+    let token = share?.token as string | undefined;
+    if (!share) {
+      const { data } = await supabase
+        .from("report_shares")
+        .insert({ report_id: reportId, enabled: true })
+        .select("token")
+        .single();
+      token = data?.token;
+      refetchShare();
+    } else if (!share.enabled) {
+      await supabase.from("report_shares").update({ enabled: true }).eq("id", share.id);
+      token = share.token;
+      refetchShare();
+    }
+    if (!token) {
+      toast({ title: t("reports.email.shareError"), variant: "destructive" });
+      return;
+    }
+    setSendReportUrl(`${window.location.origin}/r/${token}`);
+  };
 
   const handleCopy = async () => {
     if (!shareUrl) return;
@@ -150,6 +178,9 @@ export default function ReportViewPage() {
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <FileText className="mr-1 h-3 w-3" />{t("reports.view.exportPdf")}</Button>
 
+          <Button variant="outline" size="sm" onClick={handleEmailReport}>
+            <Mail className="mr-1 h-3 w-3" />{t("reports.view.emailReport")}</Button>
+
           {isGrowth && report.lead_id && (
             <Button variant="outline" size="sm" onClick={() => setShowNewReportDialog(true)}>
               <RefreshCw className="mr-1 h-3 w-3" />{t("reports.view.createNew")}</Button>
@@ -176,6 +207,17 @@ export default function ReportViewPage() {
           open={showNewReportDialog}
           onOpenChange={setShowNewReportDialog}
           lead={{ id: leadForDialog.id, company_name: leadForDialog.company_name, website: leadForDialog.website }}
+        />
+      )}
+
+      {/* Email Report Dialog */}
+      {sendReportUrl && (
+        <SendReportDialog
+          reportId={reportId!}
+          reportUrl={sendReportUrl}
+          recipientEmail={leadForDialog?.email}
+          recipientName={leadForDialog?.contact_name || leadForDialog?.company_name}
+          onClose={() => setSendReportUrl(null)}
         />
       )}
     </AppLayout>

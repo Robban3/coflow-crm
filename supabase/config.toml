@@ -72,6 +72,9 @@ verify_jwt = false
 [functions.send-document-email]
 verify_jwt = true
 
+[functions.send-report-email]
+verify_jwt = true
+
 [functions.run-geo-analysis]
 verify_jwt = false
 
