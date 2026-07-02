@@ -679,7 +679,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
       {/* ─── FOOTER ─── */}
       {publicMode && (
         <footer className="mt-14 pt-6 border-t border-border/30 text-center growth-report-footer">
-          <p className="text-[11px] text-muted-foreground">{t("reports.renderer.footerBy")}<span className="font-medium">Kod & Co</span>
+          <p className="text-[11px] text-muted-foreground">{t("reports.renderer.footerBy")}<span className="font-medium">Applabbet</span>
           </p>
         </footer>
       )}

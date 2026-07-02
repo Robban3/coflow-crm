@@ -366,7 +366,7 @@ export default function PublicGeoReportPage() {
         <p className="text-[11px] text-slate-600">
           Rapport genererad av{" "}
           <a href="https://kodcogeo.se" className="text-slate-500 hover:text-slate-300 transition-colors">
-            Kod & Co
+            Applabbet
           </a>
         </p>
       </footer>

@@ -489,7 +489,7 @@ async function sendFailureEmail(scan: any) {
   </div>
 
   <div style="text-align:center;padding-top:24px;border-top:1px solid #1e293b;">
-    <p style="font-size:11px;color:#475569;margin:0;">Kod & Co · <a href="https://kodcogeo.se" style="color:#64748b;text-decoration:none;">kodcogeo.se</a></p>
+    <p style="font-size:11px;color:#475569;margin:0;">Applabbet · <a href="https://kodcogeo.se" style="color:#64748b;text-decoration:none;">kodcogeo.se</a></p>
   </div>
 
 </div>
