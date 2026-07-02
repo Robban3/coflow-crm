@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
+import { getActiveMarket, MARKET_CURRENCY } from "@/hooks/useMarket";
 import { fromTable } from "../supabaseHelper";
 import { type Document as DocType, type TemplateVersion } from "../types";
 import { Button } from "@/components/ui/button";
@@ -173,6 +174,7 @@ export function OffersList() {
           template_version: ver?.version || 1,
           organization_id: orgId!,
           created_by: user?.id,
+          currency: MARKET_CURRENCY[getActiveMarket()].code,
         })
         .select()
         .single();

@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { WonDealDialog } from "@/components/deals/WonDealDialog";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
+import { getActiveMarket, MARKET_CURRENCY } from "@/hooks/useMarket";
+import { CURRENCIES } from "@/lib/currency";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +66,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
   const [title, setTitle] = useState("");
   const [quoteNumber, setQuoteNumber] = useState("");
   const [status, setStatus] = useState("draft");
-  const [currency, setCurrency] = useState("SEK");
+  const [currency, setCurrency] = useState(() => MARKET_CURRENCY[getActiveMarket()].code);
   const [validUntil, setValidUntil] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
@@ -658,9 +660,7 @@ export function QuoteEditor({ quoteId, prefillLeadId, onClose }: QuoteEditorProp
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="SEK">SEK</SelectItem>
-                      <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="USD">USD</SelectItem>
+                      {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

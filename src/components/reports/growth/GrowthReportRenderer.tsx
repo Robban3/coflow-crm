@@ -1,4 +1,5 @@
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { formatCurrency } from "@/lib/currency";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,12 +60,6 @@ interface Props {
 }
 
 /* ─── Helpers ─── */
-
-const formatPrice = (amount: number): string => {
-  const str = amount.toLocaleString("sv-SE");
-  // Replace regular space with thin space for thousands separator
-  return str.replace(/\s/g, "\u2009");
-};
 
 const scoreColor = (v: number | null) => {
   if (v === null) return "text-muted-foreground";
@@ -185,6 +180,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
   const selectedPkg = data.package_config?.selected || data.recommended_package;
   const pkgBullets = data.package_config?.bullets || DEFAULT_PACKAGE_BULLETS;
   const p = data.ai_visibility_pricing;
+  const currency = (data.pricing as any)?.currency || "SEK";
 
   // Website section shown only when web performance is genuinely poor
   // Website section shown when web performance is poor OR always when upsell is enabled
@@ -490,7 +486,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
 
                     {/* Price – last, subtle */}
                     <div className="rounded-lg bg-muted/30 dark:bg-muted/10 px-4 py-3">
-                      <p className="text-sm text-foreground">{t("reports.growth.from")}<span className="font-semibold">{formatPrice(recPrice)} kr</span>
+                      <p className="text-sm text-foreground">{t("reports.growth.from")}<span className="font-semibold">{formatCurrency(recPrice, currency)}</span>
                         <span className="text-xs text-muted-foreground ml-1">{p.billing_period_label}</span>
                       </p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">{t("reports.growth.cancelAnytimeVat")}</p>
@@ -539,7 +535,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                           ))}
                         </ul>
                         <div className="rounded-lg bg-muted/20 px-3 py-2">
-                          <p className="text-sm text-foreground">{t("reports.growth.from")}<span className="font-semibold">{formatPrice(price)} kr</span>
+                          <p className="text-sm text-foreground">{t("reports.growth.from")}<span className="font-semibold">{formatCurrency(price, currency)}</span>
                             <span className="text-xs text-muted-foreground ml-1">{p.billing_period_label}</span>
                           </p>
                           <p className="text-[10px] text-muted-foreground mt-0.5">{t("reports.growth.cancelAnytimeVatShort")}</p>
@@ -569,7 +565,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
                   <Badge className="text-[9px] bg-primary/10 text-primary border-primary/20 px-2 py-0.5 mb-2">{t("reports.growth.stronglyRecommended")}</Badge>
                   <p className="text-sm text-foreground/90 leading-relaxed">{t("reports.growth.websiteDescPrefix")}<span className="font-semibold">{webScore}/100</span>{t("reports.growth.websiteDescSuffix")}</p>
                   <div className="mt-4 rounded-lg bg-muted/30 dark:bg-muted/10 px-4 py-3">
-                    <p className="text-sm text-foreground">{t("reports.growth.from")}<span className="font-semibold">{formatPrice(p.website_rebuild_from)} kr</span>
+                    <p className="text-sm text-foreground">{t("reports.growth.from")}<span className="font-semibold">{formatCurrency(p.website_rebuild_from, currency)}</span>
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">{t("reports.growth.websitePriceNote")}</p>
                   </div>
@@ -706,6 +702,7 @@ export function GrowthReportRenderer({ data, publicMode, reportId, leadId, onCta
           tier={orderModal.tier || selectedPkg}
           includeWebsite={orderModal.includeWebsite || false}
           pricing={p!}
+          currency={currency}
           tierLabels={tierLabels}
           contact={data.contact}
           companyName={data.company.name}
@@ -725,6 +722,7 @@ function OrderModal({
   tier,
   includeWebsite,
   pricing,
+  currency,
   tierLabels,
   contact,
   companyName,
@@ -736,6 +734,7 @@ function OrderModal({
   tier: "start" | "growth" | "dominate";
   includeWebsite: boolean;
   pricing: NonNullable<GrowthReportData["ai_visibility_pricing"]>;
+  currency: string;
   tierLabels: Record<string, string>;
   contact?: GrowthReportData["contact"];
   companyName: string;
@@ -778,6 +777,7 @@ function OrderModal({
           lead_id: leadId,
           organization_id: orgId,
           created_by: user.id,
+          currency,
           notes: reportId ? t("reports.order.fromReport", { reportId }) : undefined,
         })
         .select("id")
@@ -871,7 +871,7 @@ function OrderModal({
               <p className="text-xs text-muted-foreground">{t("reports.order.monthlyService")}</p>
             </div>
             <p className="text-lg font-bold text-foreground">
-              {formatPrice(tierPrice)} kr<span className="text-xs font-normal text-muted-foreground"> {pricing.billing_period_label}</span>
+              {formatCurrency(tierPrice, currency)}<span className="text-xs font-normal text-muted-foreground"> {pricing.billing_period_label}</span>
             </p>
           </div>
         </div>
@@ -883,7 +883,7 @@ function OrderModal({
               <Monitor className="h-4 w-4 text-muted-foreground shrink-0" />
               <div>
                 <p className="text-sm font-medium text-foreground">{t("reports.pricing.websiteHeading")}</p>
-                <p className="text-xs text-muted-foreground">{t("reports.order.websiteAddonFrom", { price: formatPrice(pricing.website_rebuild_from) })}</p>
+                <p className="text-xs text-muted-foreground">{t("reports.order.websiteAddonFrom", { price: formatCurrency(pricing.website_rebuild_from, currency) })}</p>
               </div>
             </div>
             <Button

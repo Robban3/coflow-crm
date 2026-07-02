@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Save } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CURRENCIES } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
 
@@ -20,6 +22,7 @@ interface PricingRow {
   booking_url: string;
   contact_email: string;
   contact_phone: string;
+  currency: string;
 }
 
 const DEFAULTS: PricingRow = {
@@ -31,6 +34,7 @@ const DEFAULTS: PricingRow = {
   booking_url: "",
   contact_email: "hej@kodco.se",
   contact_phone: "",
+  currency: "SEK",
 };
 
 export function GrowthReportPricingSettings() {
@@ -62,6 +66,7 @@ export function GrowthReportPricingSettings() {
           booking_url: data.booking_url || "",
           contact_email: data.contact_email || "",
           contact_phone: data.contact_phone || "",
+          currency: d.currency || "SEK",
         });
       }
       setIsLoading(false);
@@ -82,6 +87,7 @@ export function GrowthReportPricingSettings() {
         booking_url: form.booking_url || null,
         contact_email: form.contact_email || null,
         contact_phone: form.contact_phone || null,
+        currency: form.currency,
       };
 
       if (form.id) {
@@ -126,6 +132,17 @@ export function GrowthReportPricingSettings() {
         <CardDescription>{t("reports.pricing.desc")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Currency */}
+        <div className="max-w-[8rem] space-y-1">
+          <Label className="text-xs">{t("quotes.currency")}</Label>
+          <Select value={form.currency} onValueChange={(v) => s("currency", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* AI-synlighet */}
         <div>
           <h4 className="text-sm font-semibold mb-3">{t("reports.pricing.aiVisibilityHeading")}</h4>

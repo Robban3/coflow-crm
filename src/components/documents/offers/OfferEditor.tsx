@@ -12,10 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Save, Send, Search, UserPlus, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { OfferPreviewDialog } from "./OfferPreviewDialog";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { CURRENCIES, formatCurrency } from "@/lib/currency";
 
 const statusLabelKeys: Record<string, string> = {
   draft: "templates.offerStatus.draft",
@@ -44,6 +46,7 @@ export function OfferEditor() {
   const [title, setTitle] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
+  const [currency, setCurrency] = useState<string>("SEK");
   const [dirty, setDirty] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -87,6 +90,7 @@ export function OfferEditor() {
       setTitle(doc.title);
       setRecipientName(doc.recipient_name || "");
       setRecipientEmail(doc.recipient_email || "");
+      setCurrency((doc as any).currency || "SEK");
       // Load linked lead
       if (doc.lead_id) {
         supabase
@@ -179,6 +183,7 @@ export function OfferEditor() {
           title,
           recipient_name: recipientName || null,
           recipient_email: recipientEmail || null,
+          currency,
           subtotal: totals.subtotal,
           vat_total: totals.vat_total,
           total: totals.total,
@@ -350,6 +355,19 @@ export function OfferEditor() {
                 placeholder={t("offers.editor.emailPlaceholder")}
               />
             </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{t("quotes.currency")}</Label>
+              <Select
+                value={currency}
+                onValueChange={(v) => { setCurrency(v); setDirty(true); }}
+                disabled={isLocked}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       )}
@@ -376,15 +394,15 @@ export function OfferEditor() {
           <div className="text-sm space-y-1 bg-muted/50 rounded-lg p-4">
             <div className="flex justify-between gap-8">
               <span className="text-muted-foreground">{t("templates.offerEditor.subtotal")}</span>
-              <span className="font-medium">{totals.subtotal.toLocaleString("sv-SE")} kr</span>
+              <span className="font-medium">{formatCurrency(totals.subtotal, currency)}</span>
             </div>
             <div className="flex justify-between gap-8">
               <span className="text-muted-foreground">{t("templates.offerEditor.vat")}</span>
-              <span className="font-medium">{totals.vat_total.toLocaleString("sv-SE")} kr</span>
+              <span className="font-medium">{formatCurrency(totals.vat_total, currency)}</span>
             </div>
             <div className="flex justify-between gap-8 border-t border-border pt-1 mt-1">
               <span className="font-semibold">{t("templates.offerEditor.total")}</span>
-              <span className="font-bold text-lg">{totals.total.toLocaleString("sv-SE")} kr</span>
+              <span className="font-bold text-lg">{formatCurrency(totals.total, currency)}</span>
             </div>
           </div>
         </div>
