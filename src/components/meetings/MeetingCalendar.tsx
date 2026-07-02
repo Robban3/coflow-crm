@@ -42,6 +42,8 @@ interface Meeting {
   status: string;
   lead_id: string | null;
   host_user_id: string;
+  participant_ids?: string[] | null;
+  guests?: { name?: string; email?: string }[] | null;
   booking_token: string | null;
   host_profile?: {
     full_name: string | null;
@@ -272,13 +274,26 @@ export function MeetingCalendar({ isAdmin = false }: MeetingCalendarProps) {
                             {format(parseISO(meeting.start_time), 'HH:mm')} - {format(parseISO(meeting.end_time), 'HH:mm')}
                           </div>
                           
-                          {meeting.guest_name && (
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <User className="h-3 w-3" />
-                              <span className="truncate">{meeting.guest_name}</span>
-                            </div>
-                          )}
-                          
+                          {(() => {
+                            const extraGuests = Math.max((meeting.guests?.length ?? 0) - 1, 0);
+                            const extraParticipants = (meeting.participant_ids ?? []).filter(
+                              (pid) => pid !== meeting.host_user_id,
+                            ).length;
+                            const others = extraGuests + extraParticipants;
+                            if (!meeting.guest_name && others === 0) return null;
+                            return (
+                              <div className="flex items-center gap-1 text-muted-foreground">
+                                <User className="h-3 w-3" />
+                                <span className="truncate">
+                                  {meeting.guest_name || `${others + 1} ${t("meetings.participantsCount")}`}
+                                </span>
+                                {meeting.guest_name && others > 0 && (
+                                  <span className="shrink-0">+{others}</span>
+                                )}
+                              </div>
+                            );
+                          })()}
+
                           {isAdmin && meeting.host_profile && (
                             <div className="text-muted-foreground italic">
                               Värd: {meeting.host_profile.full_name || meeting.host_profile.email}

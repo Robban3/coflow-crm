@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
+import { useAuth } from "@/hooks/useAuth";
+import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Search } from "lucide-react";
+import { Loader2, Plus, Search, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -43,6 +46,8 @@ export function CreateMeetingDialog({
   leadEmail 
 }: CreateMeetingDialogProps) {
   const organizationId = useOrganizationId();
+  const { user } = useAuth();
+  const { members } = useTeamMembers();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -51,17 +56,35 @@ export function CreateMeetingDialog({
   const [leads, setLeads] = useState<{ id: string; company_name: string | null; contact_name: string | null; email: string | null }[]>([]);
   const [leadSearch, setLeadSearch] = useState("");
   const [selectedLeadId, setSelectedLeadId] = useState<string>(leadId || "");
-  
+
+  // External guests (multiple). The first entry is the primary guest stored in
+  // guest_name/guest_email for backward-compat + single-guest display.
+  const [guests, setGuests] = useState<{ name: string; email: string }[]>([
+    { name: leadName || "", email: leadEmail || "" },
+  ]);
+  // Internal participants (team members) who should also see the meeting.
+  const [participantIds, setParticipantIds] = useState<string[]>([]);
+
   const [form, setForm] = useState({
     title: "",
     description: "",
     date: "",
     startTime: "09:00",
     endTime: "10:00",
-    guestName: leadName || "",
-    guestEmail: leadEmail || "",
     meetingLink: "",
   });
+
+  // Today (local) as YYYY-MM-DD, used to block past dates in the picker.
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+  const toggleParticipant = (id: string) =>
+    setParticipantIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const updateGuest = (i: number, field: "name" | "email", value: string) =>
+    setGuests((prev) => prev.map((g, idx) => (idx === i ? { ...g, [field]: value } : g)));
+  const addGuest = () => setGuests((prev) => [...prev, { name: "", email: "" }]);
+  const removeGuest = (i: number) =>
+    setGuests((prev) => (prev.length <= 1 ? prev : prev.filter((_, idx) => idx !== i)));
 
   // Fetch leads for the picker
   useEffect(() => {
@@ -77,15 +100,21 @@ export function CreateMeetingDialog({
     fetchLeads();
   }, [open, organizationId]);
 
-  // When lead is selected, prefill guest info
+  // When lead is selected, prefill the primary guest + title (only if empty)
   useEffect(() => {
-    if (selectedLeadId && leads.length > 0) {
+    if (selectedLeadId && selectedLeadId !== "none" && leads.length > 0) {
       const lead = leads.find(l => l.id === selectedLeadId);
       if (lead) {
+        setGuests(prev => {
+          const next = [...prev];
+          next[0] = {
+            name: next[0]?.name || lead.contact_name || lead.company_name || "",
+            email: next[0]?.email || lead.email || "",
+          };
+          return next;
+        });
         setForm(prev => ({
           ...prev,
-          guestName: prev.guestName || lead.contact_name || lead.company_name || "",
-          guestEmail: prev.guestEmail || lead.email || "",
           title: prev.title || t("meetings.meetingWith", { name: lead.company_name || lead.contact_name || "" }),
         }));
       }
@@ -108,27 +137,51 @@ export function CreateMeetingDialog({
       return;
     }
 
+    const startTime = new Date(`${form.date}T${form.startTime}`);
+    const endTime = new Date(`${form.date}T${form.endTime}`);
+
+    // Don't allow booking a meeting that starts in the past.
+    if (startTime.getTime() < Date.now()) {
+      toast({ title: t("meetings.error"), description: t("meetings.pastDateError"), variant: "destructive" });
+      return;
+    }
+    if (endTime.getTime() <= startTime.getTime()) {
+      toast({ title: t("meetings.error"), description: t("meetings.endBeforeStartError"), variant: "destructive" });
+      return;
+    }
+
     setIsCreating(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error(t('meetings.notLoggedIn'));
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error(t('meetings.notLoggedIn'));
 
-      const startTime = new Date(`${form.date}T${form.startTime}`);
-      const endTime = new Date(`${form.date}T${form.endTime}`);
+      // External guests: drop empty rows; first is the primary guest.
+      const cleanGuests = guests
+        .map((g) => ({ name: g.name.trim(), email: g.email.trim() }))
+        .filter((g) => g.name || g.email);
+      const primaryGuest = cleanGuests[0];
+
+      // Internal participants always include the creator, deduped.
+      const allParticipantIds = [...new Set([authUser.id, ...participantIds])];
+
+      const cleanLeadId = selectedLeadId && selectedLeadId !== "none" ? selectedLeadId : null;
 
       const { error } = await supabase.from('meetings').insert({
         title: form.title,
         description: form.description || null,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
-        guest_name: form.guestName || null,
-        guest_email: form.guestEmail || null,
+        guest_name: primaryGuest?.name || null,
+        guest_email: primaryGuest?.email || null,
+        guests: cleanGuests,
+        participant_ids: allParticipantIds,
         meeting_link: form.meetingLink || null,
-        host_user_id: user.id,
+        host_user_id: authUser.id,
         organization_id: organizationId,
-        lead_id: selectedLeadId || null,
+        lead_id: cleanLeadId,
         status: 'scheduled',
-      });
+        // guests + participant_ids are newer columns not yet in generated types.
+      } as any);
 
       if (error) throw error;
 
@@ -148,10 +201,10 @@ export function CreateMeetingDialog({
         date: "",
         startTime: "09:00",
         endTime: "10:00",
-        guestName: "",
-        guestEmail: "",
         meetingLink: "",
       });
+      setGuests([{ name: "", email: "" }]);
+      setParticipantIds([]);
       setSelectedLeadId("");
       setLeadSearch("");
     } catch (error) {
@@ -224,6 +277,7 @@ export function CreateMeetingDialog({
             <Input
               id="date"
               type="date"
+              min={todayStr}
               value={form.date}
               onChange={(e) => setForm(prev => ({ ...prev, date: e.target.value }))}
             />
@@ -250,25 +304,60 @@ export function CreateMeetingDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="guestName">{t("meetings.fieldGuestName")}</Label>
-            <Input
-              id="guestName"
-              placeholder={t("meetings.fieldGuestNamePlaceholder")}
-              value={form.guestName}
-              onChange={(e) => setForm(prev => ({ ...prev, guestName: e.target.value }))}
-            />
-          </div>
+          {/* Internal participants (team members) */}
+          {members.filter((m) => m.id !== user?.id).length > 0 && (
+            <div className="space-y-2">
+              <Label>{t("meetings.fieldParticipants")}</Label>
+              <p className="text-xs text-muted-foreground -mt-1">{t("meetings.participantsHint")}</p>
+              <div className="max-h-36 overflow-y-auto rounded-md border border-border divide-y">
+                {members
+                  .filter((m) => m.id !== user?.id)
+                  .map((m) => (
+                    <label key={m.id} className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-muted/50">
+                      <Checkbox
+                        checked={participantIds.includes(m.id)}
+                        onCheckedChange={() => toggleParticipant(m.id)}
+                      />
+                      <span className="truncate">{m.full_name || m.email}</span>
+                    </label>
+                  ))}
+              </div>
+            </div>
+          )}
 
+          {/* External guests (multiple) */}
           <div className="space-y-2">
-            <Label htmlFor="guestEmail">{t("meetings.fieldGuestEmail")}</Label>
-            <Input
-              id="guestEmail"
-              type="email"
-              placeholder={t("meetings.fieldGuestEmailPlaceholder")}
-              value={form.guestEmail}
-              onChange={(e) => setForm(prev => ({ ...prev, guestEmail: e.target.value }))}
-            />
+            <div className="flex items-center justify-between">
+              <Label>{t("meetings.fieldGuests")}</Label>
+              <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={addGuest}>
+                <Plus className="h-3.5 w-3.5 mr-1" /> {t("meetings.addGuest")}
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {guests.map((g, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <div className="grid grid-cols-2 gap-2 flex-1">
+                    <Input
+                      placeholder={t("meetings.fieldGuestNamePlaceholder")}
+                      value={g.name}
+                      onChange={(e) => updateGuest(i, "name", e.target.value)}
+                    />
+                    <Input
+                      type="email"
+                      placeholder={t("meetings.fieldGuestEmailPlaceholder")}
+                      value={g.email}
+                      onChange={(e) => updateGuest(i, "email", e.target.value)}
+                    />
+                  </div>
+                  {guests.length > 1 && (
+                    <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0"
+                      onClick={() => removeGuest(i)} aria-label={t("meetings.removeGuest")}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-2">
