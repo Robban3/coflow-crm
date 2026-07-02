@@ -214,7 +214,13 @@ export default function DashboardPage() {
         .limit(5);
 
       if (!isAdmin && user?.id) {
-        query = query.eq('host_user_id', user.id);
+        // Include meetings where the user is the guest (e.g. an internal meeting
+        // they confirmed for a colleague: host is the requester, the confirming
+        // user is stored as the guest), not just the ones they host.
+        const email = (user.email || "").trim();
+        query = email
+          ? query.or(`host_user_id.eq.${user.id},guest_email.eq.${email}`)
+          : query.eq('host_user_id', user.id);
       }
 
       const { data } = await query;

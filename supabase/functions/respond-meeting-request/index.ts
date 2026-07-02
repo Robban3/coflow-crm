@@ -51,10 +51,15 @@ serve(async (req) => {
     const isRecipient = me?.email && (reqRow.recipient_emails || []).includes(me.email);
     if (!isAdmin && !isRecipient) return json({ error: "Inte behörig" }, 403);
 
+    // Time for the booked meeting: use the responder's chosen time, else fall
+    // back to the requester's preferred time — so a confirm always produces a
+    // calendar meeting even if no explicit time was picked.
+    const meetingTime = action === "confirm" ? (scheduledTime || reqRow.preferred_time || null) : null;
+
     const status = action === "confirm" ? "confirmed" : "declined";
     await supabase.from("meeting_requests").update({
       status,
-      scheduled_time: action === "confirm" ? (scheduledTime || null) : null,
+      scheduled_time: action === "confirm" ? meetingTime : null,
       meeting_link: action === "confirm" ? (meetingLink || null) : null,
       response_note: note || null,
       responded_by: user.id,
@@ -63,11 +68,13 @@ serve(async (req) => {
 
     const responder = me?.full_name || me?.email || "Teamet";
 
-    // On confirm with a time, create a real calendar meeting (shows under Möten).
-    if (action === "confirm" && scheduledTime && reqRow.status === "pending") {
-      const start = new Date(scheduledTime);
+    // On confirm, create a real calendar meeting (shows under Möten + dashboard).
+    // The confirming user is stored as the guest, so both the requester (host)
+    // and the confirming recipient (guest) can see it in their views.
+    if (action === "confirm" && meetingTime && reqRow.status === "pending") {
+      const start = new Date(meetingTime);
       const end = new Date(start.getTime() + 30 * 60_000);
-      await supabase.from("meetings").insert({
+      const { error: meetingErr } = await supabase.from("meetings").insert({
         organization_id: reqRow.organization_id,
         host_user_id: reqRow.requested_by,
         lead_id: reqRow.lead_id,
@@ -79,7 +86,8 @@ serve(async (req) => {
         end_time: end.toISOString(),
         meeting_link: meetingLink || null,
         status: "scheduled",
-      }).catch(() => {});
+      });
+      if (meetingErr) console.error("[respond-meeting-request] meeting insert failed:", meetingErr.message);
     }
 
     // Notify the requester.
