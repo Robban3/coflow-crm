@@ -68,11 +68,14 @@ serve(async (req) => {
       languageCode: string;
       countryName: string;
       countryAliases: string[];
+      // Optional hard bounding box (locationRestriction.rectangle) for the country.
+      // US is intentionally omitted (Alaska/Hawaii/antimeridian make a single box wrong).
+      bbox?: { low: { lat: number; lng: number }; high: { lat: number; lng: number } };
     }> = {
-      SE: { regionCode: "SE", languageCode: "sv", countryName: "Sverige", countryAliases: ["sverige", "sweden"] },
+      SE: { regionCode: "SE", languageCode: "sv", countryName: "Sverige", countryAliases: ["sverige", "sweden"], bbox: { low: { lat: 55.0, lng: 10.5 }, high: { lat: 69.1, lng: 24.2 } } },
       US: { regionCode: "US", languageCode: "en", countryName: "USA", countryAliases: ["usa", "united states", "u.s.", "us"] },
-      DE: { regionCode: "DE", languageCode: "de", countryName: "Deutschland", countryAliases: ["deutschland", "germany"] },
-      ES: { regionCode: "ES", languageCode: "es", countryName: "España", countryAliases: ["españa", "espana", "spain"] },
+      DE: { regionCode: "DE", languageCode: "de", countryName: "Deutschland", countryAliases: ["deutschland", "germany"], bbox: { low: { lat: 47.2, lng: 5.8 }, high: { lat: 55.1, lng: 15.1 } } },
+      ES: { regionCode: "ES", languageCode: "es", countryName: "España", countryAliases: ["españa", "espana", "spain"], bbox: { low: { lat: 27.6, lng: -18.2 }, high: { lat: 43.9, lng: 4.4 } } },
     };
     const cfg = MARKET_CONFIG[market];
 
@@ -107,7 +110,11 @@ serve(async (req) => {
       regionCode: cfg.regionCode,
     };
 
-    // Add locationBias if provided (for geo-offset pagination)
+    // Geographic constraint. locationRestriction and locationBias are mutually
+    // exclusive, so: use the pagination circle bias when provided ("Load more"),
+    // otherwise hard-restrict the first search to the country's bounding box so
+    // Google can't return foreign (e.g. German) places. regionCode alone is only
+    // a bias in Places API v1 — not a filter — hence the explicit rectangle.
     if (locationBias) {
       requestBody.locationBias = {
         circle: {
@@ -118,6 +125,13 @@ serve(async (req) => {
           radius: locationBias.radius,
         },
       };
+    } else if (cfg.bbox) {
+      requestBody.locationRestriction = {
+        rectangle: {
+          low: { latitude: cfg.bbox.low.lat, longitude: cfg.bbox.low.lng },
+          high: { latitude: cfg.bbox.high.lat, longitude: cfg.bbox.high.lng },
+        },
+      };
     }
 
     const searchRes = await fetchWithRetry(searchUrl, {
@@ -125,7 +139,7 @@ serve(async (req) => {
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.websiteUri,places.rating,places.userRatingCount,places.types,places.regularOpeningHours,places.location",
+        "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.addressComponents,places.nationalPhoneNumber,places.websiteUri,places.rating,places.userRatingCount,places.types,places.regularOpeningHours,places.location",
       },
       body: JSON.stringify(requestBody),
     }, { timeoutMs: 30_000, label: "Google Places" });
@@ -139,10 +153,24 @@ serve(async (req) => {
 
     const excludeSet = new Set(excludePlaceIds);
     const results: PlaceResult[] = [];
+    let droppedForeign = 0;
 
     for (const place of searchData.places || []) {
       const id = place.id;
       if (excludeSet.has(id)) continue; // Skip already-seen results
+
+      // Hard country filter: drop places whose country doesn't match the market.
+      // regionCode/locationBias are only soft biases, so without this German (etc.)
+      // results leak into a Swedish search. Keep places where country is undeterminable.
+      const countryComp = (place.addressComponents || []).find(
+        (c: { types?: string[] }) => (c.types || []).includes("country"),
+      );
+      const countryCode = countryComp?.shortText?.toUpperCase();
+      if (countryCode && countryCode !== cfg.regionCode) {
+        droppedForeign++;
+        continue;
+      }
+
       results.push({
         placeId: id,
         name: place.displayName?.text || "",
@@ -156,6 +184,10 @@ serve(async (req) => {
         lat: place.location?.latitude,
         lng: place.location?.longitude,
       });
+    }
+
+    if (droppedForeign > 0) {
+      console.log(`[google-places-search] Filtered out ${droppedForeign} result(s) outside ${cfg.regionCode}`);
     }
 
     // Compute center of results for geo-offset pagination
