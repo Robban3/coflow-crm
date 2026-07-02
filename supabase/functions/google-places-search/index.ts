@@ -111,10 +111,15 @@ serve(async (req) => {
     };
 
     // Geographic constraint. locationRestriction and locationBias are mutually
-    // exclusive, so: use the pagination circle bias when provided ("Load more"),
-    // otherwise hard-restrict the first search to the country's bounding box so
-    // Google can't return foreign (e.g. German) places. regionCode alone is only
-    // a bias in Places API v1 — not a filter — hence the explicit rectangle.
+    // exclusive:
+    //  - "Load more" → the pagination circle bias.
+    //  - A city/location was given → NO rectangle: the text query
+    //    ("query in {city}, {country}") scopes to the city, and the country
+    //    post-filter (addressComponents) keeps foreign results out. A country-wide
+    //    rectangle here would override the city and return results nationwide.
+    //  - No city → hard-restrict to the country's bounding box so a broad search
+    //    (e.g. "restaurang") can't return foreign (e.g. German) places, since
+    //    regionCode alone is only a bias in Places API v1, not a filter.
     if (locationBias) {
       requestBody.locationBias = {
         circle: {
@@ -125,7 +130,7 @@ serve(async (req) => {
           radius: locationBias.radius,
         },
       };
-    } else if (cfg.bbox) {
+    } else if (!location && cfg.bbox) {
       requestBody.locationRestriction = {
         rectangle: {
           low: { latitude: cfg.bbox.low.lat, longitude: cfg.bbox.low.lng },
