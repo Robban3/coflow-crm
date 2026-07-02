@@ -69,17 +69,33 @@ serve(async (req) => {
     const responder = me?.full_name || me?.email || "Teamet";
 
     // On confirm, create a real calendar meeting (shows under Möten + dashboard).
-    // The confirming user is stored as the guest, so both the requester (host)
-    // and the confirming recipient (guest) can see it in their views.
+    // Everyone who takes part sees it: the requester (host), the confirming
+    // recipient (guest) and all addressed recipients are listed in
+    // participant_ids, which the calendar/dashboard match against.
     if (action === "confirm" && meetingTime && reqRow.status === "pending") {
       const start = new Date(meetingTime);
       const end = new Date(start.getTime() + 30 * 60_000);
+
+      // Resolve every addressed recipient's user id, then combine with the
+      // requester and the confirming user into a deduped participant list.
+      const recipientEmails: string[] = reqRow.recipient_emails || [];
+      let recipientIds: string[] = [];
+      if (recipientEmails.length > 0) {
+        const { data: recipProfiles } = await supabase
+          .from("profiles").select("id").in("email", recipientEmails);
+        recipientIds = (recipProfiles ?? []).map((p: { id: string }) => p.id);
+      }
+      const participantIds = [...new Set(
+        [reqRow.requested_by, user.id, ...recipientIds].filter(Boolean) as string[],
+      )];
+
       const { error: meetingErr } = await supabase.from("meetings").insert({
         organization_id: reqRow.organization_id,
         host_user_id: reqRow.requested_by,
         lead_id: reqRow.lead_id,
         guest_name: responder,
         guest_email: me?.email ?? null,
+        participant_ids: participantIds,
         title: `Internt möte: ${CATEGORY_LABEL[reqRow.category] || reqRow.category}`,
         description: reqRow.description,
         start_time: start.toISOString(),

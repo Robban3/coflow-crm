@@ -98,13 +98,13 @@ export function MeetingCalendar({ isAdmin = false }: MeetingCalendarProps) {
         .order('start_time');
 
       if (!isAdmin) {
-        // Show meetings the user hosts AND meetings where they're the guest
-        // (e.g. an internal meeting they confirmed for a colleague — there the
-        // host is the requester and the confirming user is stored as guest).
+        // Show meetings the user hosts, is a participant in, or is the guest of
+        // (internal meetings list every participant in participant_ids; the host
+        // is the requester and the confirming user is also stored as guest).
         const email = (user.email || "").trim();
-        query = email
-          ? query.or(`host_user_id.eq.${user.id},guest_email.eq.${email}`)
-          : query.eq('host_user_id', user.id);
+        const parts = [`host_user_id.eq.${user.id}`, `participant_ids.cs.{${user.id}}`];
+        if (email) parts.push(`guest_email.eq.${email}`);
+        query = query.or(parts.join(','));
       } else if (filterUser !== 'all') {
         query = query.eq('host_user_id', filterUser);
       }
