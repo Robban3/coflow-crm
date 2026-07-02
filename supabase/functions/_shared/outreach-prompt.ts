@@ -8,7 +8,7 @@
 
 // ── helpers ──────────────────────────────────────────────────────────
 
-export type Market = "SE" | "US" | "DE" | "ES";
+export type Market = "SE" | "US" | "DE" | "ES" | "UK";
 
 export interface OutreachContext {
   companyName?: string;
@@ -90,7 +90,7 @@ export function buildOutreachSystemPrompt(ctx: OutreachContext): string {
     return buildFollowUpSystemPrompt(ctx);
   }
   // Non-Swedish markets use a streamlined market-specific prompt
-  if (market === "US") return buildUSSystemPrompt(ctx);
+  if ((market === "US" || market === "UK")) return buildUSSystemPrompt(ctx);
   if (market === "DE") return buildDESystemPrompt(ctx);
   if (market === "ES") return buildESSystemPrompt(ctx);
 
@@ -269,7 +269,7 @@ function buildFollowUpSystemPrompt(ctx: OutreachContext): string {
   const tone = toneInstructions[ctx.tone || "standard"] || toneInstructions.standard;
   const market: Market = ctx.market || "SE";
 
-  if (market === "US") {
+  if ((market === "US" || market === "UK")) {
     const senderBlock = buildSenderBlockEN(ctx);
     return `You are writing a FOLLOW-UP cold email in American English. You contacted this company BEFORE but got no reply.
 
@@ -364,7 +364,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
 
   if (ctx.context === "follow_up") {
     parts.push(
-      market === "US"
+      (market === "US" || market === "UK")
         ? "Write a FOLLOW-UP email. You contacted them before but got no reply.\n"
         : market === "DE"
         ? "Schreiben Sie eine FOLLOW-UP E-Mail. Sie haben den Empfänger bereits kontaktiert, aber keine Antwort erhalten.\n"
@@ -374,7 +374,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
     );
   } else {
     parts.push(
-      market === "US"
+      (market === "US" || market === "UK")
         ? "Write ONE outreach email based on the data below.\n"
         : market === "DE"
         ? "Schreiben Sie EINE Outreach-E-Mail basierend auf den folgenden Daten.\n"
@@ -433,7 +433,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
   // ── ANALYSIS DATA: Give AI the raw scores to use in "praise + challenge" format ──
   if (ctx.webAnalysis) {
     const wa = ctx.webAnalysis;
-    const labels = market === "US"
+    const labels = (market === "US" || market === "UK")
       ? { performance: "Performance", seo: "SEO", a11y: "Accessibility", bp: "Best Practices" }
       : market === "DE"
       ? { performance: "Performance", seo: "SEO", a11y: "Barrierefreiheit", bp: "Best Practices" }
@@ -449,7 +449,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
     ].filter(s => s.score > 0);
 
     if (analyzedScores.length > 0) {
-      const intro = market === "US"
+      const intro = (market === "US" || market === "UK")
         ? "Website analysis for this company (use these numbers as a specific opening insight — praise strengths, point out the bottleneck):"
         : market === "DE"
         ? "Website-Analyse für dieses Unternehmen (verwenden Sie diese Werte als konkreten Einstieg — Stärken loben, Engpass benennen):"
@@ -580,13 +580,14 @@ export interface ProfileSignature {
   full_name?: string | null;
 }
 
-export type SignatureMarket = "SE" | "US" | "DE" | "ES";
+export type SignatureMarket = "SE" | "US" | "DE" | "ES" | "UK";
 
 const SIGNATURE_CLOSING: Record<SignatureMarket, string> = {
   SE: "Med vänlig hälsning,",
   US: "Best regards,",
   DE: "Mit freundlichen Grüßen,",
   ES: "Un saludo,",
+  UK: "Kind regards,",
 };
 
 const SIGNATURE_FALLBACK_NAME = "CoFlow";

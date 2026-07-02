@@ -644,7 +644,7 @@ Deno.serve(async (req) => {
     }
 
     const { url, webAnalysisId, leadId, organizationId, market, language } = await req.json();
-    const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska" };
+    const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska", UK: "engelska" };
     // The reader's UI language wins (the report is shown to the salesperson),
     // falling back to the prospect's market language, then Swedish.
     const LANG_BY_UI: Record<string, string> = { sv: "svenska", en: "engelska", es: "spanska" };

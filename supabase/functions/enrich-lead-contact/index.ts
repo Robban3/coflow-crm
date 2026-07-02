@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-type Market = "SE" | "US" | "DE" | "ES";
+type Market = "SE" | "US" | "DE" | "ES" | "UK";
 
 // Domains to exclude - belong to scraping/utility sites, not the company
 const EXCLUDED_EMAIL_DOMAINS = [
@@ -62,6 +62,12 @@ function extractPhone(text: string, market: Market): string | null {
         /(?:Teléfono|Telefono|Tel|Tlf|Móvil|Movil|Phone)[:\s]*([+]?[0-9\-\s()]{7,20})/i,
         /\b(\+34[\s-]?[0-9]{2,3}[\s-]?[0-9]{2,3}[\s-]?[0-9]{2,3})\b/,
         /\b([6789][0-9]{2}[\s-]?[0-9]{3}[\s-]?[0-9]{3})\b/,
+      ]
+    : market === "UK"
+    ? [
+        /(?:Phone|Tel|Telephone|Call)[:\s]*([+]?44?[\s().-]?\(?0?\)?[\s().-]?[0-9][\s().-]?[0-9]{2,4}[\s().-]?[0-9]{3,4}[\s().-]?[0-9]{3,4})/i,
+        /\b(\+44[\s-]?\(?0?\)?[\s-]?[0-9]{2,4}[\s-]?[0-9]{3,4}[\s-]?[0-9]{3,4})\b/,
+        /\b(0[0-9]{2,4}[\s-]?[0-9]{3,4}[\s-]?[0-9]{3,4})\b/,
       ]
     : [
         /(?:Telefon|Tel|Tfn|Phone)[:\s]*([+]?[0-9\-\s()]{7,20})/i,
@@ -241,7 +247,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const market: Market = marketInput === "US" || marketInput === "DE" || marketInput === "ES" ? marketInput : "SE";
+    const market: Market = marketInput === "US" || marketInput === "DE" || marketInput === "ES" || marketInput === "UK" ? marketInput : "SE";
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
     const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },

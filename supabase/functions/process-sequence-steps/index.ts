@@ -221,8 +221,8 @@ Webbanalys resultat:
 ` : "Ingen webbanalys genomförd ännu.";
 
             // Determine sequence market for language + tone
-            const market: "SE" | "US" | "DE" | "ES" =
-              (leadSequence.sequence?.market as "SE" | "US" | "DE" | "ES") || "SE";
+            const market: "SE" | "US" | "DE" | "ES" | "UK" =
+              (leadSequence.sequence?.market as "SE" | "US" | "DE" | "ES" | "UK") || "SE";
 
             // Heuristic: skip a Swedish saved signature when sending in English/German
             const sigText = (profile?.email_signature || "").toLowerCase();
@@ -238,10 +238,10 @@ Webbanalys resultat:
 Sender:
 - Name: ${profile.full_name || ""}
 - Company: ${profile.company_name || ""}
-${useSavedSignature ? `Saved signature (in ${market === "SE" ? "Swedish" : market === "US" ? "English" : market === "ES" ? "Spanish" : "German"}, may be appended verbatim): ${profile.email_signature}` : "(No localized signature available — close the body without a signature; one will be appended automatically.)"}
+${useSavedSignature ? `Saved signature (in ${market === "SE" ? "Swedish" : (market === "US" || market === "UK") ? "English" : market === "ES" ? "Spanish" : "German"}, may be appended verbatim): ${profile.email_signature}` : "(No localized signature available — close the body without a signature; one will be appended automatically.)"}
 ` : "";
 
-            const systemPromptByMarket: Record<"SE" | "US" | "DE" | "ES", string> = {
+            const systemPromptByMarket: Record<"SE" | "US" | "DE" | "ES" | "UK", string> = {
               ES: `Eres un comercial profesional que escribe correos de prospección personalizados en español.
 Tus correos deben ser:
 - Cortos y concisos (máx. 150 palabras)
@@ -281,7 +281,7 @@ Ihre E-Mails sollen:
 ${signatureContext}`,
             };
 
-            const systemPrompt = systemPromptByMarket[market];
+            const systemPrompt = systemPromptByMarket[market === "UK" ? "US" : market];
 
             // Get total steps
             const { count: totalSteps } = await supabase
@@ -291,7 +291,7 @@ ${signatureContext}`,
 
             const stepNumber = currentStep.step_order;
 
-            const userPromptByMarket: Record<"SE" | "US" | "DE" | "ES", string> = {
+            const userPromptByMarket: Record<"SE" | "US" | "DE" | "ES" | "UK", string> = {
               ES: `Este es el correo ${stepNumber} de ${totalSteps} en una secuencia de prospección.
 
 ${stepNumber === 1 ? "Este es el primer contacto — preséntate y presenta tu oferta según sus necesidades." :
@@ -354,7 +354,7 @@ Generieren Sie eine E-Mail mit Betreffzeile und Text. Antworten Sie als JSON:
 {"subject": "Betreff hier", "body": "E-Mail-Text hier"}`,
             };
 
-            const emailContext = userPromptByMarket[market];
+            const emailContext = userPromptByMarket[market === "UK" ? "US" : market];
 
             const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
               method: "POST",
@@ -396,7 +396,7 @@ Generieren Sie eine E-Mail mit Betreffzeile und Text. Antworten Sie als JSON:
 
             // Append signature — localized for the sequence's market.
             // Skip a Swedish saved signature when sending in English/German.
-            const closingByMarket: Record<"SE" | "US" | "DE" | "ES", string> = {
+            const closingByMarket: Record<"SE" | "US" | "DE" | "ES" | "UK", string> = {
               SE: "Med vänlig hälsning,",
               US: "Best regards,",
               DE: "Mit freundlichen Grüßen,",
@@ -406,7 +406,7 @@ Generieren Sie eine E-Mail mit Betreffzeile und Text. Antworten Sie als JSON:
               emailContent.body += `\n\n${profile!.email_signature}`;
             } else {
               const senderName = profile?.full_name || profile?.company_name || "";
-              emailContent.body += `\n\n${closingByMarket[market]}\n${senderName}`.trimEnd();
+              emailContent.body += `\n\n${closingByMarket[market === "UK" ? "US" : market]}\n${senderName}`.trimEnd();
             }
             const footerText = (profile?.email_footer || "").toLowerCase();
             const footerLooksSwedish =

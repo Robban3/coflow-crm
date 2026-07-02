@@ -15,7 +15,7 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const { leadId, domain: directDomain } = body;
-    const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska" };
+    const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska", UK: "engelska" };
     // The reader's UI language wins (the report is shown to the salesperson),
     // falling back to the prospect's market language, then Swedish.
     const LANG_BY_UI: Record<string, string> = { sv: "svenska", en: "engelska", es: "spanska" };
