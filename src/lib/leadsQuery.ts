@@ -30,6 +30,7 @@ export interface LeadWithOutreachStatus extends Lead {
   has_activity: boolean;
   has_call: boolean;
   last_call_label?: string | null;
+  has_meeting: boolean;
 }
 
 /**
@@ -71,14 +72,26 @@ export async function fetchLeadsData(): Promise<LeadWithOutreachStatus[]> {
   if (leadIds.length === 0) return leadsData.map(l => ({ ...l, outreach_status: "none" as const, email_count: 0, has_analysis: false, member_ids: [], has_activity: false }));
 
   // Use batched queries to avoid exceeding URL length limits with large .in() lists
-  const [emailCounts, sequences, analyses, leadMembersData, callLogs, meetingsData] = await Promise.all([
+  const [emailCounts, sequences, analyses, leadMembersData, callLogs, meetingsData, geoAnalyses, geoQuickScans, seoAnalyses, reportsData] = await Promise.all([
     batchIn(ids => supabase.from('sent_emails').select('lead_id').in('lead_id', ids), leadIds),
     batchIn(ids => supabase.from('lead_sequences').select('lead_id, status').in('lead_id', ids), leadIds),
     batchIn(ids => supabase.from('web_analyses').select('id, lead_id, url').in('lead_id', ids).order('created_at', { ascending: false }), leadIds),
     batchIn(ids => supabase.from('lead_members').select('lead_id, user_id').in('lead_id', ids), leadIds),
     batchIn(ids => supabase.from('call_logs').select('lead_id, outcome_label, created_at').in('lead_id', ids).order('created_at', { ascending: false }), leadIds),
     batchIn(ids => supabase.from('meetings').select('lead_id').in('lead_id', ids), leadIds),
+    // Additional analysis sources so the "Analys" column reflects GEO/SEO/quick-scan/report analyses,
+    // not just web_analyses. Only lead_id is needed to know an analysis exists.
+    batchIn(ids => supabase.from('geo_analyses').select('lead_id').in('lead_id', ids), leadIds),
+    batchIn(ids => supabase.from('geo_quick_scans').select('lead_id').in('lead_id', ids), leadIds),
+    batchIn(ids => supabase.from('seo_analyses').select('lead_id').in('lead_id', ids), leadIds),
+    batchIn(ids => supabase.from('reports').select('lead_id').in('lead_id', ids), leadIds),
   ]);
+
+  // A lead counts as "analyzed" if ANY analysis/report source exists for it. web_analyses is also
+  // matched by URL below (analysisMapByUrl); these extra sources are matched by lead_id.
+  const analyzedLeadIds = new Set<string>();
+  ([geoAnalyses, geoQuickScans, seoAnalyses, reportsData] as Array<Array<{ lead_id: string | null }>>)
+    .forEach(rows => rows.forEach(r => { if (r.lead_id) analyzedLeadIds.add(r.lead_id); }));
 
   // A lead counts as "worked" once it has any logged activity (a call, a sent
   // email/active sequence, or a meeting). Worked leads move to the pipeline and
@@ -149,13 +162,14 @@ export async function fetchLeadsData(): Promise<LeadWithOutreachStatus[]> {
       email_count: emailCount,
       sequence_status: sequenceStatus,
       analysis_id: analysisId,
-      has_analysis: !!analysisId,
+      has_analysis: !!analysisId || analyzedLeadIds.has(lead.id),
       member_ids: leadMembersMap.get(lead.id) || [],
       has_activity:
         emailCount > 0 || !!sequenceStatus ||
         callLogSet.has(lead.id) || meetingSet.has(lead.id),
       has_call: callLogSet.has(lead.id),
       last_call_label: lastCallLabel.get(lead.id) ?? null,
+      has_meeting: meetingSet.has(lead.id),
     };
   });
 }

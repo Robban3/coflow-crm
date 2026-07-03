@@ -67,6 +67,9 @@ import {
   Inbox,
   MoreHorizontal,
   Undo2,
+  Calendar,
+  FileText,
+  Trophy,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -520,6 +523,43 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
             </TooltipProvider>
           );
         }
+        // A booked meeting (data was loaded but previously ignored) or a pipeline
+        // status that implies the lead has been worked — don't misreport as "Ej kontaktad".
+        {
+          const ls = (lead as any).lead_status as string | undefined;
+          if (lead.has_meeting || ls === "meeting_booked") {
+            return (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="secondary" className="gap-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-transparent">
+                      <Calendar className="h-3 w-3" />
+                      {t("leadsList.contactMeetingBooked")}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t("leadsList.tipMeetingBooked")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            );
+          }
+          const STAGE: Record<string, { label: string; icon: JSX.Element; className: string }> = {
+            offer_sent: { label: t("leadsList.contactOfferSent"), icon: <FileText className="h-3 w-3" />, className: "bg-amber-100 text-amber-700 hover:bg-amber-200 border-transparent" },
+            won: { label: t("leadsList.contactWon"), icon: <Trophy className="h-3 w-3" />, className: "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-transparent" },
+            contacted: { label: t("leadsList.contacted"), icon: <CheckCircle2 className="h-3 w-3" />, className: "" },
+            callback: { label: t("leadsList.contactCallback"), icon: <Phone className="h-3 w-3" />, className: "" },
+          };
+          if (ls && STAGE[ls]) {
+            const s = STAGE[ls];
+            return (
+              <Badge variant="secondary" className={`gap-1 ${s.className}`}>
+                {s.icon}
+                {s.label}
+              </Badge>
+            );
+          }
+        }
         return (
           <TooltipProvider>
             <Tooltip>
@@ -549,7 +589,10 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                 className="gap-1 cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/web-analysis?id=${lead.analysis_id}`);
+                  // Web analyses deep-link to the analysis page; GEO/SEO/report-only
+                  // analyses have no web_analysis id, so open the lead's analysis view.
+                  if (lead.analysis_id) navigate(`/web-analysis?id=${lead.analysis_id}`);
+                  else navigate(`/leads/${lead.id}`);
                 }}
               >
                 <CheckCircle2 className="h-3 w-3" />
