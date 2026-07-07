@@ -471,23 +471,18 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
     if (!isPoolLead(lead) || !rb) return null;
     const m = membersMap.get(rb);
     const name = m?.full_name || m?.email || "?";
+    const reason = (lead as any).released_reason as string | undefined;
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Badge variant="outline" className="gap-1 text-muted-foreground">
-              <Avatar className="h-4 w-4">
-                <AvatarImage src={m?.avatar_url || undefined} alt={name} />
-                <AvatarFallback className="text-[7px] bg-primary/10 text-primary">{m ? getInitials(m) : "?"}</AvatarFallback>
-              </Avatar>
-              {name}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{t("leadsList.pooledBy", { name })}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <span
+        className="mt-1 flex items-center gap-1.5 text-xs font-normal text-muted-foreground"
+        title={reason || undefined}
+      >
+        <Avatar className="h-4 w-4">
+          <AvatarImage src={m?.avatar_url || undefined} alt={name} />
+          <AvatarFallback className="text-[7px] bg-primary/10 text-primary">{m ? getInitials(m) : "?"}</AvatarFallback>
+        </Avatar>
+        {t("leadsList.pooledBy", { name })}
+      </span>
     );
   };
 
@@ -1049,9 +1044,6 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">{t("leadsList.colOwner")}</TableHead>
-                    {ownerFilter === "pool" && (
-                      <TableHead>{t("leadsList.pooledByCol")}</TableHead>
-                    )}
                     <TableHead
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleSort("company_name")}
@@ -1121,16 +1113,6 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                           />
                         )}
                       </TableCell>
-                      {ownerFilter === "pool" && (
-                        <TableCell>
-                          {renderPooledBy(lead)}
-                          {(lead as any).released_reason && (
-                            <div className="text-xs text-muted-foreground mt-1 max-w-[220px] truncate" title={(lead as any).released_reason}>
-                              {(lead as any).released_reason}
-                            </div>
-                          )}
-                        </TableCell>
-                      )}
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {lead.company_name || "-"}
@@ -1147,6 +1129,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                             </a>
                           )}
                         </div>
+                        {renderPooledBy(lead)}
                       </TableCell>
                       <TableCell>{lead.contact_name || "-"}</TableCell>
                       <TableCell>{lead.email || "-"}</TableCell>
