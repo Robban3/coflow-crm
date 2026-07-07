@@ -1049,6 +1049,9 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">{t("leadsList.colOwner")}</TableHead>
+                    {ownerFilter === "pool" && (
+                      <TableHead>{t("leadsList.pooledByCol")}</TableHead>
+                    )}
                     <TableHead
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleSort("company_name")}
@@ -1093,38 +1096,20 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         {isPoolLead(lead) ? (
-                          <div className="flex flex-col items-start gap-1.5">
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="gap-1.5 whitespace-nowrap"
-                              disabled={claimingId === lead.id}
-                              onClick={() => handleClaim(lead)}
-                            >
-                              {claimingId === lead.id ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <Inbox className="h-3.5 w-3.5" />
-                              )}
-                              {t("leadDetail.ll_pickUp")}
-                            </Button>
-                            {(lead as any).released_reason && (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Badge variant="outline" className="gap-1 text-muted-foreground">
-                                      <Inbox className="h-3 w-3" />
-                                      {t("leadDetail.ll_free")}
-                                    </Badge>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="max-w-[240px]">{(lead as any).released_reason}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="gap-1.5 whitespace-nowrap"
+                            disabled={claimingId === lead.id}
+                            onClick={() => handleClaim(lead)}
+                          >
+                            {claimingId === lead.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Inbox className="h-3.5 w-3.5" />
                             )}
-                            {renderPooledBy(lead)}
-                          </div>
+                            {t("leadDetail.ll_pickUp")}
+                          </Button>
                         ) : (
                           <InlineLeadOwners
                             memberIds={lead.member_ids}
@@ -1136,6 +1121,16 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                           />
                         )}
                       </TableCell>
+                      {ownerFilter === "pool" && (
+                        <TableCell>
+                          {renderPooledBy(lead)}
+                          {(lead as any).released_reason && (
+                            <div className="text-xs text-muted-foreground mt-1 max-w-[220px] truncate" title={(lead as any).released_reason}>
+                              {(lead as any).released_reason}
+                            </div>
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {lead.company_name || "-"}
