@@ -472,13 +472,22 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
     const m = membersMap.get(rb);
     const name = m?.full_name || m?.email || "?";
     return (
-      <span className="flex items-center gap-1 text-xs text-muted-foreground">
-        <Avatar className="h-5 w-5">
-          <AvatarImage src={m?.avatar_url || undefined} alt={name} />
-          <AvatarFallback className="text-[8px] bg-primary/10 text-primary">{m ? getInitials(m) : "?"}</AvatarFallback>
-        </Avatar>
-        {t("leadsList.pooledBy", { name })}
-      </span>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="outline" className="gap-1 text-muted-foreground">
+              <Avatar className="h-4 w-4">
+                <AvatarImage src={m?.avatar_url || undefined} alt={name} />
+                <AvatarFallback className="text-[7px] bg-primary/10 text-primary">{m ? getInitials(m) : "?"}</AvatarFallback>
+              </Avatar>
+              {name}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t("leadsList.pooledBy", { name })}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
 
