@@ -38,6 +38,7 @@ import {
 import { WonDealDialog } from "@/components/deals/WonDealDialog";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { batchIn } from "@/lib/batchIn";
+import { UserAvatar, usePrefetchProfiles } from "@/components/ui/user-avatar";
 
 const PIPELINE_STAGES = [
   { key: "active", color: "bg-blue-500" },
@@ -61,6 +62,8 @@ interface PipelineLead {
   created_at: string;
   last_call_at: string | null;
   last_call_outcome_key: string | null;
+  assigned_to: string | null;
+  created_by: string | null;
 }
 
 export default function PipelinePage() {
@@ -95,7 +98,7 @@ export default function PipelinePage() {
     queryFn: async () => {
       let query: any = (supabase
         .from("leads")
-        .select("id, company_name, contact_name, email, phone, website, lead_status, created_at, last_call_at, last_call_outcome_key") as any)
+        .select("id, company_name, contact_name, email, phone, website, lead_status, created_at, last_call_at, last_call_outcome_key, assigned_to, created_by") as any)
         .not("is_not_interested", "eq", true)
         .eq("is_test", false) // demo/test leads never appear in the pipeline
         .order("created_at", { ascending: false });
@@ -135,6 +138,9 @@ export default function PipelinePage() {
     enabled: !!user?.id,
     refetchOnMount: "always",
   });
+
+  // Warm the profile cache so every owner avatar on the cards renders instantly.
+  usePrefetchProfiles(leads.map((l) => l.assigned_to || l.created_by || null));
 
   // Live updates: refetch whenever a lead changes (status moves, callbacks,
   // assignments) so cards land in the right column without a page reload.
@@ -344,9 +350,12 @@ export default function PipelinePage() {
                             )}
                           </div>
 
-                          <p className="text-[10px] text-muted-foreground/40">
-                            {format(new Date(lead.created_at), "d MMM yyyy", { locale: dateLocale })}
-                          </p>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-[10px] text-muted-foreground/40">
+                              {format(new Date(lead.created_at), "d MMM yyyy", { locale: dateLocale })}
+                            </p>
+                            <UserAvatar userId={lead.assigned_to || lead.created_by} size="xs" />
+                          </div>
                         </CardContent>
                       </Card>
                     ))}

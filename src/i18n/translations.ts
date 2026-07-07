@@ -183,6 +183,7 @@ export const translations: Record<Language, Dict> = {
     "customers.colContact": "Kontakt",
     "customers.colEmail": "E-post",
     "customers.colStatus": "Status",
+    "customers.colOwner": "Ägare",
     "customers.colCreated": "Skapad",
 
     // Pipeline
@@ -223,6 +224,7 @@ export const translations: Record<Language, Dict> = {
     "leadsList.contactOfferSent": "Offert skickad",
     "leadsList.contactWon": "Vunnen",
     "leadsList.contactCallback": "Återkoppling",
+    "leadsList.pooledBy": "Lagd i pool av {name}",
     "leadsList.showTest": "Visa test",
     "leadsList.analyzed": "Analyserad",
     "leadsList.tipClickAnalysis": "Klicka för att se analysen",
@@ -551,6 +553,7 @@ export const translations: Record<Language, Dict> = {
     "customers.colContact": "Contact",
     "customers.colEmail": "Email",
     "customers.colStatus": "Status",
+    "customers.colOwner": "Owner",
     "customers.colCreated": "Created",
 
     // Pipeline
@@ -591,6 +594,7 @@ export const translations: Record<Language, Dict> = {
     "leadsList.contactOfferSent": "Offer sent",
     "leadsList.contactWon": "Won",
     "leadsList.contactCallback": "Callback",
+    "leadsList.pooledBy": "Pooled by {name}",
     "leadsList.showTest": "Show test",
     "leadsList.analyzed": "Analyzed",
     "leadsList.tipClickAnalysis": "Click to view the analysis",
@@ -919,6 +923,7 @@ export const translations: Record<Language, Dict> = {
     "customers.colContact": "Contacto",
     "customers.colEmail": "Correo",
     "customers.colStatus": "Estado",
+    "customers.colOwner": "Propietario",
     "customers.colCreated": "Creado",
 
     // Pipeline
@@ -959,6 +964,7 @@ export const translations: Record<Language, Dict> = {
     "leadsList.contactOfferSent": "Oferta enviada",
     "leadsList.contactWon": "Ganado",
     "leadsList.contactCallback": "Seguimiento",
+    "leadsList.pooledBy": "Añadido al grupo por {name}",
     "leadsList.showTest": "Mostrar test",
     "leadsList.analyzed": "Analizado",
     "leadsList.tipClickAnalysis": "Haz clic para ver el análisis",

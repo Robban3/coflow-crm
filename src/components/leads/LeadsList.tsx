@@ -464,6 +464,24 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
     }
   };
 
+  // Pool leads have no owner, but we can show WHO released them to the pool
+  // (leads.released_by, set on release). Resolve the name via the team member map.
+  const renderPooledBy = (lead: LeadWithOutreachStatus) => {
+    const rb = (lead as any).released_by as string | undefined;
+    if (!isPoolLead(lead) || !rb) return null;
+    const m = membersMap.get(rb);
+    const name = m?.full_name || m?.email || "?";
+    return (
+      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+        <Avatar className="h-5 w-5">
+          <AvatarImage src={m?.avatar_url || undefined} alt={name} />
+          <AvatarFallback className="text-[8px] bg-primary/10 text-primary">{m ? getInitials(m) : "?"}</AvatarFallback>
+        </Avatar>
+        {t("leadsList.pooledBy", { name })}
+      </span>
+    );
+  };
+
   const getOutreachStatusBadge = (lead: LeadWithOutreachStatus) => {
     switch (lead.outreach_status) {
       case "sequence_active":
@@ -990,6 +1008,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                         {(lead as any).released_reason || t("leadDetail.ll_freeInPool")}
                       </Badge>
                     )}
+                    {renderPooledBy(lead)}
                     {getEnrichmentBadge(lead)}
                     {getOutreachStatusBadge(lead)}
                     <LeadStatusBadge
@@ -1109,6 +1128,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                               </Tooltip>
                             </TooltipProvider>
                           )}
+                          {renderPooledBy(lead)}
                           {lead.website && (
                             <a 
                               href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} 

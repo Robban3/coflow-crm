@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { sv, enUS, es } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { UserAvatar, usePrefetchProfiles } from "@/components/ui/user-avatar";
 
 const statusColors: Record<string, string> = {
   lead: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
@@ -43,6 +44,8 @@ interface Customer {
   created_at: string;
   updated_at: string;
   lead_id?: string | null;
+  assigned_to?: string | null;
+  created_by?: string | null;
 }
 
 export default function CustomersPage() {
@@ -87,6 +90,9 @@ export default function CustomersPage() {
     const matchesStatus = statusFilter === "all" || c.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // Warm the profile cache so every owner avatar renders without an individual fetch.
+  usePrefetchProfiles(customers.map((c) => c.assigned_to || c.created_by || null));
 
   return (
     <AppLayout title={t("customers.title")}>
@@ -146,6 +152,7 @@ export default function CustomersPage() {
                     <TableHead className="hidden sm:table-cell">{t("customers.colContact")}</TableHead>
                     <TableHead className="hidden md:table-cell">{t("customers.colEmail")}</TableHead>
                     <TableHead>{t("customers.colStatus")}</TableHead>
+                    <TableHead>{t("customers.colOwner")}</TableHead>
                     <TableHead className="hidden md:table-cell">{t("customers.colCreated")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -161,6 +168,11 @@ export default function CustomersPage() {
                       <TableCell className="hidden md:table-cell">{customer.email || "-"}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={statusColors[customer.status] || ""}>{statusLabelKeys[customer.status] ? t(statusLabelKeys[customer.status]) : customer.status}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {(customer.assigned_to || customer.created_by)
+                          ? <UserAvatar userId={customer.assigned_to || customer.created_by || null} size="sm" />
+                          : <span className="text-xs text-muted-foreground">-</span>}
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground">
                         {format(new Date(customer.created_at), "d MMM yyyy", { locale: dateLocale })}
