@@ -1093,20 +1093,38 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         {isPoolLead(lead) ? (
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            className="gap-1.5 whitespace-nowrap"
-                            disabled={claimingId === lead.id}
-                            onClick={() => handleClaim(lead)}
-                          >
-                            {claimingId === lead.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <Inbox className="h-3.5 w-3.5" />
+                          <div className="flex flex-col items-start gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="gap-1.5 whitespace-nowrap"
+                              disabled={claimingId === lead.id}
+                              onClick={() => handleClaim(lead)}
+                            >
+                              {claimingId === lead.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Inbox className="h-3.5 w-3.5" />
+                              )}
+                              {t("leadDetail.ll_pickUp")}
+                            </Button>
+                            {(lead as any).released_reason && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge variant="outline" className="gap-1 text-muted-foreground">
+                                      <Inbox className="h-3 w-3" />
+                                      {t("leadDetail.ll_free")}
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="max-w-[240px]">{(lead as any).released_reason}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             )}
-                            {t("leadDetail.ll_pickUp")}
-                          </Button>
+                            {renderPooledBy(lead)}
+                          </div>
                         ) : (
                           <InlineLeadOwners
                             memberIds={lead.member_ids}
@@ -1122,22 +1140,6 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                         <div className="flex items-center gap-2">
                           {lead.company_name || "-"}
                           {lead.is_test && <span className="rounded bg-amber-500/15 px-1 py-0.5 text-[10px] font-semibold text-amber-600">TEST</span>}
-                          {isPoolLead(lead) && (lead as any).released_reason && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Badge variant="outline" className="gap-1 text-muted-foreground">
-                                    <Inbox className="h-3 w-3" />
-                                    {t("leadDetail.ll_free")}
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="max-w-[240px]">{(lead as any).released_reason}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                          {renderPooledBy(lead)}
                           {lead.website && (
                             <a 
                               href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} 
