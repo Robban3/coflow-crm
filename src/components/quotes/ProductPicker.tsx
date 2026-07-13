@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, FileText } from "lucide-react";
+import { Search, Plus, FileText, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,6 +38,7 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // New product form
   const [newName, setNewName] = useState("");
@@ -73,8 +74,64 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
     setLoading(false);
   };
 
-  const createProduct = async () => {
+  const resetForm = () => {
+    setNewName("");
+    setNewDesc("");
+    setNewPrice(0);
+    setNewUnit("st");
+    setNewVat(25);
+  };
+
+  const startEdit = (p: Product) => {
+    setEditingId(p.id);
+    setNewName(p.name);
+    setNewDesc(p.description || "");
+    setNewPrice(p.unit_price);
+    setNewUnit(p.unit);
+    setNewVat(p.vat_rate);
+    setShowCreate(true);
+  };
+
+  const deleteProduct = async (p: Product) => {
+    if (!window.confirm(t("quotes.deleteConfirm", { name: p.name }))) return;
+    const { error } = await supabase.from("products").delete().eq("id", p.id);
+    if (error) {
+      toast.error(t("quotes.couldNotDeleteProduct"));
+      return;
+    }
+    toast.success(t("quotes.productDeleted"));
+    setProducts((prev) => prev.filter((x) => x.id !== p.id));
+  };
+
+  const saveProduct = async () => {
     if (!newName.trim() || !organizationId || !user) return;
+
+    // Edit mode: update in place, refresh the list, stay in the picker.
+    if (editingId) {
+      const { error } = await supabase
+        .from("products")
+        .update({
+          name: newName,
+          description: newDesc || null,
+          unit_price: newPrice,
+          unit: newUnit,
+          vat_rate: newVat,
+        })
+        .eq("id", editingId);
+
+      if (error) {
+        toast.error(t("quotes.couldNotSaveProduct"));
+        return;
+      }
+      toast.success(t("quotes.productUpdated"));
+      setShowCreate(false);
+      setEditingId(null);
+      resetForm();
+      fetchProducts();
+      return;
+    }
+
+    // Create mode: insert and add straight to the quote/offer.
     const { data, error } = await supabase
       .from("products")
       .insert({
@@ -115,7 +172,7 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t("quotes.selectProductService")}</DialogTitle>
+          <DialogTitle>{showCreate ? (editingId ? t("quotes.editProduct") : t("quotes.createNewProduct")) : t("quotes.selectProductService")}</DialogTitle>
         </DialogHeader>
 
         {!showCreate ? (
@@ -140,23 +197,41 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
                 </div>
               ) : (
                 filtered.map((p) => (
-                  <button
+                  <div
                     key={p.id}
-                    onClick={() => onSelect(p)}
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-accent transition-colors"
+                    className="flex items-center gap-1 px-2 py-2 rounded-lg hover:bg-accent transition-colors"
                   >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium text-sm">{p.name}</p>
-                        {p.description && (
-                          <p className="text-xs text-muted-foreground truncate">{p.description}</p>
-                        )}
+                    <button
+                      onClick={() => onSelect(p)}
+                      className="flex-1 min-w-0 text-left"
+                    >
+                      <div className="flex justify-between items-center gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{p.name}</p>
+                          {p.description && (
+                            <p className="text-xs text-muted-foreground truncate">{p.description}</p>
+                          )}
+                        </div>
+                        <span className="text-sm font-medium whitespace-nowrap">
+                          {p.unit_price.toLocaleString(numberLocale)} kr/{p.unit}
+                        </span>
                       </div>
-                      <span className="text-sm font-medium whitespace-nowrap ml-4">
-                        {p.unit_price.toLocaleString(numberLocale)} kr/{p.unit}
-                      </span>
-                    </div>
-                  </button>
+                    </button>
+                    <button
+                      onClick={() => startEdit(p)}
+                      title={t("quotes.editProduct")}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-background shrink-0"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => deleteProduct(p)}
+                      title={t("quotes.deleteProduct")}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-background shrink-0"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 ))
               )}
             </div>
@@ -164,7 +239,7 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => setShowCreate(true)}
+              onClick={() => { setEditingId(null); resetForm(); setShowCreate(true); }}
             >
               <Plus className="h-4 w-4 mr-2" />
               {t("quotes.createNewProduct")}
@@ -195,11 +270,11 @@ export function ProductPicker({ onSelect, onClose }: ProductPickerProps) {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowCreate(false)} className="flex-1">
+              <Button variant="outline" onClick={() => { setShowCreate(false); setEditingId(null); resetForm(); }} className="flex-1">
                 {t("quotes.back")}
               </Button>
-              <Button onClick={createProduct} className="flex-1" disabled={!newName.trim()}>
-                {t("quotes.createAndAdd")}
+              <Button onClick={saveProduct} className="flex-1" disabled={!newName.trim()}>
+                {editingId ? t("quotes.saveChanges") : t("quotes.createAndAdd")}
               </Button>
             </div>
           </div>
