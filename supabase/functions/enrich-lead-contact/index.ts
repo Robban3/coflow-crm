@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-type Market = "SE" | "US" | "DE" | "ES" | "UK" | "KR";
+type Market = "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA";
 
 // Domains to exclude - belong to scraping/utility sites, not the company
 const EXCLUDED_EMAIL_DOMAINS = [
@@ -46,7 +46,7 @@ function extractEmails(text: string): string[] {
 }
 
 function extractPhone(text: string, market: Market): string | null {
-  const patterns: RegExp[] = market === "US"
+  const patterns: RegExp[] = (market === "US" || market === "CA")
     ? [
         /(?:Phone|Tel|Telephone|Call)[:\s]*([+]?1?[\s().-]?\d{3}[\s().-]?\d{3}[\s().-]?\d{4})/i,
         /\b(\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/,
@@ -98,6 +98,7 @@ const CONTACT_PATHS_BY_MARKET: Record<Market, string[]> = {
   ES: ["/contacto", "/contact", "/sobre-nosotros", "/quienes-somos", "/aviso-legal"],
   UK: ["/contact", "/contact-us", "/about", "/about-us", "/team"],
   KR: ["/contact", "/contact-us", "/about", "/company", "/introduce"],
+  CA: ["/contact", "/contact-us", "/about", "/about-us", "/team"],
 };
 
 function normalizeUrl(input: string): string {
@@ -256,7 +257,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const market: Market = marketInput === "US" || marketInput === "DE" || marketInput === "ES" || marketInput === "UK" || marketInput === "KR" ? marketInput : "SE";
+    const market: Market = marketInput === "US" || marketInput === "DE" || marketInput === "ES" || marketInput === "UK" || marketInput === "KR" || marketInput === "CA" ? marketInput : "SE";
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
     const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },

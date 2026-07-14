@@ -92,10 +92,10 @@ serve(async (req) => {
 
     // Normalize market (default SE)
     const marketUpper = (marketRaw || "SE").toString().toUpperCase();
-    const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" =
-      marketUpper === "US" || marketUpper === "DE" || marketUpper === "ES" || marketUpper === "UK" || marketUpper === "KR" ? marketUpper : "SE";
+    const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" =
+      marketUpper === "US" || marketUpper === "DE" || marketUpper === "ES" || marketUpper === "UK" || marketUpper === "KR" || marketUpper === "CA" ? marketUpper : "SE";
 
-    const MARKET_CONFIG: Record<"SE" | "US" | "DE" | "ES" | "UK" | "KR", {
+    const MARKET_CONFIG: Record<"SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA", {
       regionCode: string;
       languageCode: string;
       countryName: string;
@@ -110,6 +110,7 @@ serve(async (req) => {
       ES: { regionCode: "ES", languageCode: "es", countryName: "España", countryAliases: ["españa", "espana", "spain"], bbox: { low: { lat: 27.6, lng: -18.2 }, high: { lat: 43.9, lng: 4.4 } } },
       UK: { regionCode: "GB", languageCode: "en", countryName: "United Kingdom", countryAliases: ["uk", "united kingdom", "great britain", "gb", "england", "scotland", "wales"], bbox: { low: { lat: 49.9, lng: -8.65 }, high: { lat: 60.9, lng: 1.8 } } },
       KR: { regionCode: "KR", languageCode: "ko", countryName: "South Korea", countryAliases: ["korea", "south korea", "republic of korea", "kr", "대한민국", "한국", "sydkorea"], bbox: { low: { lat: 33.0, lng: 124.5 }, high: { lat: 38.7, lng: 131.0 } } },
+      CA: { regionCode: "CA", languageCode: "en", countryName: "Canada", countryAliases: ["canada", "ca", "kanada"], bbox: { low: { lat: 41.6, lng: -141.0 }, high: { lat: 83.2, lng: -52.6 } } },
     };
     const cfg = MARKET_CONFIG[market];
 

@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     }
 
     const { analysisData, market } = await req.json() as { analysisData: AnalysisData; market?: string };
-    const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska", UK: "engelska", KR: "koreanska" };
+    const LANG_BY_MARKET: Record<string, string> = { SE: "svenska", US: "engelska", DE: "tyska", ES: "spanska", UK: "engelska", KR: "koreanska", CA: "engelska" };
     const lang = LANG_BY_MARKET[(market || "SE").toUpperCase()] || "svenska";
 
     if (!analysisData) {

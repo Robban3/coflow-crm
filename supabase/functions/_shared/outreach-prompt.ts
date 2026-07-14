@@ -8,7 +8,7 @@
 
 // ── helpers ──────────────────────────────────────────────────────────
 
-export type Market = "SE" | "US" | "DE" | "ES" | "UK" | "KR";
+export type Market = "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA";
 
 // Appended to the (reused) English prompt for the Korean market so the model
 // writes the actual email in professional Korean regardless of the instruction
@@ -99,7 +99,7 @@ export function buildOutreachSystemPrompt(ctx: OutreachContext): string {
   }
   // Non-Swedish markets use a streamlined market-specific prompt
   if (market === "KR") return buildUSSystemPrompt(ctx) + KR_LANGUAGE_OVERRIDE;
-  if ((market === "US" || market === "UK")) return buildUSSystemPrompt(ctx);
+  if ((market === "US" || market === "UK" || market === "CA")) return buildUSSystemPrompt(ctx);
   if (market === "DE") return buildDESystemPrompt(ctx);
   if (market === "ES") return buildESSystemPrompt(ctx);
 
@@ -278,7 +278,7 @@ function buildFollowUpSystemPrompt(ctx: OutreachContext): string {
   const tone = toneInstructions[ctx.tone || "standard"] || toneInstructions.standard;
   const market: Market = ctx.market || "SE";
 
-  if ((market === "US" || market === "UK" || market === "KR")) {
+  if ((market === "US" || market === "UK" || market === "KR" || market === "CA")) {
     const senderBlock = buildSenderBlockEN(ctx);
     const base = `You are writing a FOLLOW-UP cold email in American English. You contacted this company BEFORE but got no reply.
 
@@ -374,7 +374,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
 
   if (ctx.context === "follow_up") {
     parts.push(
-      (market === "US" || market === "UK" || market === "KR")
+      (market === "US" || market === "UK" || market === "KR" || market === "CA")
         ? "Write a FOLLOW-UP email. You contacted them before but got no reply.\n"
         : market === "DE"
         ? "Schreiben Sie eine FOLLOW-UP E-Mail. Sie haben den Empfänger bereits kontaktiert, aber keine Antwort erhalten.\n"
@@ -384,7 +384,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
     );
   } else {
     parts.push(
-      (market === "US" || market === "UK" || market === "KR")
+      (market === "US" || market === "UK" || market === "KR" || market === "CA")
         ? "Write ONE outreach email based on the data below.\n"
         : market === "DE"
         ? "Schreiben Sie EINE Outreach-E-Mail basierend auf den folgenden Daten.\n"
@@ -443,7 +443,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
   // ── ANALYSIS DATA: Give AI the raw scores to use in "praise + challenge" format ──
   if (ctx.webAnalysis) {
     const wa = ctx.webAnalysis;
-    const labels = (market === "US" || market === "UK" || market === "KR")
+    const labels = (market === "US" || market === "UK" || market === "KR" || market === "CA")
       ? { performance: "Performance", seo: "SEO", a11y: "Accessibility", bp: "Best Practices" }
       : market === "DE"
       ? { performance: "Performance", seo: "SEO", a11y: "Barrierefreiheit", bp: "Best Practices" }
@@ -459,7 +459,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
     ].filter(s => s.score > 0);
 
     if (analyzedScores.length > 0) {
-      const intro = (market === "US" || market === "UK" || market === "KR")
+      const intro = (market === "US" || market === "UK" || market === "KR" || market === "CA")
         ? "Website analysis for this company (use these numbers as a specific opening insight — praise strengths, point out the bottleneck):"
         : market === "DE"
         ? "Website-Analyse für dieses Unternehmen (verwenden Sie diese Werte als konkreten Einstieg — Stärken loben, Engpass benennen):"
@@ -590,7 +590,7 @@ export interface ProfileSignature {
   full_name?: string | null;
 }
 
-export type SignatureMarket = "SE" | "US" | "DE" | "ES" | "UK" | "KR";
+export type SignatureMarket = "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA";
 
 const SIGNATURE_CLOSING: Record<SignatureMarket, string> = {
   SE: "Med vänlig hälsning,",
@@ -599,6 +599,7 @@ const SIGNATURE_CLOSING: Record<SignatureMarket, string> = {
   ES: "Un saludo,",
   UK: "Kind regards,",
   KR: "감사합니다,",
+  CA: "Best regards,",
 };
 
 const SIGNATURE_FALLBACK_NAME = "CoFlow";

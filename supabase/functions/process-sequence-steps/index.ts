@@ -221,8 +221,8 @@ Webbanalys resultat:
 ` : "Ingen webbanalys genomförd ännu.";
 
             // Determine sequence market for language + tone
-            const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" =
-              (leadSequence.sequence?.market as "SE" | "US" | "DE" | "ES" | "UK" | "KR") || "SE";
+            const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" =
+              (leadSequence.sequence?.market as "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA") || "SE";
 
             // Heuristic: skip a Swedish saved signature when sending in English/German
             const sigText = (profile?.email_signature || "").toLowerCase();
@@ -238,7 +238,7 @@ Webbanalys resultat:
 Sender:
 - Name: ${profile.full_name || ""}
 - Company: ${profile.company_name || ""}
-${useSavedSignature ? `Saved signature (in ${market === "SE" ? "Swedish" : (market === "US" || market === "UK") ? "English" : market === "ES" ? "Spanish" : market === "KR" ? "Korean" : "German"}, may be appended verbatim): ${profile.email_signature}` : "(No localized signature available — close the body without a signature; one will be appended automatically.)"}
+${useSavedSignature ? `Saved signature (in ${market === "SE" ? "Swedish" : (market === "US" || market === "UK" || market === "CA") ? "English" : market === "ES" ? "Spanish" : market === "KR" ? "Korean" : "German"}, may be appended verbatim): ${profile.email_signature}` : "(No localized signature available — close the body without a signature; one will be appended automatically.)"}
 ` : "";
 
             const systemPromptByMarket: Record<"SE" | "US" | "DE" | "ES" | "UK", string> = {
@@ -282,7 +282,7 @@ ${signatureContext}`,
             };
 
             const KR_SEQ_OVERRIDE = `\n\nLANGUAGE OVERRIDE (HIGHEST PRIORITY): Write the entire email — both subject and body — in natural, professional Korean (한국어), formal business register (존댓말/하십시오체). Greeting: "[이름]님, 안녕하세요." if a person's name is given, otherwise "안녕하세요,". No emojis. Keep the exact JSON format specified below.`;
-            const systemPrompt = systemPromptByMarket[(market === "UK" || market === "KR") ? "US" : market]
+            const systemPrompt = systemPromptByMarket[(market === "UK" || market === "KR" || market === "CA") ? "US" : market]
               + (market === "KR" ? KR_SEQ_OVERRIDE : "");
 
             // Get total steps
@@ -356,7 +356,7 @@ Generieren Sie eine E-Mail mit Betreffzeile und Text. Antworten Sie als JSON:
 {"subject": "Betreff hier", "body": "E-Mail-Text hier"}`,
             };
 
-            const emailContext = userPromptByMarket[(market === "UK" || market === "KR") ? "US" : market];
+            const emailContext = userPromptByMarket[(market === "UK" || market === "KR" || market === "CA") ? "US" : market];
 
             const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
               method: "POST",
@@ -409,7 +409,7 @@ Generieren Sie eine E-Mail mit Betreffzeile und Text. Antworten Sie als JSON:
               emailContent.body += `\n\n${profile!.email_signature}`;
             } else {
               const senderName = profile?.full_name || profile?.company_name || "";
-              emailContent.body += `\n\n${closingByMarket[market === "UK" ? "US" : market]}\n${senderName}`.trimEnd();
+              emailContent.body += `\n\n${closingByMarket[(market === "UK" || market === "CA") ? "US" : market]}\n${senderName}`.trimEnd();
             }
             const footerText = (profile?.email_footer || "").toLowerCase();
             const footerLooksSwedish =
