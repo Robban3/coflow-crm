@@ -41,8 +41,8 @@ serve(async (req) => {
 
     const { leadId, stepNumber, totalSteps, emailPrompt, userId, market: marketRaw } = validation.data;
     const context = rawBody.context || "initial";
-    const market: "SE" | "US" | "DE" | "ES" | "UK" =
-      marketRaw === "US" || marketRaw === "DE" || marketRaw === "ES" || marketRaw === "UK" ? marketRaw : "SE";
+    const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" =
+      marketRaw === "US" || marketRaw === "DE" || marketRaw === "ES" || marketRaw === "UK" || marketRaw === "KR" ? marketRaw : "SE";
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

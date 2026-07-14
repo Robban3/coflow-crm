@@ -9,7 +9,8 @@ export type Lang = "sv" | "en" | "es";
 /** Accepts a UI language code, a language name, or a market code and returns sv/en/es. */
 export function resolveLang(input?: string | null): Lang {
   const v = String(input ?? "").trim().toLowerCase();
-  if (["en", "eng", "engelska", "english", "us", "gb", "uk"].includes(v)) return "en";
+  // Korean market has no fixed-string translations yet → fall back to English.
+  if (["en", "eng", "engelska", "english", "us", "gb", "uk", "kr", "ko", "korean", "koreanska"].includes(v)) return "en";
   if (["es", "spa", "spanska", "español", "espanol", "spanish"].includes(v)) return "es";
   // sv, svenska, se, and anything unknown → Swedish (app default)
   return "sv";

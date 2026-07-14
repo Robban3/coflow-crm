@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-type Market = "SE" | "US" | "DE" | "ES" | "UK";
+type Market = "SE" | "US" | "DE" | "ES" | "UK" | "KR";
 
 // Domains to exclude - belong to scraping/utility sites, not the company
 const EXCLUDED_EMAIL_DOMAINS = [
@@ -69,6 +69,13 @@ function extractPhone(text: string, market: Market): string | null {
         /\b(\+44[\s-]?\(?0?\)?[\s-]?[0-9]{2,4}[\s-]?[0-9]{3,4}[\s-]?[0-9]{3,4})\b/,
         /\b(0[0-9]{2,4}[\s-]?[0-9]{3,4}[\s-]?[0-9]{3,4})\b/,
       ]
+    : market === "KR"
+    ? [
+        /(?:전화|연락처|Tel|Phone|Mobile|Cell)[:\s]*([+]?82?[\s().-]?0?1?[\s().-]?[0-9][\s().-]?[0-9]{3,4}[\s().-]?[0-9]{4})/i,
+        /\b(\+82[\s-]?1[0-9][\s-]?[0-9]{3,4}[\s-]?[0-9]{4})\b/,
+        /\b(01[0-9][\s-]?[0-9]{3,4}[\s-]?[0-9]{4})\b/,
+        /\b(0[2-6][0-9]?[\s-]?[0-9]{3,4}[\s-]?[0-9]{4})\b/,
+      ]
     : [
         /(?:Telefon|Tel|Tfn|Phone)[:\s]*([+]?[0-9\-\s()]{7,20})/i,
         /\b(\+46[\s-]?[0-9][\s-]?[0-9]{2,3}[\s-]?[0-9]{2}[\s-]?[0-9]{2})\b/,
@@ -89,6 +96,8 @@ const CONTACT_PATHS_BY_MARKET: Record<Market, string[]> = {
   US: ["/contact", "/contact-us", "/about", "/about-us", "/team"],
   DE: ["/kontakt", "/kontakt-aufnehmen", "/uber-uns", "/ueber-uns", "/impressum"],
   ES: ["/contacto", "/contact", "/sobre-nosotros", "/quienes-somos", "/aviso-legal"],
+  UK: ["/contact", "/contact-us", "/about", "/about-us", "/team"],
+  KR: ["/contact", "/contact-us", "/about", "/company", "/introduce"],
 };
 
 function normalizeUrl(input: string): string {
@@ -247,7 +256,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const market: Market = marketInput === "US" || marketInput === "DE" || marketInput === "ES" || marketInput === "UK" ? marketInput : "SE";
+    const market: Market = marketInput === "US" || marketInput === "DE" || marketInput === "ES" || marketInput === "UK" || marketInput === "KR" ? marketInput : "SE";
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
     const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },

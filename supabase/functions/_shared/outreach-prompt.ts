@@ -8,7 +8,15 @@
 
 // ── helpers ──────────────────────────────────────────────────────────
 
-export type Market = "SE" | "US" | "DE" | "ES" | "UK";
+export type Market = "SE" | "US" | "DE" | "ES" | "UK" | "KR";
+
+// Appended to the (reused) English prompt for the Korean market so the model
+// writes the actual email in professional Korean regardless of the instruction
+// language. Korean where it counts (the customer-facing copy); the scaffolding
+// stays English.
+const KR_LANGUAGE_OVERRIDE = `
+
+LANGUAGE OVERRIDE (HIGHEST PRIORITY): Ignore any instruction above to write in English. Write BOTH the "subject" and the body ENTIRELY in natural, professional Korean (한국어), using formal business register (존댓말/하십시오체). Greeting: "[이름]님, 안녕하세요." when a real person's name is given, otherwise "안녕하세요,". No emojis, no clichés. Keep the exact JSON output format specified above.`;
 
 export interface OutreachContext {
   companyName?: string;
@@ -90,6 +98,7 @@ export function buildOutreachSystemPrompt(ctx: OutreachContext): string {
     return buildFollowUpSystemPrompt(ctx);
   }
   // Non-Swedish markets use a streamlined market-specific prompt
+  if (market === "KR") return buildUSSystemPrompt(ctx) + KR_LANGUAGE_OVERRIDE;
   if ((market === "US" || market === "UK")) return buildUSSystemPrompt(ctx);
   if (market === "DE") return buildDESystemPrompt(ctx);
   if (market === "ES") return buildESSystemPrompt(ctx);
@@ -269,9 +278,9 @@ function buildFollowUpSystemPrompt(ctx: OutreachContext): string {
   const tone = toneInstructions[ctx.tone || "standard"] || toneInstructions.standard;
   const market: Market = ctx.market || "SE";
 
-  if ((market === "US" || market === "UK")) {
+  if ((market === "US" || market === "UK" || market === "KR")) {
     const senderBlock = buildSenderBlockEN(ctx);
-    return `You are writing a FOLLOW-UP cold email in American English. You contacted this company BEFORE but got no reply.
+    const base = `You are writing a FOLLOW-UP cold email in American English. You contacted this company BEFORE but got no reply.
 
 TONE: ${tone}
 ${senderBlock}
@@ -284,6 +293,7 @@ FOLLOW-UP STRATEGY:
 - BANNED phrases: "just following up", "just checking in", "circling back".
 
 Respond EXACTLY as JSON: {"subject": "...", "body_without_signature": "..."}`;
+    return market === "KR" ? base + KR_LANGUAGE_OVERRIDE : base;
   }
 
   if (market === "DE") {
@@ -364,7 +374,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
 
   if (ctx.context === "follow_up") {
     parts.push(
-      (market === "US" || market === "UK")
+      (market === "US" || market === "UK" || market === "KR")
         ? "Write a FOLLOW-UP email. You contacted them before but got no reply.\n"
         : market === "DE"
         ? "Schreiben Sie eine FOLLOW-UP E-Mail. Sie haben den Empfänger bereits kontaktiert, aber keine Antwort erhalten.\n"
@@ -374,7 +384,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
     );
   } else {
     parts.push(
-      (market === "US" || market === "UK")
+      (market === "US" || market === "UK" || market === "KR")
         ? "Write ONE outreach email based on the data below.\n"
         : market === "DE"
         ? "Schreiben Sie EINE Outreach-E-Mail basierend auf den folgenden Daten.\n"
@@ -433,7 +443,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
   // ── ANALYSIS DATA: Give AI the raw scores to use in "praise + challenge" format ──
   if (ctx.webAnalysis) {
     const wa = ctx.webAnalysis;
-    const labels = (market === "US" || market === "UK")
+    const labels = (market === "US" || market === "UK" || market === "KR")
       ? { performance: "Performance", seo: "SEO", a11y: "Accessibility", bp: "Best Practices" }
       : market === "DE"
       ? { performance: "Performance", seo: "SEO", a11y: "Barrierefreiheit", bp: "Best Practices" }
@@ -449,7 +459,7 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
     ].filter(s => s.score > 0);
 
     if (analyzedScores.length > 0) {
-      const intro = (market === "US" || market === "UK")
+      const intro = (market === "US" || market === "UK" || market === "KR")
         ? "Website analysis for this company (use these numbers as a specific opening insight — praise strengths, point out the bottleneck):"
         : market === "DE"
         ? "Website-Analyse für dieses Unternehmen (verwenden Sie diese Werte als konkreten Einstieg — Stärken loben, Engpass benennen):"
@@ -580,7 +590,7 @@ export interface ProfileSignature {
   full_name?: string | null;
 }
 
-export type SignatureMarket = "SE" | "US" | "DE" | "ES" | "UK";
+export type SignatureMarket = "SE" | "US" | "DE" | "ES" | "UK" | "KR";
 
 const SIGNATURE_CLOSING: Record<SignatureMarket, string> = {
   SE: "Med vänlig hälsning,",
@@ -588,6 +598,7 @@ const SIGNATURE_CLOSING: Record<SignatureMarket, string> = {
   DE: "Mit freundlichen Grüßen,",
   ES: "Un saludo,",
   UK: "Kind regards,",
+  KR: "감사합니다,",
 };
 
 const SIGNATURE_FALLBACK_NAME = "CoFlow";
