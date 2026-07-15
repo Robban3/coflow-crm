@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useModules } from "@/hooks/useModules";
 import { useOrganization } from "@/hooks/useOrganization";
-import { Settings, Menu, X } from "lucide-react";
+import { Settings, Menu, X, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -95,6 +95,21 @@ export function MobileSidebar() {
                 </li>
               );
             })}
+            <li>
+              <Link
+                to="/schema"
+                onClick={handleNavClick}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
+                  location.pathname.startsWith('/schema')
+                    ? "bg-accent text-primary"
+                    : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <CalendarClock className="h-5 w-5 shrink-0" />
+                <span>{t("schedule.navTitle")}</span>
+              </Link>
+            </li>
           </ul>
         </nav>
 

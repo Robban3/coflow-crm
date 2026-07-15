@@ -40,6 +40,7 @@ const TasksPage = lazyRetry(() => import("./pages/TasksPage"));
 const LeadsPage = lazyRetry(() => import("./pages/LeadsPage"));
 const LeadDetailPage = lazyRetry(() => import("./pages/LeadDetailPage"));
 const WebAnalysisPage = lazyRetry(() => import("./pages/WebAnalysisPage"));
+const SchedulePage = lazyRetry(() => import("./pages/SchedulePage"));
 
 const MailPage = lazyRetry(() => import("./pages/MailPage"));
 const ReportsPage = lazyRetry(() => import("./pages/ReportsPage"));
@@ -130,6 +131,9 @@ const App = () => (
                 } />
                 <Route path="/tasks" element={
                   <ProtectedRoute><TasksPage /></ProtectedRoute>
+                } />
+                <Route path="/schema" element={
+                  <ProtectedRoute><SchedulePage /></ProtectedRoute>
                 } />
                 <Route path="/tasks/*" element={
                   <ProtectedRoute><TasksPage /></ProtectedRoute>

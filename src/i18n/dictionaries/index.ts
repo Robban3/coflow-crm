@@ -24,8 +24,10 @@ import { aiDict } from "./ai";
 import { trainingDict } from "./training";
 import { pricingDict } from "./pricing";
 import { quizDict } from "./quiz";
+import { scheduleDict } from "./schedule";
 
 export const featureDictionaries: FeatureDictionary[] = [
+  scheduleDict,
   tasksDict,
   meetingsDict,
   quotesDict,

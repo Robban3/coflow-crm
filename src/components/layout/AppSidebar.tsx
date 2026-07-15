@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useModules } from "@/hooks/useModules";
 import { useOrganization } from "@/hooks/useOrganization";
-import { Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { Settings, ChevronLeft, ChevronRight, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -127,6 +127,24 @@ export function AppSidebar() {
               </li>
             );
           })}
+          <li>
+            <Link
+              to="/schema"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                location.pathname.startsWith('/schema')
+                  ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+              )}
+              title={isCollapsed ? t("schedule.navTitle") : undefined}
+            >
+              <CalendarClock className={cn(
+                "h-5 w-5 shrink-0 transition-colors duration-200",
+                location.pathname.startsWith('/schema') ? "text-sidebar-primary" : "text-sidebar-foreground/60"
+              )} />
+              {!isCollapsed && <span>{t("schedule.navTitle")}</span>}
+            </Link>
+          </li>
         </ul>
       </nav>
 
