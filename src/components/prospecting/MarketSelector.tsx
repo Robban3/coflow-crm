@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { MARKET_FLAG, useMarket, type Market } from "@/hooks/useMarket";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
-const MARKETS: Market[] = ["SE", "US", "DE", "ES", "UK", "KR", "CA"];
+const MARKETS: Market[] = ["SE", "US", "DE", "ES", "UK", "KR", "CA", "AU", "IE"];
 
 interface MarketSelectorProps {
   className?: string;

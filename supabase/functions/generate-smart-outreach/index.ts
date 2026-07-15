@@ -77,8 +77,8 @@ serve(async (req) => {
       market: marketRaw,
     } = rawBody as RequestBody & { market?: string };
 
-    const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" =
-      marketRaw === "US" || marketRaw === "DE" || marketRaw === "ES" || marketRaw === "UK" || marketRaw === "KR" || marketRaw === "CA" ? marketRaw : "SE";
+    const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" =
+      marketRaw === "US" || marketRaw === "DE" || marketRaw === "ES" || marketRaw === "UK" || marketRaw === "KR" || marketRaw === "CA" || marketRaw === "AU" || marketRaw === "IE" ? marketRaw : "SE";
 
     console.log("Smart outreach request:", { url, companyName, tone, scrapeWebsite, useServiceProfile });
 

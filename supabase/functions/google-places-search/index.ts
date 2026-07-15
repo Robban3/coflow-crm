@@ -92,10 +92,10 @@ serve(async (req) => {
 
     // Normalize market (default SE)
     const marketUpper = (marketRaw || "SE").toString().toUpperCase();
-    const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" =
-      marketUpper === "US" || marketUpper === "DE" || marketUpper === "ES" || marketUpper === "UK" || marketUpper === "KR" || marketUpper === "CA" ? marketUpper : "SE";
+    const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" =
+      marketUpper === "US" || marketUpper === "DE" || marketUpper === "ES" || marketUpper === "UK" || marketUpper === "KR" || marketUpper === "CA" || marketUpper === "AU" || marketUpper === "IE" ? marketUpper : "SE";
 
-    const MARKET_CONFIG: Record<"SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA", {
+    const MARKET_CONFIG: Record<"SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE", {
       regionCode: string;
       languageCode: string;
       countryName: string;
@@ -111,6 +111,8 @@ serve(async (req) => {
       UK: { regionCode: "GB", languageCode: "en", countryName: "United Kingdom", countryAliases: ["uk", "united kingdom", "great britain", "gb", "england", "scotland", "wales"], bbox: { low: { lat: 49.9, lng: -8.65 }, high: { lat: 60.9, lng: 1.8 } } },
       KR: { regionCode: "KR", languageCode: "ko", countryName: "South Korea", countryAliases: ["korea", "south korea", "republic of korea", "kr", "대한민국", "한국", "sydkorea"], bbox: { low: { lat: 33.0, lng: 124.5 }, high: { lat: 38.7, lng: 131.0 } } },
       CA: { regionCode: "CA", languageCode: "en", countryName: "Canada", countryAliases: ["canada", "ca", "kanada"], bbox: { low: { lat: 41.6, lng: -141.0 }, high: { lat: 83.2, lng: -52.6 } } },
+      AU: { regionCode: "AU", languageCode: "en", countryName: "Australia", countryAliases: ["australia", "au", "australien"], bbox: { low: { lat: -43.7, lng: 112.9 }, high: { lat: -9.1, lng: 159.2 } } },
+      IE: { regionCode: "IE", languageCode: "en", countryName: "Ireland", countryAliases: ["ireland", "ie", "eire", "éire", "irland", "republic of ireland"], bbox: { low: { lat: 51.4, lng: -10.6 }, high: { lat: 55.4, lng: -5.9 } } },
     };
     const cfg = MARKET_CONFIG[market];
 

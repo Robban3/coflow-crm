@@ -10,7 +10,7 @@ export type Lang = "sv" | "en" | "es";
 export function resolveLang(input?: string | null): Lang {
   const v = String(input ?? "").trim().toLowerCase();
   // Korean market has no fixed-string translations yet → fall back to English.
-  if (["en", "eng", "engelska", "english", "us", "gb", "uk", "ca", "kr", "ko", "korean", "koreanska"].includes(v)) return "en";
+  if (["en", "eng", "engelska", "english", "us", "gb", "uk", "ca", "au", "ie", "kr", "ko", "korean", "koreanska"].includes(v)) return "en";
   if (["es", "spa", "spanska", "español", "espanol", "spanish"].includes(v)) return "es";
   // sv, svenska, se, and anything unknown → Swedish (app default)
   return "sv";

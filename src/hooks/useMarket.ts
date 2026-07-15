@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type Market = "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA";
+export type Market = "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE";
 
 const STORAGE_KEY = "coflow_selected_market";
 const DEFAULT_MARKET: Market = "SE";
 
 function isMarket(value: unknown): value is Market {
-  return value === "SE" || value === "US" || value === "DE" || value === "ES" || value === "UK" || value === "KR" || value === "CA";
+  return value === "SE" || value === "US" || value === "DE" || value === "ES" || value === "UK" || value === "KR" || value === "CA" || value === "AU" || value === "IE";
 }
 
 function readStoredMarket(): Market {
@@ -73,6 +73,8 @@ export const MARKET_LOCATION_PLACEHOLDER: Record<Market, string> = {
   UK: "Town or postcode",
   KR: "도시 또는 지역",
   CA: "City or postal code",
+  AU: "City or postcode",
+  IE: "Town or Eircode",
 };
 
 export const MARKET_CURRENCY: Record<Market, { code: string; symbol: string; position: "prefix" | "suffix" }> = {
@@ -83,6 +85,8 @@ export const MARKET_CURRENCY: Record<Market, { code: string; symbol: string; pos
   UK: { code: "GBP", symbol: "£", position: "prefix" },
   KR: { code: "KRW", symbol: "₩", position: "prefix" },
   CA: { code: "CAD", symbol: "C$", position: "prefix" },
+  AU: { code: "AUD", symbol: "A$", position: "prefix" },
+  IE: { code: "EUR", symbol: "€", position: "suffix" },
 };
 
 export const MARKET_PHONE_PREFIX: Record<Market, string> = {
@@ -93,6 +97,8 @@ export const MARKET_PHONE_PREFIX: Record<Market, string> = {
   UK: "+44",
   KR: "+82",
   CA: "+1",
+  AU: "+61",
+  IE: "+353",
 };
 
 export const MARKET_AI_LANGUAGE: Record<Market, string> = {
@@ -103,6 +109,8 @@ export const MARKET_AI_LANGUAGE: Record<Market, string> = {
   UK: "brittisk engelska",
   KR: "koreanska",
   CA: "kanadensisk engelska",
+  AU: "australisk engelska",
+  IE: "engelska",
 };
 
 export const MARKET_LABEL: Record<Market, string> = {
@@ -113,6 +121,8 @@ export const MARKET_LABEL: Record<Market, string> = {
   UK: "Storbritannien",
   KR: "Sydkorea",
   CA: "Kanada",
+  AU: "Australien",
+  IE: "Irland",
 };
 
 export const MARKET_FLAG: Record<Market, string> = {
@@ -123,13 +133,15 @@ export const MARKET_FLAG: Record<Market, string> = {
   UK: "🇬🇧",
   KR: "🇰🇷",
   CA: "🇨🇦",
+  AU: "🇦🇺",
+  IE: "🇮🇪",
 };
 
 /** Format a numeric amount according to the market's currency conventions. */
 export function formatMarketCurrency(amount: number, market: Market): string {
   const { symbol, position } = MARKET_CURRENCY[market];
   const rounded = Math.round(amount).toLocaleString(
-    market === "SE" ? "sv-SE" : market === "DE" ? "de-DE" : market === "ES" ? "es-ES" : market === "UK" ? "en-GB" : market === "KR" ? "ko-KR" : market === "CA" ? "en-CA" : "en-US",
+    market === "SE" ? "sv-SE" : market === "DE" ? "de-DE" : market === "ES" ? "es-ES" : market === "UK" ? "en-GB" : market === "KR" ? "ko-KR" : market === "CA" ? "en-CA" : market === "AU" ? "en-AU" : market === "IE" ? "en-IE" : "en-US",
   );
   return position === "prefix" ? `${symbol}${rounded}` : `${rounded} ${symbol}`;
 }
