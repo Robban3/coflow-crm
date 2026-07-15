@@ -1,4 +1,5 @@
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { MarketAccessGrid } from "@/components/settings/MarketAccessGrid";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -904,6 +905,8 @@ export function OrganizationDashboard() {
               </div>
             </CardContent>
           </Card>
+
+          <MarketAccessGrid />
         </TabsContent>
       </Tabs>
 

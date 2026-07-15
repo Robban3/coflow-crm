@@ -1,5 +1,5 @@
 // Shared currency options + formatting for offers, quotes and reports.
-export const CURRENCIES = ["SEK", "EUR", "USD", "GBP", "KRW", "CAD", "AUD"] as const;
+export const CURRENCIES = ["SEK", "EUR", "USD", "GBP", "KRW", "CAD", "AUD", "MXN", "ARS"] as const;
 export type CurrencyCode = typeof CURRENCIES[number];
 
 // Number/locale conventions per currency (grouping + symbol placement).
@@ -11,6 +11,8 @@ const LOCALE_BY_CURRENCY: Record<string, string> = {
   KRW: "ko-KR",
   CAD: "en-CA",
   AUD: "en-AU",
+  MXN: "es-MX",
+  ARS: "es-AR",
 };
 
 /** Format an amount with its currency symbol (e.g. £1,234 / 1 234 kr). */

@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
           / (y|el|la|los|las|para|con|una|que|tu|su|hola)\b/.test(bodyLower) ||
           bodyLower.includes("hola ") ||
           bodyLower.includes("un saludo");
-        const draftMarket: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" =
+        const draftMarket: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" | "MX" | "AR" =
           bodyLooksSwedish ? "SE" : bodyLooksGerman ? "DE" : bodyLooksSpanish ? "ES" : "US";
 
         const sigLooksSwedish = (text: string) => {

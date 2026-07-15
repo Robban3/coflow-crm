@@ -92,10 +92,10 @@ serve(async (req) => {
 
     // Normalize market (default SE)
     const marketUpper = (marketRaw || "SE").toString().toUpperCase();
-    const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" =
-      marketUpper === "US" || marketUpper === "DE" || marketUpper === "ES" || marketUpper === "UK" || marketUpper === "KR" || marketUpper === "CA" || marketUpper === "AU" || marketUpper === "IE" ? marketUpper : "SE";
+    const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" | "MX" | "AR" =
+      marketUpper === "US" || marketUpper === "DE" || marketUpper === "ES" || marketUpper === "UK" || marketUpper === "KR" || marketUpper === "CA" || marketUpper === "AU" || marketUpper === "IE" || marketUpper === "MX" || marketUpper === "AR" ? marketUpper : "SE";
 
-    const MARKET_CONFIG: Record<"SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE", {
+    const MARKET_CONFIG: Record<"SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" | "MX" | "AR", {
       regionCode: string;
       languageCode: string;
       countryName: string;
@@ -113,6 +113,8 @@ serve(async (req) => {
       CA: { regionCode: "CA", languageCode: "en", countryName: "Canada", countryAliases: ["canada", "ca", "kanada"], bbox: { low: { lat: 41.6, lng: -141.0 }, high: { lat: 83.2, lng: -52.6 } } },
       AU: { regionCode: "AU", languageCode: "en", countryName: "Australia", countryAliases: ["australia", "au", "australien"], bbox: { low: { lat: -43.7, lng: 112.9 }, high: { lat: -9.1, lng: 159.2 } } },
       IE: { regionCode: "IE", languageCode: "en", countryName: "Ireland", countryAliases: ["ireland", "ie", "eire", "éire", "irland", "republic of ireland"], bbox: { low: { lat: 51.4, lng: -10.6 }, high: { lat: 55.4, lng: -5.9 } } },
+      MX: { regionCode: "MX", languageCode: "es", countryName: "México", countryAliases: ["mexico", "méxico", "mx", "mexiko"], bbox: { low: { lat: 14.5, lng: -118.4 }, high: { lat: 32.7, lng: -86.7 } } },
+      AR: { regionCode: "AR", languageCode: "es", countryName: "Argentina", countryAliases: ["argentina", "ar", "república argentina"], bbox: { low: { lat: -55.1, lng: -73.6 }, high: { lat: -21.8, lng: -53.6 } } },
     };
     const cfg = MARKET_CONFIG[market];
 

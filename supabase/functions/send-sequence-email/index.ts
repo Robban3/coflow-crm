@@ -231,8 +231,8 @@ serve(async (req) => {
       const parsed = parseOutreachResponse(content, lead.company_name || undefined);
 
       // Append signature from profile (localized for the sequence's market)
-      const seqMarket: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" =
-        (leadSequence.sequence?.market as "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE") || "SE";
+      const seqMarket: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" | "MX" | "AR" =
+        (leadSequence.sequence?.market as "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" | "MX" | "AR") || "SE";
       emailContent = {
         subject: parsed.subject,
         body: appendSignature(parsed.body_without_signature, profile, seqMarket),

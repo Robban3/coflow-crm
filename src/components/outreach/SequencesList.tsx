@@ -58,6 +58,8 @@ const MARKET_STEP_DELAYS: Record<Market, number[]> = {
   CA: [0, 3, 7],
   AU: [0, 3, 7],
   IE: [0, 3, 7],
+  MX: [0, 4, 9],
+  AR: [0, 4, 9],
 };
 
 function suggestedDelay(market: Market, stepNumber: number): number {
@@ -393,6 +395,8 @@ export function SequencesList() {
                   <SelectItem value="CA">{MARKET_FLAG.CA} {t("market.CA")}</SelectItem>
                   <SelectItem value="AU">{MARKET_FLAG.AU} {t("market.AU")}</SelectItem>
                   <SelectItem value="IE">{MARKET_FLAG.IE} {t("market.IE")}</SelectItem>
+                  <SelectItem value="MX">{MARKET_FLAG.MX} {t("market.MX")}</SelectItem>
+                  <SelectItem value="AR">{MARKET_FLAG.AR} {t("market.AR")}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">{t("outreach.seq.marketHint")}</p>

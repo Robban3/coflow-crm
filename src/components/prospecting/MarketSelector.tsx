@@ -1,20 +1,30 @@
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { MARKET_FLAG, useMarket, type Market } from "@/hooks/useMarket";
+import { MARKET_FLAG, useMarket } from "@/hooks/useMarket";
+import { useAllowedMarkets } from "@/hooks/useAllowedMarkets";
 import { useTranslation } from "@/i18n/LanguageProvider";
-
-const MARKETS: Market[] = ["SE", "US", "DE", "ES", "UK", "KR", "CA", "AU", "IE"];
 
 interface MarketSelectorProps {
   className?: string;
 }
 
 /**
- * Segmented control for selecting active market (SE/US/DE).
- * The selection is persisted via the `useMarket` hook (localStorage).
+ * Segmented control for selecting active market. Only markets the current user
+ * is allowed to use are shown (admin-controlled via user_markets). The selection
+ * is persisted via the `useMarket` hook (localStorage).
  */
 export default function MarketSelector({ className }: MarketSelectorProps) {
   const { market, setMarket } = useMarket();
+  const { allowedMarkets } = useAllowedMarkets();
   const { t } = useTranslation();
+
+  // If the currently-selected market has been disabled for this user, fall back
+  // to their first allowed market so the view never sits on a hidden market.
+  useEffect(() => {
+    if (allowedMarkets.length > 0 && !allowedMarkets.includes(market)) {
+      setMarket(allowedMarkets[0]);
+    }
+  }, [allowedMarkets, market, setMarket]);
 
   return (
     <div
@@ -25,7 +35,7 @@ export default function MarketSelector({ className }: MarketSelectorProps) {
         className,
       )}
     >
-      {MARKETS.map((m) => {
+      {allowedMarkets.map((m) => {
         const active = market === m;
         return (
           <button
