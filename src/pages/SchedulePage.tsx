@@ -55,7 +55,7 @@ const fmtH = (h: number) => (Number.isInteger(h) ? `${h}` : h.toFixed(1));
 export default function SchedulePage() {
   const { t, language } = useTranslation();
   const locale = language === "en" ? enUS : language === "es" ? es : sv;
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const orgId = useOrganizationId();
   const { members, getInitials } = useTeamMembers();
 
@@ -282,7 +282,8 @@ export default function SchedulePage() {
           </CardContent>
         </Card>
 
-        {/* Team overview */}
+        {/* Team overview – admins only */}
+        {isAdmin && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">{t("schedule.teamOverview")}</CardTitle>
@@ -361,6 +362,7 @@ export default function SchedulePage() {
             )}
           </CardContent>
         </Card>
+        )}
       </div>
     </AppLayout>
   );
