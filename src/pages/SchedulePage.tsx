@@ -20,6 +20,8 @@ interface SchedRow {
   work_date: string;
   start_time: string | null;
   end_time: string | null;
+  break_start: string | null;
+  break_end: string | null;
   is_off: boolean;
 }
 
@@ -38,6 +40,15 @@ function hoursBetween(start?: string | null, end?: string | null): number {
   const [eh, em] = end.split(":").map(Number);
   const mins = eh * 60 + em - (sh * 60 + sm);
   return mins > 0 ? mins / 60 : 0;
+}
+// Net worked hours = (end - start) - break, never below zero.
+function netHours(
+  start?: string | null,
+  end?: string | null,
+  breakStart?: string | null,
+  breakEnd?: string | null,
+): number {
+  return Math.max(0, hoursBetween(start, end) - hoursBetween(breakStart, breakEnd));
 }
 const fmtH = (h: number) => (Number.isInteger(h) ? `${h}` : h.toFixed(1));
 
@@ -61,7 +72,7 @@ export default function SchedulePage() {
     setLoading(true);
     const { data } = await (supabase as any)
       .from("work_schedules")
-      .select("user_id, work_date, start_time, end_time, is_off")
+      .select("user_id, work_date, start_time, end_time, break_start, break_end, is_off")
       .gte("work_date", weekDates[0])
       .lte("work_date", weekDates[6]);
     setRows((data as SchedRow[]) || []);
@@ -83,30 +94,34 @@ export default function SchedulePage() {
     return {
       start: r?.start_time?.slice(0, 5) || "",
       end: r?.end_time?.slice(0, 5) || "",
+      break_start: r?.break_start?.slice(0, 5) || "",
+      break_end: r?.break_end?.slice(0, 5) || "",
       is_off: r?.is_off || false,
     };
   };
 
   const upsertDay = async (
     date: string,
-    patch: Partial<{ start: string; end: string; is_off: boolean }>,
+    patch: Partial<{ start: string; end: string; break_start: string; break_end: string; is_off: boolean }>,
   ) => {
     if (!user?.id || !orgId) return;
     const cur = myDay(date);
     const next = { ...cur, ...patch };
     const start_time = next.is_off ? null : next.start || null;
     const end_time = next.is_off ? null : next.end || null;
+    const break_start = next.is_off ? null : next.break_start || null;
+    const break_end = next.is_off ? null : next.break_end || null;
     setSavingDate(date);
     // Optimistic local update
     setRows((prev) => {
       const others = prev.filter((r) => !(r.user_id === user.id && r.work_date === date));
-      return [...others, { user_id: user.id, work_date: date, start_time, end_time, is_off: next.is_off }];
+      return [...others, { user_id: user.id, work_date: date, start_time, end_time, break_start, break_end, is_off: next.is_off }];
     });
     try {
       const { error } = await (supabase as any)
         .from("work_schedules")
         .upsert(
-          { user_id: user.id, organization_id: orgId, work_date: date, start_time, end_time, is_off: next.is_off },
+          { user_id: user.id, organization_id: orgId, work_date: date, start_time, end_time, break_start, break_end, is_off: next.is_off },
           { onConflict: "user_id,work_date" },
         );
       if (error) throw error;
@@ -122,7 +137,7 @@ export default function SchedulePage() {
     const prevDates = Array.from({ length: 7 }, (_, i) => iso(addDays(weekStart, -7 + i)));
     const { data } = await (supabase as any)
       .from("work_schedules")
-      .select("work_date, start_time, end_time, is_off")
+      .select("work_date, start_time, end_time, break_start, break_end, is_off")
       .eq("user_id", user.id)
       .gte("work_date", prevDates[0])
       .lte("work_date", prevDates[6]);
@@ -139,6 +154,8 @@ export default function SchedulePage() {
         work_date: weekDates[offset],
         start_time: r.is_off ? null : r.start_time,
         end_time: r.is_off ? null : r.end_time,
+        break_start: r.is_off ? null : r.break_start,
+        break_end: r.is_off ? null : r.break_end,
         is_off: r.is_off,
       };
     });
@@ -149,13 +166,13 @@ export default function SchedulePage() {
 
   const myWeekTotal = weekDates.reduce((s, d) => {
     const r = myDay(d);
-    return s + (r.is_off ? 0 : hoursBetween(r.start, r.end));
+    return s + (r.is_off ? 0 : netHours(r.start, r.end, r.break_start, r.break_end));
   }, 0);
 
   const memberWeekTotal = (uid: string) =>
     weekDates.reduce((s, d) => {
       const r = rowMap.get(`${uid}:${d}`);
-      return s + (r && !r.is_off ? hoursBetween(r.start_time, r.end_time) : 0);
+      return s + (r && !r.is_off ? netHours(r.start_time, r.end_time, r.break_start, r.break_end) : 0);
     }, 0);
   const teamTotal = members.reduce((s, m) => s + memberWeekTotal(m.id), 0);
 
@@ -202,7 +219,7 @@ export default function SchedulePage() {
             {days.map((d) => {
               const date = iso(d);
               const md = myDay(date);
-              const h = md.is_off ? 0 : hoursBetween(md.start, md.end);
+              const h = md.is_off ? 0 : netHours(md.start, md.end, md.break_start, md.break_end);
               return (
                 <div key={date} className="flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2">
                   <div className="w-28 shrink-0">
@@ -214,23 +231,43 @@ export default function SchedulePage() {
                     <span className="text-xs text-muted-foreground w-14">{md.is_off ? t("schedule.off") : t("schedule.working")}</span>
                   </div>
                   {!md.is_off && (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="time"
-                        value={md.start}
-                        onChange={(e) => upsertDay(date, { start: e.target.value })}
-                        className="w-[110px]"
-                        aria-label={t("schedule.start")}
-                      />
-                      <span className="text-muted-foreground">–</span>
-                      <Input
-                        type="time"
-                        value={md.end}
-                        onChange={(e) => upsertDay(date, { end: e.target.value })}
-                        className="w-[110px]"
-                        aria-label={t("schedule.end")}
-                      />
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="time"
+                          value={md.start}
+                          onChange={(e) => upsertDay(date, { start: e.target.value })}
+                          className="w-[110px]"
+                          aria-label={t("schedule.start")}
+                        />
+                        <span className="text-muted-foreground">–</span>
+                        <Input
+                          type="time"
+                          value={md.end}
+                          onChange={(e) => upsertDay(date, { end: e.target.value })}
+                          className="w-[110px]"
+                          aria-label={t("schedule.end")}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2" title={t("schedule.break")}>
+                        <span className="text-xs text-muted-foreground w-10 shrink-0">{t("schedule.break")}</span>
+                        <Input
+                          type="time"
+                          value={md.break_start}
+                          onChange={(e) => upsertDay(date, { break_start: e.target.value })}
+                          className="w-[110px]"
+                          aria-label={`${t("schedule.break")} ${t("schedule.start")}`}
+                        />
+                        <span className="text-muted-foreground">–</span>
+                        <Input
+                          type="time"
+                          value={md.break_end}
+                          onChange={(e) => upsertDay(date, { break_end: e.target.value })}
+                          className="w-[110px]"
+                          aria-label={`${t("schedule.break")} ${t("schedule.end")}`}
+                        />
+                      </div>
+                    </>
                   )}
                   <div className="ml-auto text-sm tabular-nums text-muted-foreground min-w-[48px] text-right">
                     {savingDate === date ? (
@@ -287,7 +324,8 @@ export default function SchedulePage() {
                         {days.map((d) => {
                           const date = iso(d);
                           const r = rowMap.get(`${m.id}:${date}`);
-                          const h = r && !r.is_off ? hoursBetween(r.start_time, r.end_time) : 0;
+                          const h = r && !r.is_off ? netHours(r.start_time, r.end_time, r.break_start, r.break_end) : 0;
+                          const hasBreak = !!(r?.break_start && r?.break_end);
                           return (
                             <td
                               key={date}
@@ -299,9 +337,14 @@ export default function SchedulePage() {
                               ) : r.is_off ? (
                                 <span className="text-xs text-muted-foreground">{t("schedule.off")}</span>
                               ) : r.start_time && r.end_time ? (
-                                <div className="leading-tight">
+                                <div className="leading-tight" title={hasBreak ? `${t("schedule.break")}: ${r.break_start!.slice(0, 5)}–${r.break_end!.slice(0, 5)}` : undefined}>
                                   <div>{r.start_time.slice(0, 5)}–{r.end_time.slice(0, 5)}</div>
-                                  <div className="text-[10px] text-muted-foreground">{fmtH(h)} {t("schedule.hoursShort")}</div>
+                                  {hasBreak && (
+                                    <div className="text-[10px] text-muted-foreground/80">
+                                      {t("schedule.break")} {r.break_start!.slice(0, 5)}–{r.break_end!.slice(0, 5)}
+                                    </div>
+                                  )}
+                                  <div className="text-[10px] font-medium text-muted-foreground">{fmtH(h)} {t("schedule.hoursShort")}</div>
                                 </div>
                               ) : (
                                 <span className="text-muted-foreground/50">–</span>
