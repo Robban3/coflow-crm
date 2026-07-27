@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { at } from "../_shared/analysisText.ts";
+import { safeFetch } from "../_shared/safe-fetch.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -189,10 +190,11 @@ serve(async (req) => {
       // If Firecrawl not available, do a simple fetch of homepage
       if (pages.length === 0) {
         try {
-          const res = await fetch(domain, {
-            headers: { "User-Agent": "GEO-Bot/1.0" },
-          });
-          const html = await res.text();
+          // `domain` comes from the lead record and is user-controlled, so this
+          // goes through safeFetch rather than a bare fetch (no IP literals, no
+          // private/reserved addresses, redirects revalidated per hop).
+          const res = await safeFetch(domain, { userAgent: "GEO-Bot/1.0" });
+          const html = res.body;
           pages.push({ url: domain, markdown: html.substring(0, 5000), metadata: {}, html });
         } catch {
           pages.push({ url: domain, markdown: "", metadata: {} });

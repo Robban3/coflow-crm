@@ -249,18 +249,24 @@ serve(async (req) => {
   try {
     const rawBody = await req.text();
 
-    // Verifiera webhook-signatur om hemlighet är konfigurerad (annars logga varning)
+    // Verifiera webhook-signatur. Fail-closed: den här endpointen är publik
+    // (verify_jwt = false), så signaturen är det enda som skiljer en äkta
+    // Resend-webhook från en förfalskad inkommande e-post. Tidigare hoppade den
+    // över verifieringen helt om hemligheten saknades och processade ändå.
     const webhookSecret = Deno.env.get("RESEND_WEBHOOK_SECRET");
-    if (webhookSecret) {
-      const valid = await verifySvixSignature(req, rawBody, webhookSecret);
-      if (!valid) {
-        return new Response(JSON.stringify({ error: "Invalid signature" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    } else {
-      console.warn("RESEND_WEBHOOK_SECRET ej satt – inkommande webhook verifieras INTE");
+    if (!webhookSecret) {
+      console.error("RESEND_WEBHOOK_SECRET saknas – avvisar webhook");
+      return new Response(JSON.stringify({ error: "Webhook not configured" }), {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const valid = await verifySvixSignature(req, rawBody, webhookSecret);
+    if (!valid) {
+      return new Response(JSON.stringify({ error: "Invalid signature" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const rawPayload = JSON.parse(rawBody);

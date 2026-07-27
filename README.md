@@ -181,7 +181,15 @@ Alla moduler registreras i `src/modules/registry.ts`. Aktivering per användare 
 - `handle_new_user()` — trigger som skapar profile + default modules vid signup
 - `auto_assign_lead_creator()` — lägger creator som lead-owner
 - `generate_quote_number(org_id)` — år-baserat löpnummer
-- `trigger_auto_enrich_lead()` — pg_net-anrop till edge function vid lead-insert
+- `import_prospect_list_to_leads(_list_id, _only_keepers)` — importerar en prospektlista som leads (respekterar taket för öppna leads per användare)
+- `mark_prospect_list_duplicates(_list_id)` — flaggar listrader som redan finns som lead (matchar på normaliserat org.nr)
+
+> Anrikning triggas **inte** automatiskt vid lead-insert. `trigger_auto_enrich_lead()`
+> togs bort 2026-07-27 — den POSTade till en hårdkodad främmande projekt-URL, och
+> eftersom varken `app.settings.*`-inställningarna eller pg_net fanns var den en
+> tyst no-op från februari 2026. Anrikning sker via `process-enrichment-queue`
+> (efter prospekteringsimport), knappen i `ProspectingQueueTab`, eller per lead
+> från `LeadDetailPage`.
 
 ### Performance-index (2026-03)
 18 composite-index på `sent_emails`, `documents`, `meetings`, `customers`, `tasks`, `lead_members`, `profiles`, `email_replies`, `lead_sequences`, `document_blocks` för att accelerera RLS-skannade queries.

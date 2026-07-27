@@ -19,7 +19,9 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    const { reportId, leadId, guestName, guestEmail, guestPhone, companyName, message, domain } =
+    // NB: `leadId` is deliberately NOT destructured — it used to be trusted from
+    // the body. The lead now comes from the report (see below).
+    const { reportId, guestName, guestEmail, guestPhone, companyName, message, domain } =
       await req.json();
 
     if (!guestName || !guestEmail) {
@@ -27,14 +29,38 @@ serve(async (req) => {
     }
 
     // ── Determine meeting host ──────────────────────────────────────────
+    // SECURITY: the host and the lead are derived from the REPORT, never from
+    // the caller. This endpoint is intentionally public (anonymous prospects
+    // book from /r/:token), so the whole request body is attacker-controlled.
+    // Previously a forged `leadId` chose the host, and an absent one fell back
+    // to `user_roles.eq("role","admin").limit(1)` with no organisation filter —
+    // an arbitrary admin in an arbitrary tenant. That allowed unauthenticated
+    // cross-org meeting inserts and outbound emails.
+    if (!reportId) {
+      throw new Error("reportId krävs");
+    }
+
+    const { data: report } = await supabase
+      .from("reports")
+      .select("id, organization_id, lead_id, created_by")
+      .eq("id", reportId)
+      .maybeSingle();
+
+    if (!report) {
+      throw new Error("Rapporten kunde inte hittas");
+    }
+
+    const orgId: string | null = report.organization_id ?? null;
+    const resolvedLeadId: string | null = report.lead_id ?? null;
+
     let hostUserId: string | null = null;
 
-    // 1. Try lead owner from lead_members
-    if (leadId) {
+    // 1. Lead owner from lead_members — lead taken from the report
+    if (resolvedLeadId) {
       const { data: members } = await supabase
         .from("lead_members")
         .select("user_id, role")
-        .eq("lead_id", leadId)
+        .eq("lead_id", resolvedLeadId)
         .order("created_at", { ascending: true });
 
       if (members && members.length > 0) {
@@ -44,16 +70,30 @@ serve(async (req) => {
       }
     }
 
-    // 2. Fallback: find an admin user
-    if (!hostUserId) {
-      const { data: admins } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin")
-        .limit(1);
+    // 2. Fallback: whoever created the report
+    if (!hostUserId && report.created_by) {
+      hostUserId = report.created_by;
+    }
 
-      if (admins && admins.length > 0) {
-        hostUserId = admins[0].user_id;
+    // 3. Last resort: an admin *inside the report's own organisation*
+    if (!hostUserId && orgId) {
+      const { data: orgProfiles } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("organization_id", orgId);
+
+      const orgUserIds = (orgProfiles ?? []).map((p: any) => p.id);
+      if (orgUserIds.length > 0) {
+        const { data: admins } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "admin")
+          .in("user_id", orgUserIds)
+          .limit(1);
+
+        if (admins && admins.length > 0) {
+          hostUserId = admins[0].user_id;
+        }
       }
     }
 
@@ -97,7 +137,7 @@ serve(async (req) => {
       end_time: suggestedEnd.toISOString(),
       guest_name: guestName,
       guest_email: guestEmail,
-      lead_id: leadId || null,
+      lead_id: resolvedLeadId,
       organization_id: hostProfile?.organization_id || null,
       status: "scheduled",
     });

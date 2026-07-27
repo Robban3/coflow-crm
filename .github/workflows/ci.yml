@@ -1,0 +1,39 @@
+# Runs on every push and PR.
+#
+# The two existing workflows are `workflow_dispatch`-only, so until now nothing
+# was checked automatically — `tsc -b` ran only as a side effect of a manual
+# deploy, and `npm test` / `npm run lint` never ran at all. With a second
+# codebase being merged in, neither half protects the other without this.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test

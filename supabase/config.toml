@@ -1,4 +1,4 @@
-project_id = "odtiprpcpwkpbpbvljfw"
+project_id = "wjsnnjfjtelfxswshwta"
 
 [functions.pagespeed-analyze]
 verify_jwt = false
@@ -120,11 +120,11 @@ verify_jwt = false
 [functions.auto-enrich-lead]
 verify_jwt = true
 
-[functions.send-test-email]
-verify_jwt = false
-
 [functions.request-meeting]
 verify_jwt = true
 
 [functions.respond-meeting-request]
+verify_jwt = true
+
+[functions.resolve-prospect-websites]
 verify_jwt = true

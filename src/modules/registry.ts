@@ -16,6 +16,7 @@ import {
   Brain,
   PhoneCall,
   Telescope,
+  ClipboardList,
   GraduationCap,
   Tag,
   type LucideIcon
@@ -27,6 +28,7 @@ export type ModuleId =
   | 'pipeline'
   | 'leads'
   | 'prospecting'
+  | 'prospect_lists'
   | 'tasks'
   | 'tickets'
   | 'web_analysis'
@@ -104,6 +106,17 @@ export const MODULE_REGISTRY: ModuleDefinition[] = [
     path: '/prospecting',
     enabled: true,
     dbModuleKey: 'prospecting',
+  },
+  {
+    id: 'prospect_lists',
+    name: 'Prospektlistor',
+    description: 'Bygg och gallra listor innan de importeras som leads',
+    icon: ClipboardList,
+    path: '/prospect-lists',
+    enabled: true,
+    // Ingen dbModuleKey: app_module-enumet saknar ett värde för prospektlistor,
+    // så modulen kan inte slås av per användare (samma sak gäller redan för
+    // t.ex. meetings och pricing).
   },
   {
     id: 'tasks',

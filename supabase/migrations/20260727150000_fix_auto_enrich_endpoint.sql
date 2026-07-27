@@ -1,0 +1,35 @@
+-- ─────────────────────────────────────────────────────────────────────
+-- Remove the dead auto-enrich trigger.
+--
+-- `trigger_auto_enrich_lead()` (added 20260227090945) fired on every lead
+-- insert and pg_net-POSTed to a hardcoded foreign project ref:
+--
+--   url := COALESCE(edge_url, 'https://odtiprpcpwkpbpbvljfw.supabase.co') || '/functions/v1/auto-enrich-lead'
+--   headers := jsonb_build_object('Authorization', 'Bearer ' || COALESCE(service_key, ...))
+--
+-- Verified against the live database before removing:
+--   * app.settings.supabase_url        → unset
+--   * app.settings.service_role_key    → unset
+--   * supabase.service_role_key        → unset
+--   * pg_net                           → not installed (no `net` schema)
+--
+-- So `'Bearer ' || NULL` was NULL, and net.http_post() raised immediately and was
+-- swallowed by the function's own `EXCEPTION WHEN OTHERS`. Nothing ever left the
+-- database — no credential and no lead ids leaked — and the trigger has been a
+-- silent no-op since February 2026.
+--
+-- Dropping rather than repairing, because making it work would mean storing the
+-- service_role key in a database GUC readable by anything that can run SQL, and
+-- because enrichment is already covered by three live paths that do it better:
+--   * process-enrichment-queue (bounded batch, called after prospecting import)
+--   * ProspectingQueueTab      (manual retry / force re-enrich)
+--   * LeadDetailPage           (per-lead enrich button)
+-- The trigger also had no retry, no dead-letter, and a thundering-herd problem on
+-- bulk import that was mitigated only by a random sleep inside the edge function.
+--
+-- To restore: recreate the function with the endpoint read from a configured
+-- setting (never a hardcoded host), and re-add the AFTER INSERT trigger on leads.
+-- ─────────────────────────────────────────────────────────────────────
+
+DROP TRIGGER IF EXISTS trg_auto_enrich_lead ON public.leads;
+DROP FUNCTION IF EXISTS public.trigger_auto_enrich_lead();

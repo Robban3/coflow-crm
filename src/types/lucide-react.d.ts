@@ -44,6 +44,7 @@ declare module 'lucide-react' {
   export const ChevronsUpDown: any;
   export const Circle: any;
   export const CircleDashed: any;
+  export const ClipboardList: any;
   export const Clock: any;
   export const Copy: any;
   export const Dot: any;
@@ -67,6 +68,7 @@ declare module 'lucide-react' {
   export const LayoutDashboard: any;
   export const Info: any;
   export const Lightbulb: any;
+  export const ListPlus: any;
   export const ListTodo: any;
   export const Loader2: any;
   export const LogOut: any;

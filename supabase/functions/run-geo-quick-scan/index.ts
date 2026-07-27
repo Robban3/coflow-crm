@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
 import { qs } from "../_shared/quickScanText.ts";
 import { geoFindingText } from "../_shared/geoFindings.ts";
+import { safeFetch } from "../_shared/safe-fetch.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -123,11 +124,14 @@ serve(async (req) => {
     // Fallback: simple fetch
     if (pages.length === 0 && !errorCode) {
       try {
-        const res = await fetch(scan.website, {
-          headers: { "User-Agent": "GEO-QuickScan/1.0" },
-          signal: AbortSignal.timeout(15000),
+        // scan.website is attacker-influenced (this function is reachable without
+        // auth), so it must not go through a bare fetch. safeFetch rejects IP
+        // literals and private/reserved addresses and revalidates each redirect.
+        const res = await safeFetch(scan.website, {
+          userAgent: "GEO-QuickScan/1.0",
+          timeoutMs: 15000,
         });
-        const html = await res.text();
+        const html = res.body;
         pages.push({
           url: scan.website,
           markdown: html.substring(0, 8000),

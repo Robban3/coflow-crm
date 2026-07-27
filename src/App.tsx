@@ -62,6 +62,8 @@ const OutreachProPage = lazyRetry(() => import("./pages/OutreachProPage"));
 const PowerCallListsPage = lazyRetry(() => import("./pages/PowerCallListsPage"));
 const PowerCallSessionPage = lazyRetry(() => import("./pages/PowerCallSessionPage"));
 const ProspectingPage = lazyRetry(() => import("./pages/ProspectingPage"));
+const ProspectListsPage = lazyRetry(() => import("./pages/ProspectListsPage"));
+const ProspectListDetailPage = lazyRetry(() => import("./pages/ProspectListDetailPage"));
 const TicketsPage = lazyRetry(() => import("./pages/TicketsPage"));
 const TrainingPage = lazyRetry(() => import("./pages/TrainingPage"));
 const SalespeoplePage = lazyRetry(() => import("./pages/SalespeoplePage"));
@@ -200,6 +202,12 @@ const App = () => (
                 } />
                 <Route path="/prospecting" element={
                   <ProtectedRoute><ProspectingPage /></ProtectedRoute>
+                } />
+                <Route path="/prospect-lists" element={
+                  <ProtectedRoute><ProspectListsPage /></ProtectedRoute>
+                } />
+                <Route path="/prospect-lists/:id" element={
+                  <ProtectedRoute><ProspectListDetailPage /></ProtectedRoute>
                 } />
                 <Route path="/tickets" element={
                   <ProtectedRoute><TicketsPage /></ProtectedRoute>

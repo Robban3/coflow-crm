@@ -3,6 +3,7 @@ import { getAuthenticatedUserId } from "../_shared/auth.ts";
 import { fetchWithRetry } from "../_shared/http.ts";
 import { getCached, setCached } from "../_shared/cache.ts";
 import { at } from "../_shared/analysisText.ts";
+import { safeFetch } from "../_shared/safe-fetch.ts";
 
 const FIRECRAWL_CACHE_TTL_SECONDS = 24 * 60 * 60;
 
@@ -353,15 +354,21 @@ function extractSeoMetrics(html: string, markdown: string, links: string[], base
   };
 }
 
+// SSRF: `url` is caller-supplied and reaches this function unvalidated, so these
+// two helpers were fetching arbitrary hosts straight from the edge runtime —
+// including 169.254.169.254 and anything on the internal network. Routed through
+// safeFetch, which rejects IP literals and private/reserved addresses and
+// revalidates every redirect hop.
 async function checkRobotsTxt(baseUrl: string): Promise<boolean> {
   try {
     const url = new URL('/robots.txt', baseUrl);
-    const response = await fetch(url.href, { 
-      method: 'GET',
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SEOBot/1.0)' },
+    const response = await safeFetch(url.href, {
+      accept: 'text/plain',
+      maxBytes: 256 * 1024,
+      userAgent: 'Mozilla/5.0 (compatible; SEOBot/1.0)',
     });
     if (!response.ok) return false;
-    const text = await response.text();
+    const text = response.body;
     // Verify it's actually a robots.txt file (contains User-agent or Sitemap)
     return text.toLowerCase().includes('user-agent') || text.toLowerCase().includes('sitemap');
   } catch {
@@ -379,12 +386,13 @@ async function checkSitemap(baseUrl: string): Promise<boolean> {
     
     for (const sitemapUrl of sitemapUrls) {
       try {
-        const response = await fetch(sitemapUrl, { 
-          method: 'GET',
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SEOBot/1.0)' },
+        const response = await safeFetch(sitemapUrl, {
+          accept: 'application/xml,text/xml',
+          maxBytes: 512 * 1024,
+          userAgent: 'Mozilla/5.0 (compatible; SEOBot/1.0)',
         });
         if (response.ok) {
-          const text = await response.text();
+          const text = response.body;
           // Verify it's actually XML with sitemap content
           if (text.includes('<?xml') && (text.includes('<urlset') || text.includes('<sitemapindex'))) {
             return true;

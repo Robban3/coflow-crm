@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Search, Star, ExternalLink, CheckCircle2, Loader2, Globe, Phone, Mail, Download, History, Trash2, AlertCircle, ChevronDown } from "lucide-react";
+import { Search, Star, ExternalLink, CheckCircle2, Loader2, Globe, Phone, Mail, Download, History, Trash2, AlertCircle, ChevronDown, ListPlus } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { COUNTIES, COMPANY_FORMS, INDUSTRIES } from "@/lib/swedishProspecting";
+import { AddToProspectListDialog } from "@/components/prospecting/AddToProspectListDialog";
+import type { NewProspectListItem } from "@/lib/prospectLists";
 import { toast } from "sonner";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
@@ -85,6 +87,52 @@ function getDomain(url: string): string {
   } catch {
     return url;
   }
+}
+
+// ── Prospektlista: mappa sökträffar på prospect_list_items-kolumnerna ──
+function placeToProspectItem(place: PlaceResult): NewProspectListItem {
+  return {
+    company_name: place.name,
+    address: place.address || null,
+    phone: place.phone || null,
+    website: place.website || null,
+    website_status: place.website ? "linked" : "unknown",
+    source: "google_places",
+    source_data: {
+      placeId: place.placeId,
+      address: place.address,
+      rating: place.rating,
+      userRatingsTotal: place.userRatingsTotal,
+      lat: place.lat,
+      lng: place.lng,
+    },
+  };
+}
+
+function registryRowToProspectItem(row: RegistryRow): NewProspectListItem {
+  return {
+    company_name: row.company_name,
+    org_number: row.org_number || null,
+    city: row.city || null,
+    address: row.address || null,
+    postal_code: row.postal_code || null,
+    phone: row.phone || null,
+    industry: row.sni_descriptions || null,
+    sni_codes: row.sni_codes
+      ? row.sni_codes.split(/[,;]/).map((c) => c.trim()).filter(Boolean)
+      : null,
+    website_status: "unknown",
+    source: "company_registry",
+    source_data: {
+      company_form: row.company_form,
+      registration_date: row.registration_date,
+      legal_form: row.legal_form,
+      co_address: row.co_address,
+      country: row.country,
+      sni_codes: row.sni_codes,
+      sni_descriptions: row.sni_descriptions,
+    },
+  };
 }
 
 // ── Geo-offset helpers ──
@@ -156,6 +204,11 @@ export default function ProspectingSearchTab() {
   const [registryTotal, setRegistryTotal] = useState(0);
   const REGISTRY_PAGE_SIZE = 100;
   const [isRegistryImporting, setIsRegistryImporting] = useState(false);
+
+  // ── Prospektlista (parallell väg till lead-importen ovan) ──
+  const [listDialogOpen, setListDialogOpen] = useState(false);
+  const [listDialogItems, setListDialogItems] = useState<NewProspectListItem[]>([]);
+  const [listDialogSource, setListDialogSource] = useState<"places" | "registry">("places");
 
   // Org numbers already imported as leads, for hiding them from register hits.
   // Leads are private (RLS scopes them per owner), so we go through the org-wide
@@ -620,6 +673,29 @@ export default function ProspectingSearchTab() {
     }
   };
 
+  // ── Lägg markerade träffar i en prospektlista (i stället för direkt som leads) ──
+  const openListDialogForPlaces = () => {
+    const chosen = filteredResults.filter((r) => selectedIds.has(r.placeId));
+    if (!chosen.length) {
+      toast.error(t("prospecting.noLeadsSelected"));
+      return;
+    }
+    setListDialogSource("places");
+    setListDialogItems(chosen.map(placeToProspectItem));
+    setListDialogOpen(true);
+  };
+
+  const openListDialogForRegistry = () => {
+    const chosen = registryResults.filter((r) => registrySelected.has(r.id));
+    if (!chosen.length) {
+      toast.error(t("prospecting.noLeadsSelected"));
+      return;
+    }
+    setListDialogSource("registry");
+    setListDialogItems(chosen.map(registryRowToProspectItem));
+    setListDialogOpen(true);
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchSource === "registry") {
@@ -881,17 +957,28 @@ export default function ProspectingSearchTab() {
                   )}
                 </div>
               </div>
-              <Button
-                disabled={selectedIds.size === 0 || importMutation.isPending}
-                onClick={() => importMutation.mutate()}
-                className="gap-1.5"
-              >
-                {importMutation.isPending ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" />{t("prospecting.importing")}</>
-                ) : (
-                  <><Download className="h-4 w-4" />{t("prospecting.importLeads", { count: selectedIds.size })}</>
-                )}
-              </Button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  disabled={selectedIds.size === 0}
+                  onClick={openListDialogForPlaces}
+                  className="gap-1.5"
+                >
+                  <ListPlus className="h-4 w-4" />
+                  {t("prospecting.addToProspectList")}
+                </Button>
+                <Button
+                  disabled={selectedIds.size === 0 || importMutation.isPending}
+                  onClick={() => importMutation.mutate()}
+                  className="gap-1.5"
+                >
+                  {importMutation.isPending ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" />{t("prospecting.importing")}</>
+                  ) : (
+                    <><Download className="h-4 w-4" />{t("prospecting.importLeads", { count: selectedIds.size })}</>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -1027,17 +1114,28 @@ export default function ProspectingSearchTab() {
                   {t("companyRegistry.selectedCount", { count: registrySelected.size })}
                 </div>
               </div>
-              <Button
-                disabled={registrySelected.size === 0 || isRegistryImporting}
-                onClick={handleRegistryImport}
-                className="gap-1.5"
-              >
-                {isRegistryImporting ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" />{t("prospecting.importing")}</>
-                ) : (
-                  <><Download className="h-4 w-4" />{t("prospecting.regImportSelected", { count: registrySelected.size })}</>
-                )}
-              </Button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  disabled={registrySelected.size === 0}
+                  onClick={openListDialogForRegistry}
+                  className="gap-1.5"
+                >
+                  <ListPlus className="h-4 w-4" />
+                  {t("prospecting.addToProspectList")}
+                </Button>
+                <Button
+                  disabled={registrySelected.size === 0 || isRegistryImporting}
+                  onClick={handleRegistryImport}
+                  className="gap-1.5"
+                >
+                  {isRegistryImporting ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" />{t("prospecting.importing")}</>
+                  ) : (
+                    <><Download className="h-4 w-4" />{t("prospecting.regImportSelected", { count: registrySelected.size })}</>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -1136,6 +1234,17 @@ export default function ProspectingSearchTab() {
           <p className="text-xs">{t("prospecting.regEmptyDesc")}</p>
         </div>
       )}
+
+      <AddToProspectListDialog
+        open={listDialogOpen}
+        onOpenChange={setListDialogOpen}
+        items={listDialogItems}
+        onAdded={() => {
+          if (listDialogSource === "places") setSelectedIds(new Set());
+          else setRegistrySelected(new Set());
+          setListDialogItems([]);
+        }}
+      />
     </div>
   );
 }
