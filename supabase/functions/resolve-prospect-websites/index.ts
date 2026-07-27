@@ -19,7 +19,10 @@ import { scoreWebsite, SCORING_VERSION } from "../_shared/opportunity-score.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  // Newer supabase-js sends x-supabase-client-* on every invoke; omitting them
+  // fails the preflight with "Request header field ... is not allowed".
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const BATCH_DEFAULT = 25;
