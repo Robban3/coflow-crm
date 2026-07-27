@@ -732,16 +732,6 @@ Deno.serve(async (req) => {
 
     const orgId = lead.organization_id as string | null;
 
-    // A lead that came from a prospect list has already been analysed for the
-    // calling motion (website resolved + verified, opportunity score, Lighthouse).
-    // The two "skip" gates below are outreach-funnel decisions — they must not
-    // silently discard a lead a salesperson deliberately kept. For scored leads
-    // we park them in needs_enrichment instead of skipped, and leave the score
-    // fields alone. Behaviour is byte-identical when there is no score, which is
-    // every lead the email funnel handles today.
-    const hasOpportunityScore = lead.opportunity_score != null;
-    const skipStatus = hasOpportunityScore ? "needs_enrichment" : "skipped";
-
     if (!isServiceCall) {
       const authClient = createClient(
         Deno.env.get("SUPABASE_URL")!,
@@ -986,11 +976,9 @@ Deno.serve(async (req) => {
         if (businessAnalysis.businessFitScore < 3) {
           console.log(`[auto-enrich] SKIP – low business fit: ${businessAnalysis.businessFitScore}/10 – ${businessAnalysis.fitReason}`);
           await supabase.from("leads").update({
-            enrichment_status: skipStatus,
+            enrichment_status: "skipped",
             enrichment_completed_at: new Date().toISOString(),
-            enrichment_error: hasOpportunityScore
-              ? `Inget mailutkast (business fit ${businessAnalysis.businessFitScore}/10) – leaden behåller sin poäng från prospektlistan`
-              : `Lågt business fit (${businessAnalysis.businessFitScore}/10): ${businessAnalysis.fitReason}`,
+            enrichment_error: `Lågt business fit (${businessAnalysis.businessFitScore}/10): ${businessAnalysis.fitReason}`,
           }).eq("id", leadId);
           return new Response(
             JSON.stringify({
@@ -1014,11 +1002,9 @@ Deno.serve(async (req) => {
     if (!light && scoring.shouldSkip && (!businessAnalysis || businessAnalysis.businessFitScore < 3)) {
       console.log("[auto-enrich] STEP 3 – No sellable problems found, skipping draft");
       await supabase.from("leads").update({
-        enrichment_status: skipStatus,
+        enrichment_status: "skipped",
         enrichment_completed_at: new Date().toISOString(),
-        enrichment_error: hasOpportunityScore
-          ? "Inget mailutkast genererat – leaden behåller sin poäng från prospektlistan"
-          : "Inga säljbara problem hittades – bra sida",
+        enrichment_error: "Inga säljbara problem hittades – bra sida",
       }).eq("id", leadId);
       return new Response(
         JSON.stringify({ success: true, leadId, status: "skipped", reason: "no_problems", problems: scoring.problems }),

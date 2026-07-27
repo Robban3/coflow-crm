@@ -17,7 +17,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -29,7 +28,6 @@ import {
   Gauge,
   Globe,
   Loader2,
-  Mail,
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
@@ -69,7 +67,6 @@ function hostOf(url: string): string {
 export default function ProspectListDetailPage() {
   const { id: listId } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
-  const orgId = useOrganizationId();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [onlyKeepers, setOnlyKeepers] = useState(true);
@@ -310,65 +307,29 @@ export default function ProspectListDetailPage() {
     },
   });
 
-  // ── Importera (två lägen) ──
-  // Valet mellan ringlista och e-postutskick görs HÄR, inte vid sökningen —
-  // det är först nu man vet vad företagen är värda.
-  //
-  //   'call'     → leadsen är redan analyserade av listan. De märks INTE som
-  //                imported_via_prospecting, så e-postpipelinen lämnar dem i
-  //                fred och skriver inte över poängen.
-  //   'outreach' → dagens beteende: kön plockar upp dem, auto-enrich-lead
-  //                crawlar och skriver ett AI-utkast.
-  type ImportMode = "call" | "outreach";
-
+  // ── Importera som leads ──
   const importMutation = useMutation({
-    mutationFn: async (mode: ImportMode) => {
+    mutationFn: async () => {
       const { data, error } = await (supabase as any).rpc(
         "import_prospect_list_to_leads",
-        { _list_id: listId, _only_keepers: onlyKeepers, _mode: mode },
+        { _list_id: listId, _only_keepers: onlyKeepers },
       );
       if (error) throw error;
       const rows = (data ?? []) as ImportProspectListResult[];
-      return {
-        ...(rows[0] ?? { imported: 0, skipped_duplicates: 0, remaining: 0 }),
-        mode,
-      };
+      return (
+        rows[0] ?? { imported: 0, skipped_duplicates: 0, remaining: 0 }
+      );
     },
-    onSuccess: async ({ imported, skipped_duplicates, remaining, mode }) => {
+    onSuccess: ({ imported, skipped_duplicates, remaining }) => {
       invalidate();
       queryClient.invalidateQueries({ queryKey: ["leads-enriched"] });
       queryClient.invalidateQueries({ queryKey: ["prospecting-existing-leads"] });
       queryClient.invalidateQueries({ queryKey: ["prospecting-lead-orgnumbers"] });
       setSelectedIds(new Set());
 
-      if (mode === "outreach") {
-        queryClient.invalidateQueries({ queryKey: ["prospecting-queue"] });
-        queryClient.invalidateQueries({ queryKey: ["prospecting-queue-count"] });
-
-        // Starta kön direkt. Att bara sätta status='pending' utan att anropa
-        // den här gjorde att leadsen låg orörda tills någon råkade öppna
-        // Kö-fliken — flödet såg klart ut men ingenting hände.
-        if (imported > 0 && orgId) {
-          try {
-            const { data: currentUser } = await supabase.auth.getUser();
-            await supabase.functions.invoke("process-enrichment-queue", {
-              body: { organization_id: orgId, user_id: currentUser.user?.id },
-            });
-          } catch (e) {
-            console.warn("Kunde inte starta berikningskön:", e);
-          }
-        }
-
-        toast.success(
-          `${imported} leads skickade till e-postutskick`,
-          { description: "Analys och mailutkast pågår under E-postutskick → Kö." },
-        );
-      } else {
-        toast.success(
-          `${imported} leads importerade, ${skipped_duplicates} dubbletter hoppades över`,
-          { description: "Poäng och webbplats följer med. Finns nu under Leads." },
-        );
-      }
+      toast.success(
+        `${imported} leads importerade, ${skipped_duplicates} dubbletter hoppades över`,
+      );
 
       // Taket för öppna leads per användare är nått – förväntat, inte ett fel.
       if (remaining > 0) {
@@ -472,26 +433,11 @@ export default function ProspectListDetailPage() {
               Kontrollera dubbletter
             </Button>
             <Button
-              variant="outline"
-              onClick={() => importMutation.mutate("outreach")}
+              onClick={() => importMutation.mutate()}
               disabled={importDisabled}
               className="gap-1.5"
-              title="Skapar leads och lägger dem i e-postutskickets kö. Sajten analyseras om och AI skriver ett mailutkast."
             >
-              {importMutation.isPending && importMutation.variables === "outreach" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Mail className="h-4 w-4" />
-              )}
-              Skicka till e-postutskick
-            </Button>
-            <Button
-              onClick={() => importMutation.mutate("call")}
-              disabled={importDisabled}
-              className="gap-1.5"
-              title="Skapar leads under Leads för att ringa. Poäng och webbplats följer med och rörs inte."
-            >
-              {importMutation.isPending && importMutation.variables === "call" ? (
+              {importMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Download className="h-4 w-4" />
@@ -500,14 +446,6 @@ export default function ProspectListDetailPage() {
             </Button>
           </div>
         </div>
-
-        {/* Vad de två knapparna gör — hela poängen med att flytta valet hit */}
-        <p className="text-xs text-muted-foreground -mt-1">
-          <strong className="text-foreground">Importera som leads</strong> för att
-          ringa — poängen följer med. <strong className="text-foreground">Skicka
-          till e-postutskick</strong> för AI-genererade mail — sajten analyseras
-          då om från början.
-        </p>
 
         {/* Bulk-verktygsrad */}
         {items.length > 0 && (

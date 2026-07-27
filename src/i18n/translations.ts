@@ -261,7 +261,6 @@ export const translations: Record<Language, Dict> = {
     "leadsList.sortCompany": "Företag",
     "leadsList.sortContact": "Kontakt",
     "leadsList.sortSource": "Källa",
-    "leadsList.sortScore": "Poäng",
     "leadsList.hideNotInterested": "Dölj ej intresserade",
     "leadsList.emptyNoLeads": "Inga leads ännu",
     "leadsList.emptyNoMatch": "Inga leads matchar sökningen",
@@ -278,7 +277,6 @@ export const translations: Record<Language, Dict> = {
     "leadsList.colContactStatus": "Kontakt",
     "leadsList.colAnalysis": "Analys",
     "leadsList.colSource": "Källa",
-    "leadsList.colScore": "Poäng",
 
     // Common
     "common.cancel": "Avbryt",
@@ -635,7 +633,6 @@ export const translations: Record<Language, Dict> = {
     "leadsList.sortCompany": "Company",
     "leadsList.sortContact": "Contact",
     "leadsList.sortSource": "Source",
-    "leadsList.sortScore": "Score",
     "leadsList.hideNotInterested": "Hide not interested",
     "leadsList.emptyNoLeads": "No leads yet",
     "leadsList.emptyNoMatch": "No leads match your search",
@@ -652,7 +649,6 @@ export const translations: Record<Language, Dict> = {
     "leadsList.colContactStatus": "Contact",
     "leadsList.colAnalysis": "Analysis",
     "leadsList.colSource": "Source",
-    "leadsList.colScore": "Score",
 
     // Common
     "common.cancel": "Cancel",
