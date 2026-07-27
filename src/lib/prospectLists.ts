@@ -180,3 +180,68 @@ export function issueLabel(code: string | null | undefined): string | null {
   if (!code) return null;
   return ISSUE_LABELS[code] ?? code;
 }
+
+// Score bands. NOTE the colour reads as the state of the WEBSITE, not the value
+// of the lead — red means the site is in bad shape, which is precisely the lead
+// worth calling. The descriptions spell that out so nobody reads red as "skip".
+export type ScoreBand = {
+  min: number;
+  max: number;
+  label: string;
+  description: string;
+  /** Tailwind classes using the existing semantic tokens. */
+  textClass: string;
+  badgeClass: string;
+  dotClass: string;
+};
+
+export const SCORE_BANDS: ScoreBand[] = [
+  {
+    min: 0,
+    max: 25,
+    label: "Välskött",
+    description:
+      "Modern och fungerande webbplats. Svårt att sälja mot — prioritera annat.",
+    textClass: "text-success",
+    badgeClass: "bg-success/10 text-success border-success/20",
+    dotClass: "bg-success",
+  },
+  {
+    min: 26,
+    max: 50,
+    label: "Mindre brister",
+    description:
+      "Fungerar, men har luckor i mobil, SEO eller innehåll. Kan vara värt ett samtal.",
+    textClass: "text-warning",
+    badgeClass: "bg-warning/10 text-warning border-warning/20",
+    dotClass: "bg-warning",
+  },
+  {
+    min: 51,
+    max: 75,
+    label: "Tydliga brister",
+    description:
+      "Flera påtagliga problem — ofta föråldrad design eller dålig mobilanpassning. Bra lead.",
+    textClass: "text-warning",
+    badgeClass: "bg-warning/10 text-warning border-warning/20",
+    dotClass: "bg-warning",
+  },
+  {
+    min: 76,
+    max: 100,
+    label: "Stora brister",
+    description:
+      "Mycket gammal webbplats — eller ingen alls. Här finns störst behov och bäst chans att sälja.",
+    textClass: "text-destructive",
+    badgeClass: "bg-destructive/10 text-destructive border-destructive/20",
+    dotClass: "bg-destructive",
+  },
+];
+
+export function scoreBand(score: number | null | undefined): ScoreBand | null {
+  if (score == null) return null;
+  return (
+    SCORE_BANDS.find((b) => score >= b.min && score <= b.max) ??
+    SCORE_BANDS[SCORE_BANDS.length - 1]
+  );
+}

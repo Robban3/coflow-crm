@@ -36,6 +36,8 @@ import {
   listStatusLabel,
   websiteStatusLabel,
   issueLabel,
+  scoreBand,
+  SCORE_BANDS,
   type ImportProspectListResult,
   type ProspectList,
   type ProspectListItem,
@@ -429,7 +431,39 @@ export default function ProspectListDetailPage() {
             </Button>
           </div>
         ) : (
-          <div className="border border-border rounded-lg overflow-x-auto bg-card">
+          <>
+            {/* Poängförklaring — utan den säger siffran ingenting, och röd
+                läses lätt som "hoppa över" när den betyder motsatsen. */}
+            <Card className="mb-4">
+              <CardContent className="py-3 px-4">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <p className="text-xs text-muted-foreground max-w-md">
+                    Poängen beskriver <strong className="text-foreground">webbplatsens skick</strong> —
+                    inte leadets värde. Hög poäng betyder sämre sajt, alltså större
+                    behov och bättre säljläge.
+                  </p>
+                  <div className="flex flex-wrap gap-x-5 gap-y-2">
+                    {SCORE_BANDS.map((band) => (
+                      <div key={band.min} className="flex items-start gap-2">
+                        <span
+                          className={cn("h-2 w-2 rounded-full mt-1 shrink-0", band.dotClass)}
+                        />
+                        <div className="leading-tight">
+                          <div className="text-xs font-medium">
+                            {band.min}–{band.max} · {band.label}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground max-w-[190px]">
+                            {band.description}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="border border-border rounded-lg overflow-x-auto bg-card">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -535,12 +569,14 @@ export default function ProspectListDetailPage() {
                         {item.opportunity_score == null ? (
                           <span className="text-muted-foreground">—</span>
                         ) : (
-                          <div className="flex flex-col items-end leading-tight">
+                          <div
+                            className="flex flex-col items-end leading-tight"
+                            title={scoreBand(item.opportunity_score)?.description}
+                          >
                             <span
                               className={cn(
-                                "tabular-nums font-medium",
-                                item.opportunity_score >= 60 && "text-foreground",
-                                item.opportunity_score < 30 && "text-muted-foreground",
+                                "tabular-nums font-semibold",
+                                scoreBand(item.opportunity_score)?.textClass,
                               )}
                             >
                               {item.opportunity_score}
@@ -600,7 +636,8 @@ export default function ProspectListDetailPage() {
                 })}
               </TableBody>
             </Table>
-          </div>
+            </div>
+          </>
         )}
       </div>
     </AppLayout>
