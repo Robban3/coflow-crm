@@ -110,11 +110,19 @@ Deno.serve(async (req: Request) => {
           continue;
         }
 
-        const psi = await res.json();
+        // pagespeed-analyze wraps its payload: { success: true, data: {...} }.
+        // Accept the bare shape too, so this keeps working if that ever changes.
+        const body = await res.json();
+        const psi = body?.data ?? body;
+
         const performance: number | null =
           typeof psi?.performance_score === "number" ? psi.performance_score : null;
 
         if (performance == null) {
+          console.error(
+            `[score-prospect-performance] no performance_score for ${item.website}:`,
+            JSON.stringify(body).slice(0, 300),
+          );
           failed += 1;
           await supabase.from("prospect_list_items")
             .update({ psi_checked_at: new Date().toISOString() })
