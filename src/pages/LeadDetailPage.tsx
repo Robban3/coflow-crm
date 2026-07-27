@@ -36,6 +36,7 @@ import {
   Globe,
   ExternalLink,
   BarChart3,
+  ClipboardList,
   Clock,
   Plus,
   PhoneCall,
@@ -1273,17 +1274,51 @@ export default function LeadDetailPage() {
               </CardHeader>
               <CardContent>
                 <Badge variant="secondary" className="mb-2 text-xs">
-                  {lead.source === 'web_analysis' ? t("leadDetail.ldp_sourceWebAnalysis") : 
-                   lead.source === 'firecrawl' ? 'Firecrawl' : 
-                   lead.source === 'manual' ? t("leadDetail.ldp_sourceManual") : lead.source}
+                  {lead.source === 'web_analysis' ? t("leadDetail.ldp_sourceWebAnalysis") :
+                   lead.source === 'firecrawl' ? 'Firecrawl' :
+                   lead.source === 'manual' ? t("leadDetail.ldp_sourceManual") :
+                   lead.source === 'prospect_list' ? 'Prospektlista' :
+                   lead.source === 'company_registry' ? 'Företagsregister' :
+                   lead.source === 'google_places' ? 'Google Places' : lead.source}
                 </Badge>
                 {lead.source_data && Object.keys(lead.source_data).length > 0 && (
                   <div className="mt-3 space-y-2">
-                    {lead.source_data.orgNumber && (
+                    {/* snake_case är vad prospektlist-importen skriver; camelCase
+                        behålls som fallback för äldre web_analysis/firecrawl-leads. */}
+                    {(lead.source_data.org_number || lead.source_data.orgNumber) && (
                       <div>
                         <p className="text-xs text-muted-foreground">{t("leadDetail.ldp_orgNr")}</p>
-                        <p className="text-sm font-medium">{String(lead.source_data.orgNumber)}</p>
+                        <p className="text-sm font-medium">
+                          {String(lead.source_data.org_number ?? lead.source_data.orgNumber)}
+                        </p>
                       </div>
+                    )}
+                    {(lead.source_data.city || lead.source_data.address) && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Adress</p>
+                        <p className="text-sm font-medium">
+                          {[
+                            lead.source_data.address,
+                            [lead.source_data.postal_code, lead.source_data.city]
+                              .filter(Boolean).join(" "),
+                          ].filter(Boolean).join(", ")}
+                        </p>
+                      </div>
+                    )}
+                    {lead.source_data.industry && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Bransch</p>
+                        <p className="text-sm font-medium">{String(lead.source_data.industry)}</p>
+                      </div>
+                    )}
+                    {lead.source_data.prospect_list_id && (
+                      <Link
+                        to={`/prospect-lists/${lead.source_data.prospect_list_id}`}
+                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                      >
+                        <ClipboardList className="h-3.5 w-3.5" />
+                        Visa prospektlistan
+                      </Link>
                     )}
                     {lead.source_data.socialLinks && Array.isArray(lead.source_data.socialLinks) && (
                       <div>

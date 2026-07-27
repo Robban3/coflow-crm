@@ -1,4 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
+import { cn } from "@/lib/utils";
+import { scoreBand, issueLabel, issueArgument } from "@/lib/prospectLists";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,7 +84,7 @@ import type { LeadWithOutreachStatus } from "@/pages/LeadsPage";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
 type OwnerFilter = "all" | "mine" | "unassigned" | string;
-type SortField = "company_name" | "created_at" | "contact_name" | "source";
+type SortField = "company_name" | "created_at" | "contact_name" | "source" | "opportunity_score";
 type SortDirection = "asc" | "desc";
 type EnrichmentFilter = "all" | "ready_for_approval" | "processing" | "failed";
 
@@ -409,6 +411,18 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
   // Sort leads
   const sortedLeads = useMemo(() => {
     return [...searchFilteredLeads].sort((a, b) => {
+      // Numeriskt fält — hanteras separat så att osatt poäng alltid hamnar
+      // sist, oavsett sorteringsriktning. Med strängjämförelsen nedan hade
+      // null hamnat först vid stigande sortering.
+      if (sortField === "opportunity_score") {
+        const aScore = a.opportunity_score;
+        const bScore = b.opportunity_score;
+        if (aScore == null && bScore == null) return 0;
+        if (aScore == null) return 1;
+        if (bScore == null) return -1;
+        return sortDirection === "asc" ? aScore - bScore : bScore - aScore;
+      }
+
       let aVal: string | null = null;
       let bVal: string | null = null;
 
@@ -667,6 +681,12 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
         return <Badge variant="secondary">Firecrawl</Badge>;
       case 'manual':
         return <Badge variant="outline">{t("leadsList.sourceManual")}</Badge>;
+      case 'prospect_list':
+        return <Badge variant="secondary">Prospektlista</Badge>;
+      case 'company_registry':
+        return <Badge variant="secondary">Företagsregister</Badge>;
+      case 'google_places':
+        return <Badge variant="secondary">Google Places</Badge>;
       default:
         return <Badge variant="outline">{source}</Badge>;
     }
@@ -878,6 +898,7 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                 <SelectItem value="company_name">{t("leadsList.sortCompany")}</SelectItem>
                 <SelectItem value="contact_name">{t("leadsList.sortContact")}</SelectItem>
                 <SelectItem value="source">{t("leadsList.sortSource")}</SelectItem>
+                <SelectItem value="opportunity_score">{t("leadsList.sortScore")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1054,6 +1075,15 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                       </div>
                     </TableHead>
                     <TableHead
+                      className="cursor-pointer hover:bg-muted/50 w-20 text-right"
+                      onClick={() => handleSort("opportunity_score")}
+                    >
+                      <div className="flex items-center justify-end">
+                        {t("leadsList.colScore")}
+                        <SortIcon field="opportunity_score" />
+                      </div>
+                    </TableHead>
+                    <TableHead
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleSort("contact_name")}
                     >
@@ -1130,6 +1160,33 @@ export function LeadsList({ leads, onRefresh }: LeadsListProps) {
                           )}
                         </div>
                         {renderPooledBy(lead)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {lead.opportunity_score == null ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : (
+                          <div
+                            className="flex flex-col items-end leading-tight"
+                            title={
+                              issueArgument(lead.main_issue_code) ??
+                              scoreBand(lead.opportunity_score)?.description
+                            }
+                          >
+                            <span
+                              className={cn(
+                                "tabular-nums font-semibold",
+                                scoreBand(lead.opportunity_score)?.textClass,
+                              )}
+                            >
+                              {lead.opportunity_score}
+                            </span>
+                            {issueLabel(lead.main_issue_code) && (
+                              <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                {issueLabel(lead.main_issue_code)}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>{lead.contact_name || "-"}</TableCell>
                       <TableCell>{lead.email || "-"}</TableCell>

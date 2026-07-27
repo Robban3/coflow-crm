@@ -18,6 +18,13 @@ interface Lead {
   enrichment_status: string | null;
   auto_draft_generated: boolean | null;
   is_test: boolean | null;
+  org_number: string | null;
+  // Från prospektlistan. Kolumnerna finns i DB men saknas i den genererade
+  // types.ts — selecten är '*', så datan kommer med ändå.
+  opportunity_score: number | null;
+  main_issue_code: string | null;
+  website_source: string | null;
+  website_confidence: number | null;
 }
 
 export interface LeadWithOutreachStatus extends Lead {
@@ -51,6 +58,10 @@ export async function fetchLeadsData(): Promise<LeadWithOutreachStatus[]> {
       .from('leads')
       .select('*')
       .order('created_at', { ascending: false })
+      // Deterministic tiebreaker. Not cosmetic: a bulk import writes many rows
+      // and, with ties on the only sort key, PostgREST can return the same row
+      // twice or drop rows across these 1000-row page boundaries.
+      .order('id', { ascending: false })
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
     if (error || !data) {
