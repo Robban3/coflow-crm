@@ -64,6 +64,7 @@ const PowerCallSessionPage = lazyRetry(() => import("./pages/PowerCallSessionPag
 const ProspectingPage = lazyRetry(() => import("./pages/ProspectingPage"));
 const ProspectListsPage = lazyRetry(() => import("./pages/ProspectListsPage"));
 const ProspectListDetailPage = lazyRetry(() => import("./pages/ProspectListDetailPage"));
+const LeadPoolAdminPage = lazyRetry(() => import("./pages/admin/LeadPoolAdminPage"));
 const TicketsPage = lazyRetry(() => import("./pages/TicketsPage"));
 const TrainingPage = lazyRetry(() => import("./pages/TrainingPage"));
 const SalespeoplePage = lazyRetry(() => import("./pages/SalespeoplePage"));
@@ -208,6 +209,9 @@ const App = () => (
                 } />
                 <Route path="/prospect-lists/:id" element={
                   <ProtectedRoute><ProspectListDetailPage /></ProtectedRoute>
+                } />
+                <Route path="/admin/lead-pool" element={
+                  <ProtectedRoute><LeadPoolAdminPage /></ProtectedRoute>
                 } />
                 <Route path="/tickets" element={
                   <ProtectedRoute><TicketsPage /></ProtectedRoute>

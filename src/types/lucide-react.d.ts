@@ -55,6 +55,8 @@ declare module 'lucide-react' {
   export const Facebook: any;
   export const FileText: any;
   export const Filter: any;
+  export const Database: any;
+  export const ShieldAlert: any;
   export const Gauge: any;
   export const GitBranch: any;
   export const Globe: any;

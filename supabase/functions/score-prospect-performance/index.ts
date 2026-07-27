@@ -61,26 +61,58 @@ Deno.serve(async (req: Request) => {
       .from("profiles").select("organization_id").eq("id", userData.user.id).maybeSingle();
     const callerOrg = profile?.organization_id ?? null;
 
-    const { listId, limit } = await req.json();
-    if (!listId) throw new Error("listId krävs");
-
-    const { data: list } = await supabase
-      .from("prospect_lists").select("id, organization_id").eq("id", listId).maybeSingle();
-    if (!list) throw new Error("Listan hittades inte");
-    if (!callerOrg || list.organization_id !== callerOrg) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
+    const body = await req.json();
+    const { listId, scope, market = "SE", industryKey, limit } = body ?? {};
+    if (!callerOrg) {
+      return new Response(JSON.stringify({ error: "No organization" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Två lägen mot samma analyslogik: dagens listflöde och den nya poolen.
+    // Listvägen måste bete sig exakt som förut — den används dagligen.
+    const isPool = scope === "pool";
+    const table = isPool ? "lead_pool" : "prospect_list_items";
+
+    if (isPool) {
+      // service_role passerar RLS, så admin-kravet på lead_pool måste kollas här.
+      const { data: roleRow } = await createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      })
+        .from("user_roles").select("role")
+        .eq("user_id", userData.user.id).eq("role", "admin").maybeSingle();
+      if (!roleRow) {
+        return new Response(JSON.stringify({ error: "Admin access required" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      if (!listId) throw new Error("listId krävs");
+      const { data: list } = await supabase
+        .from("prospect_lists").select("id, organization_id").eq("id", listId).maybeSingle();
+      if (!list) throw new Error("Listan hittades inte");
+      if (list.organization_id !== callerOrg) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Avgränsar batchen till rätt läge. Används för både kö och restberäkning.
+    const scopeQuery = (q: any) =>
+      isPool
+        ? (industryKey
+            ? q.eq("organization_id", callerOrg).eq("market", market).eq("industry_key", industryKey)
+            : q.eq("organization_id", callerOrg).eq("market", market))
+        : q.eq("list_id", listId);
 
     const batchSize = Math.min(Math.max(Number(limit) || BATCH_DEFAULT, 1), 10);
 
     // Only sites we actually verified — measuring an unverified or missing URL
     // would attribute someone else's performance to this company.
-    const { data: items } = await supabase
-      .from("prospect_list_items")
-      .select("id, website, score_reasons")
-      .eq("list_id", listId)
+    const { data: items } = await scopeQuery(
+      supabase.from(table).select("id, website, score_reasons"),
+    )
       .in("website_status", ["linked", "discovered"])
       .not("website", "is", null)
       .is("psi_checked_at", null)
@@ -104,7 +136,7 @@ Deno.serve(async (req: Request) => {
 
         if (!res.ok) {
           failed += 1;
-          await supabase.from("prospect_list_items")
+          await supabase.from(table)
             .update({ psi_checked_at: new Date().toISOString() })
             .eq("id", item.id);
           continue;
@@ -124,7 +156,7 @@ Deno.serve(async (req: Request) => {
             JSON.stringify(body).slice(0, 300),
           );
           failed += 1;
-          await supabase.from("prospect_list_items")
+          await supabase.from(table)
             .update({ psi_checked_at: new Date().toISOString() })
             .eq("id", item.id);
           continue;
@@ -132,7 +164,7 @@ Deno.serve(async (req: Request) => {
 
         const rescored = applyPsi(item.score_reasons ?? [], performance);
 
-        await supabase.from("prospect_list_items").update({
+        await supabase.from(table).update({
           psi_performance: performance,
           psi_accessibility:
             typeof psi?.accessibility_score === "number" ? psi.accessibility_score : null,
@@ -149,16 +181,15 @@ Deno.serve(async (req: Request) => {
       } catch (e) {
         console.error(`[score-prospect-performance] item ${item.id}:`, e);
         failed += 1;
-        await supabase.from("prospect_list_items")
+        await supabase.from(table)
           .update({ psi_checked_at: new Date().toISOString() })
           .eq("id", item.id);
       }
     }
 
-    const { count: remaining } = await supabase
-      .from("prospect_list_items")
-      .select("id", { count: "exact", head: true })
-      .eq("list_id", listId)
+    const { count: remaining } = await scopeQuery(
+      supabase.from(table).select("id", { count: "exact", head: true }),
+    )
       .in("website_status", ["linked", "discovered"])
       .not("website", "is", null)
       .is("psi_checked_at", null);

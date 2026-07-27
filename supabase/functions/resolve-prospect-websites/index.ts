@@ -180,8 +180,19 @@ type ItemRow = {
   website_status: string;
 };
 
+// Adapter så samma analyslogik kan köras mot prospect_list_items (dagens
+// listflöde) och lead_pool (den nya färdiganalyserade poolen). Analysen nedan
+// vet inte vilken tabell den skriver till.
+type Target = {
+  fetchQueue(batch: number): Promise<ItemRow[]>;
+  update(id: string, patch: Record<string, unknown>): Promise<void>;
+  countRemaining(): Promise<number>;
+  onStart?(): Promise<void>;
+  onDone?(): Promise<void>;
+};
+
 async function processItem(
-  supabase: any,
+  target: Target,
   item: ItemRow,
   placesKey: string | null,
 ): Promise<void> {
@@ -197,7 +208,7 @@ async function processItem(
   }
 
   if (!candidate) {
-    await supabase.from("prospect_list_items").update({
+    await target.update(item.id, {
       website_status: "none_found",
       website_source: null,
       website_confidence: 0,
@@ -213,7 +224,7 @@ async function processItem(
         };
       })(),
       scored_at: new Date().toISOString(),
-    }).eq("id", item.id);
+    });
     return;
   }
 
@@ -239,11 +250,11 @@ async function processItem(
     const msg = err instanceof Error ? err.message : String(err);
     if (err instanceof SafeFetchError && (err.code === "blocked_host" || err.code === "blocked_ip")) {
       // A prospect "website" pointing at a private address is not a real site.
-      await supabase.from("prospect_list_items").update({
+      await target.update(item.id, {
         website_status: "verify_failed",
         website_confidence: 0,
         website_evidence: { checked_at: new Date().toISOString(), error: err.code },
-      }).eq("id", item.id);
+      });
       return;
     }
     tlsError = /certificate|tls|ssl|handshake/i.test(msg);
@@ -264,7 +275,7 @@ async function processItem(
 
   const verified = reachable && verification.confidence >= ACCEPT_CONFIDENCE;
 
-  await supabase.from("prospect_list_items").update({
+  await target.update(item.id, {
     website: verified ? finalUrl : candidate,
     website_status: !reachable
       ? "verify_failed"
@@ -287,7 +298,79 @@ async function processItem(
     main_issue_code: scored.mainIssueCode,
     score_reasons: scored.reasons,
     scored_at: new Date().toISOString(),
-  }).eq("id", item.id);
+  });
+}
+
+// ── Targets ────────────────────────────────────────────────────────────
+// Listläget måste bete sig EXAKT som förut — det används dagligen från
+// ProspectListDetailPage. Poolläget är additivt.
+
+function listTarget(supabase: any, listId: string): Target {
+  const table = "prospect_list_items";
+  return {
+    async fetchQueue(batch) {
+      const { data } = await supabase.from(table)
+        .select("id, company_name, org_number, city, website, website_status")
+        .eq("list_id", listId).eq("website_status", "unknown").limit(batch);
+      return (data ?? []) as ItemRow[];
+    },
+    async update(id, patch) {
+      await supabase.from(table).update(patch).eq("id", id);
+    },
+    async countRemaining() {
+      const { count } = await supabase.from(table)
+        .select("id", { count: "exact", head: true })
+        .eq("list_id", listId).eq("website_status", "unknown");
+      return count ?? 0;
+    },
+    async onStart() {
+      await supabase.from("prospect_lists")
+        .update({ status: "enriching", updated_at: new Date().toISOString() }).eq("id", listId);
+    },
+    async onDone() {
+      await supabase.from("prospect_lists")
+        .update({ status: "ready", updated_at: new Date().toISOString() }).eq("id", listId);
+    },
+  };
+}
+
+function poolTarget(
+  supabase: any,
+  orgId: string,
+  market: string,
+  industryKey: string | null,
+): Target {
+  const table = "lead_pool";
+  return {
+    async fetchQueue(batch) {
+      let q = supabase.from(table)
+        .select("id, company_name, org_nr, city, website, website_status")
+        .eq("organization_id", orgId).eq("market", market)
+        .eq("website_status", "unknown").limit(batch);
+      if (industryKey) q = q.eq("industry_key", industryKey);
+      const { data } = await q;
+      // lead_pool kallar kolumnen org_nr, prospect_list_items kallar den
+      // org_number. Normaliseras här så analyslogiken slipper veta om det.
+      return ((data ?? []) as any[]).map((r) => ({
+        id: r.id,
+        company_name: r.company_name,
+        org_number: r.org_nr,
+        city: r.city,
+        website: r.website,
+        website_status: r.website_status,
+      })) as ItemRow[];
+    },
+    async update(id, patch) {
+      await supabase.from(table).update(patch).eq("id", id);
+    },
+    async countRemaining() {
+      let q = supabase.from(table).select("id", { count: "exact", head: true })
+        .eq("organization_id", orgId).eq("market", market).eq("website_status", "unknown");
+      if (industryKey) q = q.eq("industry_key", industryKey);
+      const { count } = await q;
+      return count ?? 0;
+    },
+  };
 }
 
 Deno.serve(async (req: Request) => {
@@ -323,39 +406,55 @@ Deno.serve(async (req: Request) => {
     const { data: profile } = await supabase
       .from("profiles").select("organization_id").eq("id", userData.user.id).maybeSingle();
     const callerOrg = profile?.organization_id ?? null;
-
-    const { listId, limit } = await req.json();
-    if (!listId) throw new Error("listId krävs");
-
-    const { data: list } = await supabase
-      .from("prospect_lists").select("id, organization_id").eq("id", listId).maybeSingle();
-    if (!list) throw new Error("Listan hittades inte");
-    if (!callerOrg || list.organization_id !== callerOrg) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
+    if (!callerOrg) {
+      return new Response(JSON.stringify({ error: "No organization" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const body = await req.json();
+    const { listId, scope, market = "SE", industryKey, limit } = body ?? {};
+
+    let target: Target;
+
+    if (scope === "pool") {
+      // Poolen är admin-territorium: RLS tillåter bara admin att skriva, och
+      // service_role passerar RLS — så kollen måste göras explicit här.
+      const { data: roleRow } = await createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      })
+        .from("user_roles").select("role")
+        .eq("user_id", userData.user.id).eq("role", "admin").maybeSingle();
+      if (!roleRow) {
+        return new Response(JSON.stringify({ error: "Admin access required" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      target = poolTarget(supabase, callerOrg, market, industryKey ?? null);
+    } else {
+      if (!listId) throw new Error("listId krävs");
+      const { data: list } = await supabase
+        .from("prospect_lists").select("id, organization_id").eq("id", listId).maybeSingle();
+      if (!list) throw new Error("Listan hittades inte");
+      if (list.organization_id !== callerOrg) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      target = listTarget(supabase, listId);
+    }
+
     const batchSize = Math.min(Math.max(Number(limit) || BATCH_DEFAULT, 1), 50);
+    const queue = await target.fetchQueue(batchSize);
 
-    const { data: items } = await supabase
-      .from("prospect_list_items")
-      .select("id, company_name, org_number, city, website, website_status")
-      .eq("list_id", listId)
-      .eq("website_status", "unknown")
-      .limit(batchSize);
-
-    const queue = (items ?? []) as ItemRow[];
     if (queue.length === 0) {
-      await supabase.from("prospect_lists")
-        .update({ status: "ready", updated_at: new Date().toISOString() }).eq("id", listId);
+      await target.onDone?.();
       return new Response(JSON.stringify({ processed: 0, remaining: 0, done: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    await supabase.from("prospect_lists")
-      .update({ status: "enriching", updated_at: new Date().toISOString() }).eq("id", listId);
+    await target.onStart?.();
 
     const placesKey = Deno.env.get("GOOGLE_PLACES_API_KEY") ?? null;
 
@@ -366,29 +465,20 @@ Deno.serve(async (req: Request) => {
       while (cursor < queue.length) {
         const item = queue[cursor++];
         try {
-          await processItem(supabase, item, placesKey);
+          await processItem(target, item, placesKey);
         } catch (e) {
           console.error(`[resolve-prospect-websites] item ${item.id}:`, e);
-          await supabase.from("prospect_list_items").update({
+          await target.update(item.id, {
             website_status: "verify_failed",
             website_evidence: { checked_at: new Date().toISOString(), error: String(e) },
-          }).eq("id", item.id);
+          });
         }
       }
     });
     await Promise.all(workers);
 
-    const { count: remaining } = await supabase
-      .from("prospect_list_items")
-      .select("id", { count: "exact", head: true })
-      .eq("list_id", listId)
-      .eq("website_status", "unknown");
-
-    const left = remaining ?? 0;
-    if (left === 0) {
-      await supabase.from("prospect_lists")
-        .update({ status: "ready", updated_at: new Date().toISOString() }).eq("id", listId);
-    }
+    const left = await target.countRemaining();
+    if (left === 0) await target.onDone?.();
 
     return new Response(
       JSON.stringify({ processed: queue.length, remaining: left, done: left === 0 }),
