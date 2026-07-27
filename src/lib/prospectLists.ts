@@ -144,3 +144,29 @@ export function listStatusLabel(status: string): string {
 export function websiteStatusLabel(status: string): string {
   return WEBSITE_STATUS_LABELS[status as WebsiteStatus] ?? status;
 }
+
+// Issue codes raised by the opportunity scorer. Keep in sync with
+// supabase/functions/_shared/opportunity-score.ts — the score is meaningless to
+// a salesperson without the reason behind it.
+export const ISSUE_LABELS: Record<string, string> = {
+  no_website: "Saknar webbplats",
+  site_unreachable: "Sajten svarar inte",
+  tls_invalid: "Certifikatfel",
+  no_https: "Saknar HTTPS",
+  no_https_redirect: "Ingen HTTPS-omdirigering",
+  server_error: "Serverfel",
+  bad_redirect_chain: "Trasslig omdirigering",
+  oversized_html: "Tung sida",
+  no_viewport_meta: "Ej mobilanpassad",
+  missing_title: "Saknar sidtitel",
+  missing_h1: "Saknar rubrik",
+  missing_meta_description: "Saknar metabeskrivning",
+  no_favicon: "Saknar favicon",
+  no_open_graph: "Saknar delningstaggar",
+  no_contact_path: "Ingen kontaktväg",
+};
+
+export function issueLabel(code: string | null | undefined): string | null {
+  if (!code) return null;
+  return ISSUE_LABELS[code] ?? code;
+}

@@ -133,7 +133,10 @@ export function AddToProspectListDialog({
           industry: item.industry ?? null,
           sni_codes: item.sni_codes ?? null,
           website: item.website ?? null,
-          website_status: item.website_status ?? (item.website ? "linked" : "unknown"),
+          // Always "unknown" on insert — a URL from a search result is an
+          // unverified candidate. resolve-prospect-websites promotes it to
+          // "linked"/"discovered" only after fetching and verifying it.
+          website_status: "unknown",
           source: item.source,
           source_data: item.source_data ?? null,
         });

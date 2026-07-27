@@ -35,6 +35,7 @@ import {
   WEBSITE_STATUS_VARIANTS,
   listStatusLabel,
   websiteStatusLabel,
+  issueLabel,
   type ImportProspectListResult,
   type ProspectList,
   type ProspectListItem,
@@ -167,6 +168,54 @@ export default function ProspectListDetailPage() {
     );
   };
 
+  // ── Hämta webbplatser & poängsätt ──
+  // The edge function works in batches (25 per invocation) and reports how many
+  // items are still unresolved, so we loop until it says it's done. Doing it in
+  // one request would exceed the function timeout on a large list.
+  const [resolveProgress, setResolveProgress] = useState<string | null>(null);
+
+  const resolveMutation = useMutation({
+    mutationFn: async () => {
+      let processedTotal = 0;
+      // Hard stop so a bug upstream can never spin forever.
+      for (let round = 0; round < 40; round++) {
+        const { data, error } = await supabase.functions.invoke(
+          "resolve-prospect-websites",
+          { body: { listId } },
+        );
+        if (error) throw error;
+        const res = data as { processed: number; remaining: number; done: boolean };
+        processedTotal += res.processed ?? 0;
+        setResolveProgress(
+          res.remaining > 0
+            ? `${processedTotal} klara, ${res.remaining} kvar…`
+            : `${processedTotal} klara`,
+        );
+        invalidate();
+        if (res.done || res.remaining === 0 || res.processed === 0) break;
+      }
+      return processedTotal;
+    },
+    onSuccess: (processed) => {
+      setResolveProgress(null);
+      invalidate();
+      toast.success(
+        processed > 0
+          ? `${processed} företag analyserade`
+          : "Alla företag i listan är redan analyserade",
+      );
+    },
+    onError: (err: Error) => {
+      setResolveProgress(null);
+      toast.error("Analysen misslyckades", { description: err.message });
+    },
+  });
+
+  const unresolvedCount = useMemo(
+    () => items.filter((i) => i.website_status === "unknown").length,
+    [items],
+  );
+
   // ── Kontrollera dubbletter ──
   const duplicateMutation = useMutation({
     mutationFn: async () => {
@@ -267,6 +316,23 @@ export default function ProspectListDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => resolveMutation.mutate()}
+              disabled={resolveMutation.isPending || unresolvedCount === 0}
+              className="gap-1.5"
+            >
+              {resolveMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Globe className="h-4 w-4" />
+              )}
+              {resolveMutation.isPending
+                ? (resolveProgress ?? "Analyserar…")
+                : unresolvedCount > 0
+                  ? `Hämta webbplatser (${unresolvedCount})`
+                  : "Alla analyserade"}
+            </Button>
             <Button
               variant="outline"
               onClick={() => duplicateMutation.mutate()}
@@ -465,8 +531,27 @@ export default function ProspectListDetailPage() {
                           </Badge>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {item.opportunity_score ?? "—"}
+                      <TableCell className="text-right">
+                        {item.opportunity_score == null ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : (
+                          <div className="flex flex-col items-end leading-tight">
+                            <span
+                              className={cn(
+                                "tabular-nums font-medium",
+                                item.opportunity_score >= 60 && "text-foreground",
+                                item.opportunity_score < 30 && "text-muted-foreground",
+                              )}
+                            >
+                              {item.opportunity_score}
+                            </span>
+                            {issueLabel(item.main_issue_code) && (
+                              <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                {issueLabel(item.main_issue_code)}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         {selectable ? (

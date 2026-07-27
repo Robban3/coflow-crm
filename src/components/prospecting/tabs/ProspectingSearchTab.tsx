@@ -96,7 +96,12 @@ function placeToProspectItem(place: PlaceResult): NewProspectListItem {
     address: place.address || null,
     phone: place.phone || null,
     website: place.website || null,
-    website_status: place.website ? "linked" : "unknown",
+    // A websiteUri from Google Places is a CANDIDATE, not a verified link — it
+    // routinely points at a franchise HQ, a Facebook page or an aggregator.
+    // Everything starts as "unknown" so resolve-prospect-websites actually
+    // fetches it, checks the company name / org number appears on the page, and
+    // scores it. Marking it "linked" here skipped verification AND scoring.
+    website_status: "unknown",
     source: "google_places",
     source_data: {
       placeId: place.placeId,
