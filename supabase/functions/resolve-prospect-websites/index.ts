@@ -13,7 +13,7 @@
 // company. Unverified candidates are stored with their confidence and evidence
 // rather than silently trusted.
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { safeFetch, SafeFetchError } from "../_shared/safe-fetch.ts";
 import { scoreWebsite, SCORING_VERSION } from "../_shared/opportunity-score.ts";
 
