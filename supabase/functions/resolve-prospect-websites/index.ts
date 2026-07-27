@@ -15,7 +15,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { safeFetch, SafeFetchError } from "../_shared/safe-fetch.ts";
-import { scoreWebsite, SCORING_VERSION } from "../_shared/opportunity-score.ts";
+import { scoreWebsite, scoreNoWebsite } from "../_shared/opportunity-score.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,11 +38,22 @@ const NON_SITE_HOSTS = [
 
 const LEGAL_SUFFIXES = /\b(ab|hb|kb|ekonomisk förening|handelsbolag|aktiebolag|kommanditbolag|publ|i konkurs)\b/gi;
 
+// Domains cannot contain å/ä/ö, so "Frisörmästar'n" lives at frisormastarn.se.
+// Comparing the two without folding diacritics fails for most Swedish company
+// names — which is exactly the market this runs against.
+function foldDiacritics(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/ø/g, "o")
+    .replace(/æ/g, "ae")
+    .replace(/ß/g, "ss");
+}
+
 function normalizeName(name: string): string {
-  return name
-    .toLowerCase()
+  return foldDiacritics(name.toLowerCase())
     .replace(LEGAL_SUFFIXES, " ")
-    .replace(/[^a-z0-9åäö\s]/gi, " ")
+    .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -69,7 +80,10 @@ function verifyOwnership(args: {
   const matched: string[] = [];
   let score = 0;
 
-  const text = args.html.toLowerCase();
+  // Fold the PAGE too, not just the company name — otherwise "frisörmästar" from
+  // the name never matches "frisörmästar" on the page once the name has been
+  // folded to "frisormastar".
+  const text = foldDiacritics(args.html.toLowerCase());
   const tokens = nameTokens(args.companyName);
 
   if (tokens.length > 0) {
@@ -174,10 +188,15 @@ async function processItem(
       website_confidence: 0,
       website_evidence: { checked_at: new Date().toISOString(), reason: "no_candidate" },
       // No site at all is itself the opportunity — score it as such.
-      opportunity_score: 100,
-      opportunity_score_version: SCORING_VERSION,
-      main_issue_code: "no_website",
-      score_reasons: [{ code: "no_website", label: "Saknar webbplats helt", impact: 100, category: "technical" }],
+      ...(() => {
+        const s = scoreNoWebsite();
+        return {
+          opportunity_score: s.opportunityScore,
+          opportunity_score_version: s.scoringVersion,
+          main_issue_code: s.mainIssueCode,
+          score_reasons: s.reasons,
+        };
+      })(),
       scored_at: new Date().toISOString(),
     }).eq("id", item.id);
     return;
@@ -226,7 +245,6 @@ async function processItem(
     reachable,
     tlsError,
     httpsAvailable: finalUrl ? finalUrl.startsWith("https://") : false,
-    redirectHops,
   });
 
   const verified = reachable && verification.confidence >= ACCEPT_CONFIDENCE;
