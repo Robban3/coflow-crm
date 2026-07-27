@@ -36,6 +36,14 @@ export interface ProspectList {
   updated_at: string;
 }
 
+/** One finding from the opportunity scorer, as stored in score_reasons. */
+export interface ScoreReason {
+  code: string;
+  label: string;
+  impact: number;
+  category: "technical" | "mobile" | "seo" | "conversion" | "modernity";
+}
+
 export interface ProspectListItem {
   id: string;
   list_id: string;
@@ -58,7 +66,7 @@ export interface ProspectListItem {
   opportunity_score: number | null;
   opportunity_score_version: string | null;
   main_issue_code: string | null;
-  score_reasons: Record<string, unknown> | null;
+  score_reasons: ScoreReason[] | null;
   scored_at: string | null;
   review_status: ReviewStatus | null;
   psi_performance: number | null;

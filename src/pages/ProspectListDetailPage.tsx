@@ -32,6 +32,13 @@ import {
   ThumbsUp,
 } from "lucide-react";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   LIST_STATUS_VARIANTS,
   WEBSITE_STATUS_VARIANTS,
   listStatusLabel,
@@ -63,6 +70,9 @@ export default function ProspectListDetailPage() {
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [onlyKeepers, setOnlyKeepers] = useState(true);
+  // Clicking a score opens the full breakdown — the stored findings are the
+  // whole justification for the number, and hiding them makes it look arbitrary.
+  const [detailItem, setDetailItem] = useState<ProspectListItem | null>(null);
 
   const { data: list } = useQuery<ProspectList | null>({
     queryKey: ["prospect-list", listId],
@@ -643,8 +653,10 @@ export default function ProspectListDetailPage() {
                         {item.opportunity_score == null ? (
                           <span className="text-muted-foreground">—</span>
                         ) : (
-                          <div
-                            className="flex flex-col items-end leading-tight"
+                          <button
+                            type="button"
+                            onClick={() => setDetailItem(item)}
+                            className="flex flex-col items-end leading-tight w-full hover:opacity-70 transition-opacity cursor-pointer"
                             // The sales argument for the main finding is far more
                             // use on a call than a description of the band.
                             title={
@@ -669,7 +681,7 @@ export default function ProspectListDetailPage() {
                                 {issueLabel(item.main_issue_code)}
                               </span>
                             )}
-                          </div>
+                          </button>
                         )}
                       </TableCell>
                       <TableCell>
@@ -722,6 +734,113 @@ export default function ProspectListDetailPage() {
             </div>
           </>
         )}
+
+        {/* Poänguppdelning — varje fynd, dess vikt och vad man säger om det */}
+        <Dialog open={!!detailItem} onOpenChange={(o) => !o && setDetailItem(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {detailItem?.company_name}
+                {detailItem?.opportunity_score != null && (
+                  <span
+                    className={cn(
+                      "tabular-nums font-bold",
+                      scoreBand(detailItem.opportunity_score)?.textClass,
+                    )}
+                  >
+                    {detailItem.opportunity_score}
+                  </span>
+                )}
+              </DialogTitle>
+              <DialogDescription>
+                {scoreBand(detailItem?.opportunity_score)?.description}
+              </DialogDescription>
+            </DialogHeader>
+
+            {detailItem && (
+              <div className="space-y-4">
+                {detailItem.psi_performance != null && (
+                  <div className="flex gap-4 text-xs border border-border rounded-lg px-3 py-2 bg-muted/30">
+                    <div>
+                      <div className="text-muted-foreground">Prestanda</div>
+                      <div className="font-semibold tabular-nums">
+                        {detailItem.psi_performance}/100
+                      </div>
+                    </div>
+                    {detailItem.psi_seo != null && (
+                      <div>
+                        <div className="text-muted-foreground">SEO</div>
+                        <div className="font-semibold tabular-nums">
+                          {detailItem.psi_seo}/100
+                        </div>
+                      </div>
+                    )}
+                    {detailItem.psi_accessibility != null && (
+                      <div>
+                        <div className="text-muted-foreground">Tillgänglighet</div>
+                        <div className="font-semibold tabular-nums">
+                          {detailItem.psi_accessibility}/100
+                        </div>
+                      </div>
+                    )}
+                    <div className="ml-auto self-center text-[10px] text-muted-foreground">
+                      Google Lighthouse, mobil
+                    </div>
+                  </div>
+                )}
+
+                {(detailItem.score_reasons ?? []).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Inga brister hittades. Sajten är i gott skick.
+                  </p>
+                ) : (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      Detta hittades — poängen är summan av vikterna
+                    </p>
+                    <ul className="space-y-2.5">
+                      {[...(detailItem.score_reasons ?? [])]
+                        .sort((a, b) => b.impact - a.impact)
+                        .map((r) => (
+                          <li key={r.code} className="flex gap-3">
+                            <span className="tabular-nums text-xs font-semibold text-muted-foreground w-7 shrink-0 text-right pt-0.5">
+                              +{r.impact}
+                            </span>
+                            <div className="leading-snug">
+                              <div className="text-sm font-medium">
+                                {issueLabel(r.code)}
+                              </div>
+                              {issueArgument(r.code) && (
+                                <div className="text-xs text-muted-foreground">
+                                  {issueArgument(r.code)}
+                                </div>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
+
+                {detailItem.website && (
+                  <a
+                    href={
+                      detailItem.website.startsWith("http")
+                        ? detailItem.website
+                        : `https://${detailItem.website}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                  >
+                    <Globe className="h-3.5 w-3.5" />
+                    Öppna {hostOf(detailItem.website)}
+                  </a>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
