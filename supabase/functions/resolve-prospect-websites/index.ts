@@ -107,11 +107,26 @@ function verifyOwnership(args: {
     }
   }
 
-  // Domain echoing the company name.
+  // The <title> is a strong signal — small business sites almost always put the
+  // company name there, even when the logo is an image and the body is JS-rendered.
+  const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(args.html)?.[1] ?? "";
+  if (title && tokens.length > 0) {
+    const t = foldDiacritics(title.toLowerCase());
+    const titleHits = tokens.filter((tok) => t.includes(tok));
+    if (titleHits.length === tokens.length) {
+      score += 0.3;
+      matched.push("title_match");
+    }
+  }
+
+  // Domain echoing the company name. The previous `>= 4` guard silently skipped
+  // this for short names — "GRO" never got compared against grohar.se and fell
+  // just under the threshold as a result.
   const host = args.finalHost.toLowerCase().replace(/^www\./, "").split(".")[0];
   const compact = normalizeName(args.companyName).replace(/\s/g, "");
-  if (host.length >= 4 && compact.length >= 4) {
-    if (compact.includes(host) || host.includes(compact.slice(0, Math.min(12, compact.length)))) {
+  if (host.length >= 3 && compact.length >= 3) {
+    const stem = compact.slice(0, Math.min(12, compact.length));
+    if (compact.includes(host) || host.includes(stem)) {
       score += 0.25;
       matched.push("domain_match");
     }
