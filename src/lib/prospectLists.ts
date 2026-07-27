@@ -201,7 +201,7 @@ export const SCORE_BANDS: ScoreBand[] = [
     max: 25,
     label: "Välskött",
     description:
-      "Modern och fungerande webbplats. Svårt att sälja mot — prioritera annat.",
+      "Sajten fungerar. Sälj på tillväxt i stället: synlighet i Google och AI-sök, bokning, konvertering.",
     textClass: "text-success",
     badgeClass: "bg-success/10 text-success border-success/20",
     dotClass: "bg-success",
@@ -211,7 +211,7 @@ export const SCORE_BANDS: ScoreBand[] = [
     max: 50,
     label: "Mindre brister",
     description:
-      "Fungerar, men har luckor i mobil, SEO eller innehåll. Kan vara värt ett samtal.",
+      "Fungerar, men har konkreta luckor du kan peka på i samtalet.",
     textClass: "text-warning",
     badgeClass: "bg-warning/10 text-warning border-warning/20",
     dotClass: "bg-warning",
@@ -221,7 +221,7 @@ export const SCORE_BANDS: ScoreBand[] = [
     max: 75,
     label: "Tydliga brister",
     description:
-      "Flera påtagliga problem — ofta föråldrad design eller dålig mobilanpassning. Bra lead.",
+      "Tydliga problem — lätt att visa konkret nytta av en ny sajt.",
     textClass: "text-warning",
     badgeClass: "bg-warning/10 text-warning border-warning/20",
     dotClass: "bg-warning",
@@ -231,7 +231,7 @@ export const SCORE_BANDS: ScoreBand[] = [
     max: 100,
     label: "Stora brister",
     description:
-      "Mycket gammal webbplats — eller ingen alls. Här finns störst behov och bäst chans att sälja.",
+      "Akut behov. Störst chans att stänga — ring dessa först.",
     textClass: "text-destructive",
     badgeClass: "bg-destructive/10 text-destructive border-destructive/20",
     dotClass: "bg-destructive",
@@ -244,4 +244,66 @@ export function scoreBand(score: number | null | undefined): ScoreBand | null {
     SCORE_BANDS.find((b) => score >= b.min && score <= b.max) ??
     SCORE_BANDS[SCORE_BANDS.length - 1]
   );
+}
+
+// What a salesperson can actually SAY about each finding. A label like "Gammal
+// teknikstack" means nothing on a cold call — this turns each detected issue
+// into an argument. Keep in sync with REASONS in
+// supabase/functions/_shared/opportunity-score.ts.
+export const ISSUE_ARGUMENTS: Record<string, string> = {
+  no_website:
+    "Syns inte alls på webben. Kunder som söker efter dem hittar konkurrenterna i stället.",
+  site_unreachable:
+    "Sajten svarar inte just nu — besökare som klickar möts av ett felmeddelande.",
+  server_error:
+    "Servern returnerar fel. Både besökare och Google får problem att nå sidan.",
+  no_https:
+    "Saknar HTTPS. Webbläsare varnar besökaren för att sidan är osäker.",
+  tls_invalid:
+    "Certifikatfel ger en full varningsruta innan besökaren ens ser sidan.",
+  legacy_plugin:
+    "Innehåll som kräver Flash eller plugins fungerar inte i någon modern webbläsare.",
+  table_layout:
+    "Byggd med tabellayout — en teknik från tidigt 2000-tal. Går inte att göra responsiv.",
+  stale_copyright:
+    "Sidfoten visar ett gammalt årtal. Besökare tolkar det som att verksamheten inte är aktiv.",
+  jquery_stack:
+    "Bygger på jQuery, teknik från 2010-talet. Tungt på mobil och dyrt att vidareutveckla.",
+  legacy_bootstrap:
+    "Gammal Bootstrap-version. Får ofta layoutproblem på nyare telefoner.",
+  no_responsive_img:
+    "Bilderna skalas inte efter skärmstorlek — sidan blir onödigt tung på mobil.",
+  heavy_inline_css:
+    "Formatering ligger utspridd i koden. Varje ändring blir dyr och risken för fel hög.",
+  no_viewport_meta:
+    "Inte mobilanpassad. Merparten av besökarna är på mobil och får zooma manuellt.",
+  fixed_width:
+    "Fast bredd — layouten bryts eller kräver sidscroll på telefon.",
+  missing_title:
+    "Saknar sidtitel. Google har ingen rubrik att visa i sökresultatet.",
+  missing_meta_desc:
+    "Saknar metabeskrivning, så Google hittar på egen text i sökresultatet.",
+  missing_h1:
+    "Saknar huvudrubrik. Google får svårt att förstå vad sidan handlar om.",
+  no_schema:
+    "Saknar strukturerad data. Öppettider, betyg och adress visas därför inte direkt i Google.",
+  thin_content:
+    "Mycket lite innehåll. Google har helt enkelt inget att ranka dem på.",
+  no_favicon:
+    "Ingen ikon i webbläsarfliken — liten sak, men ser oproffsigt ut.",
+  no_contact_path:
+    "Ingen tydlig kontaktväg. Besökare som vill boka hittar inte hur.",
+  no_open_graph:
+    "Delas länken i sociala medier visas varken bild eller beskrivning.",
+  no_analytics:
+    "Ingen webbanalys installerad — de vet inte hur många besökare de får eller varifrån.",
+  psi_very_slow:
+    "Mycket långsam i Googles mätning. Besökare hoppar av innan sidan laddat.",
+  psi_slow:
+    "Långsam laddning, vilket både tappar besökare och sänker Google-rankingen.",
+};
+
+export function issueArgument(code: string | null | undefined): string | null {
+  if (!code) return null;
+  return ISSUE_ARGUMENTS[code] ?? null;
 }

@@ -36,6 +36,7 @@ import {
   listStatusLabel,
   websiteStatusLabel,
   issueLabel,
+  issueArgument,
   scoreBand,
   SCORE_BANDS,
   type ImportProspectListResult,
@@ -571,7 +572,16 @@ export default function ProspectListDetailPage() {
                         ) : (
                           <div
                             className="flex flex-col items-end leading-tight"
-                            title={scoreBand(item.opportunity_score)?.description}
+                            // The sales argument for the main finding is far more
+                            // use on a call than a description of the band.
+                            title={
+                              [
+                                issueArgument(item.main_issue_code),
+                                scoreBand(item.opportunity_score)?.description,
+                              ]
+                                .filter(Boolean)
+                                .join("\n\n")
+                            }
                           >
                             <span
                               className={cn(
