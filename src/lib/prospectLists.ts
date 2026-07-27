@@ -61,6 +61,10 @@ export interface ProspectListItem {
   score_reasons: Record<string, unknown> | null;
   scored_at: string | null;
   review_status: ReviewStatus | null;
+  psi_performance: number | null;
+  psi_accessibility: number | null;
+  psi_seo: number | null;
+  psi_checked_at: string | null;
   imported_lead_id: string | null;
   duplicate_of_lead_id: string | null;
   source: string;

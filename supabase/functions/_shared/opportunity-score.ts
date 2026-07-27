@@ -177,6 +177,23 @@ export function scoreNoWebsite(): ScoreResult {
   return finalize([REASONS.no_website]);
 }
 
+/**
+ * Fold a Lighthouse performance score into an already-computed markup result,
+ * without re-fetching the page. Any previous PSI reason is replaced, so this is
+ * safe to run repeatedly as measurements are refreshed.
+ */
+export function applyPsi(
+  existingReasons: IssueReason[],
+  psiPerformance: number,
+): ScoreResult {
+  const reasons = existingReasons.filter(
+    (r) => r.code !== "psi_slow" && r.code !== "psi_very_slow",
+  );
+  if (psiPerformance < 30) reasons.push(REASONS.psi_very_slow);
+  else if (psiPerformance < 55) reasons.push(REASONS.psi_slow);
+  return finalize(reasons);
+}
+
 function finalize(reasons: IssueReason[]): ScoreResult {
   const subScores: Record<IssueCategory, number> = {
     technical: 0, mobile: 0, seo: 0, conversion: 0, modernity: 0,

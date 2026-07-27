@@ -128,3 +128,6 @@ verify_jwt = true
 
 [functions.resolve-prospect-websites]
 verify_jwt = true
+
+[functions.score-prospect-performance]
+verify_jwt = true

@@ -25,6 +25,7 @@ import {
   ClipboardList,
   Copy,
   Download,
+  Gauge,
   Globe,
   Loader2,
   ThumbsDown,
@@ -219,6 +220,60 @@ export default function ProspectListDetailPage() {
     [items],
   );
 
+  // ── Mät prestanda (Lighthouse) ──
+  // Separate pass: each run takes 10–20s, so it goes 4 at a time and only over
+  // sites we actually verified.
+  const [psiProgress, setPsiProgress] = useState<string | null>(null);
+
+  const psiCount = useMemo(
+    () =>
+      items.filter(
+        (i) =>
+          i.psi_checked_at == null &&
+          i.website &&
+          (i.website_status === "linked" || i.website_status === "discovered"),
+      ).length,
+    [items],
+  );
+
+  const psiMutation = useMutation({
+    mutationFn: async () => {
+      let total = 0;
+      for (let round = 0; round < 60; round++) {
+        const { data, error } = await supabase.functions.invoke(
+          "score-prospect-performance",
+          { body: { listId } },
+        );
+        if (error) throw error;
+        const res = data as {
+          measured: number; failed: number; remaining: number; done: boolean;
+        };
+        total += res.measured ?? 0;
+        setPsiProgress(
+          res.remaining > 0
+            ? `${total} mätta, ${res.remaining} kvar…`
+            : `${total} mätta`,
+        );
+        invalidate();
+        if (res.done || res.remaining === 0 || (res.measured === 0 && res.failed === 0)) break;
+      }
+      return total;
+    },
+    onSuccess: (measured) => {
+      setPsiProgress(null);
+      invalidate();
+      toast.success(
+        measured > 0
+          ? `${measured} webbplatser mätta med Lighthouse`
+          : "Inget kvar att mäta",
+      );
+    },
+    onError: (err: Error) => {
+      setPsiProgress(null);
+      toast.error("Prestandamätningen misslyckades", { description: err.message });
+    },
+  });
+
   // ── Kontrollera dubbletter ──
   const duplicateMutation = useMutation({
     mutationFn: async () => {
@@ -335,6 +390,24 @@ export default function ProspectListDetailPage() {
                 : unresolvedCount > 0
                   ? `Hämta webbplatser (${unresolvedCount})`
                   : "Alla analyserade"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => psiMutation.mutate()}
+              disabled={psiMutation.isPending || psiCount === 0}
+              className="gap-1.5"
+              title="Mäter verklig laddtid på mobil med Google Lighthouse. Tar 10–20 sekunder per sajt."
+            >
+              {psiMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Gauge className="h-4 w-4" />
+              )}
+              {psiMutation.isPending
+                ? (psiProgress ?? "Mäter…")
+                : psiCount > 0
+                  ? `Mät prestanda (${psiCount})`
+                  : "Prestanda mätt"}
             </Button>
             <Button
               variant="outline"
