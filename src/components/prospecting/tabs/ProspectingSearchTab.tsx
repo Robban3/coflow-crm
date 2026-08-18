@@ -23,6 +23,31 @@ import type { NewProspectListItem } from "@/lib/prospectLists";
 import { toast } from "sonner";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
+// When an Edge Function returns a non-2xx, supabase-js throws a FunctionsHttpError
+// whose `.message` is the generic "Edge Function returned a non-2xx status code".
+// The real reason lives in the response body (`{ success:false, error:"..." }`),
+// exposed via `error.context` (a Response). Pull it out so the UI shows the actual
+// cause (e.g. Google "PERMISSION_DENIED") instead of the opaque wrapper message.
+async function readFunctionError(error: any, fallback: string): Promise<string> {
+  try {
+    const ctx = error?.context;
+    if (ctx && typeof ctx.clone === "function") {
+      const txt = await ctx.clone().text();
+      if (txt) {
+        try {
+          const body = JSON.parse(txt);
+          if (body?.error) return String(body.error);
+        } catch {
+          return txt;
+        }
+      }
+    }
+  } catch {
+    /* fall through to generic message */
+  }
+  return error?.message || fallback;
+}
+
 interface RegistryRow {
   id: string;
   company_name: string;
@@ -317,7 +342,7 @@ export default function ProspectingSearchTab() {
       const { data, error } = await supabase.functions.invoke("google-places-search", {
         body: { query: sIndustry, location: sLocation, radius: 50000, market },
       });
-      if (error) throw error;
+      if (error) throw new Error(await readFunctionError(error, t("prospecting.searchFailed")));
       if (!data?.success) throw new Error(data?.error || t("prospecting.searchFailed"));
 
       const results = data.results as PlaceResult[];
