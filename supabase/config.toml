@@ -60,6 +60,12 @@ verify_jwt = false
 [functions.receive-email-reply]
 verify_jwt = false
 
+[functions.receive-email-events]
+verify_jwt = false
+
+[functions.unsubscribe]
+verify_jwt = false
+
 [functions.find-competitors]
 verify_jwt = false
 

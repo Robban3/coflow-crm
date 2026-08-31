@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { logActivityEvent } from "../_shared/activity-logger.ts";
 import { fetchWithTimeout } from "../_shared/http.ts";
-import { pickSubjectVariant, preheaderSpan } from "../_shared/email-html.ts";
+import { pickSubjectVariant, preheaderSpan, isSuppressed, makeUnsubToken, unsubUrl, unsubHeaders, unsubFooterHtml } from "../_shared/email-html.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -152,6 +152,19 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        // Deliverability: skip suppressed recipients (bounce/complaint/unsub).
+        if (await isSuppressed(supabase, orgId, leadEmail)) {
+          await supabase
+            .from("prospecting_drafts")
+            .update({ status: "failed", send_error: "Mottagaren är avregistrerad/studsar", send_attempted_at: new Date().toISOString() })
+            .eq("id", draft.id);
+          results.push({ draftId: draft.id, status: "failed", error: "suppressed" });
+          continue;
+        }
+        // One-click unsubscribe link for this recipient.
+        const unsubSecret = Deno.env.get("UNSUB_SECRET");
+        const unsubLink = unsubSecret ? unsubUrl(supabaseUrl, await makeUnsubToken(unsubSecret, orgId, leadEmail)) : "";
+
         // Detect language of the AI-generated body so we don't bolt a
         // Swedish signature onto an English/German email.
         const bodyLower = (draft.body || "").toLowerCase();
@@ -242,6 +255,9 @@ Deno.serve(async (req) => {
           .select("id")
           .single();
 
+        // Unsubscribe footer (deliverability)
+        if (unsubLink) htmlBody += unsubFooterHtml(unsubLink, draftMarket);
+
         // Add tracking pixel
         if (sentRecord?.id) {
           const pixelUrl = `${supabaseUrl}/functions/v1/track-email-open?id=${sentRecord.id}`;
@@ -261,6 +277,7 @@ Deno.serve(async (req) => {
               subject: finalSubject,
               html: htmlBody,
               text: draft.body,
+              ...(unsubLink ? { headers: unsubHeaders(unsubLink) } : {}),
               // [PAUSED] reply_to: smartReplyTo,
             }),
         });

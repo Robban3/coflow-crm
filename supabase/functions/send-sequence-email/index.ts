@@ -4,7 +4,7 @@ import { logActivityEvent } from "../_shared/activity-logger.ts";
 import { fetchWithTimeout } from "../_shared/http.ts";
 import { validateSendSequenceRequest, sanitizeForHtml } from "../_shared/validation.ts";
 import { callAI, AI_MODELS } from "../_shared/ai.ts";
-import { pickSubjectVariant, preheaderSpan } from "../_shared/email-html.ts";
+import { pickSubjectVariant, preheaderSpan, isSuppressed, makeUnsubToken, unsubUrl, unsubHeaders, unsubFooterHtml } from "../_shared/email-html.ts";
 import {
   buildOutreachSystemPrompt,
   buildOutreachUserPrompt,
@@ -239,6 +239,19 @@ serve(async (req) => {
     // [PAUSED] CRM reply routing
     // const replyTo: string | string[] = useCustomDomain ? [orgEmail, smartReplyTo] : smartReplyTo;
 
+    // Deliverability: skip suppressed recipients (bounce/complaint/unsub).
+    const seqOrgId = profile?.organization_id || null;
+    if (await isSuppressed(supabase, seqOrgId, lead.email)) {
+      return new Response(
+        JSON.stringify({ success: false, error: "suppressed", skipped: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    const unsubSecret = Deno.env.get("UNSUB_SECRET");
+    const unsubLink = (unsubSecret && seqOrgId && lead.email)
+      ? unsubUrl(supabaseUrl, await makeUnsubToken(unsubSecret, seqOrgId, lead.email))
+      : "";
+
     // Build HTML email with preheader, signature and logo
     let htmlBody = preheaderSpan(preheader) + sanitizeForHtml(emailContent.body).replace(/\n/g, "<br>");
 
@@ -275,6 +288,9 @@ serve(async (req) => {
       console.error("Error creating sent_emails record:", insertError);
     }
 
+    // Unsubscribe footer (deliverability)
+    if (unsubLink) htmlBody += unsubFooterHtml(unsubLink);
+
     // Add tracking pixel
     if (sentEmailRecord?.id) {
       const trackingPixelUrl = `${supabaseUrl}/functions/v1/track-email-open?id=${sentEmailRecord.id}`;
@@ -286,6 +302,8 @@ serve(async (req) => {
       to: [lead.email],
       subject: emailContent.subject,
       html: htmlBody,
+      text: emailContent.body,
+      ...(unsubLink ? { headers: unsubHeaders(unsubLink) } : {}),
     };
 
     // [PAUSED] CRM reply routing

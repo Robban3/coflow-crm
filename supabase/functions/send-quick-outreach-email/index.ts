@@ -3,7 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { validateQuickOutreachRequest, sanitizeForHtml } from "../_shared/validation.ts";
 import { logActivityEvent } from "../_shared/activity-logger.ts";
 import { fetchWithTimeout } from "../_shared/http.ts";
-import { pickSubjectVariant, preheaderSpan } from "../_shared/email-html.ts";
+import { pickSubjectVariant, preheaderSpan, isSuppressed, makeUnsubToken, unsubUrl, unsubHeaders, unsubFooterHtml } from "../_shared/email-html.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -123,6 +123,21 @@ serve(async (req) => {
       recipientName = lead?.contact_name || null;
     }
 
+    // Deliverability: never email a suppressed address (bounce/complaint/unsub).
+    const orgId = profile?.organization_id || null;
+    if (await isSuppressed(supabase, orgId, to)) {
+      return new Response(
+        JSON.stringify({ success: false, error: "suppressed", skipped: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    // One-click unsubscribe (List-Unsubscribe header + footer link).
+    const unsubSecret = Deno.env.get("UNSUB_SECRET");
+    let unsubLink = "";
+    if (unsubSecret && orgId) {
+      unsubLink = unsubUrl(supabaseUrl, await makeUnsubToken(unsubSecret, orgId, to));
+    }
+
     // [PAUSED] CRM reply routing – temporarily disabled
     // const replyToken = useCustomDomain ? null : crypto.randomUUID().replace(/-/g, "").slice(0, 16);
     // const smartReplyTo = useCustomDomain ? "reply@coflow.se" : `reply+${replyToken}@coflow.se`;
@@ -200,6 +215,9 @@ serve(async (req) => {
         : `<br>${img}`;
     }
 
+    // Unsubscribe footer (deliverability)
+    if (unsubLink) html += unsubFooterHtml(unsubLink);
+
     // Add tracking pixel if we have an email ID
     if (sentEmailRecord?.id) {
       const trackingPixelUrl = `${supabaseUrl}/functions/v1/track-email-open?id=${sentEmailRecord.id}`;
@@ -213,6 +231,7 @@ serve(async (req) => {
       html,
       // include a plain-text fallback
       text: bodyText,
+      ...(unsubLink ? { headers: unsubHeaders(unsubLink) } : {}),
     };
     // [PAUSED] CRM reply routing
     // if (replyTo) emailPayload.reply_to = replyTo;
