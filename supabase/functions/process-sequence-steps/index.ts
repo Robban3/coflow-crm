@@ -1,5 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { callAI, AI_MODELS } from "../_shared/ai.ts";
+import {
+  buildOutreachSystemPrompt,
+  buildOutreachUserPrompt,
+  parseOutreachResponse,
+  appendSignature,
+  type OutreachContext,
+} from "../_shared/outreach-prompt.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -178,247 +186,69 @@ serve(async (req) => {
           const requiresApproval = leadSequence.sequence?.require_approval !== false;
 
           if (requiresApproval) {
-            // Generate email content but don't send - wait for approval
-            const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-            if (!GEMINI_API_KEY) {
-              console.error("GEMINI_API_KEY not configured");
-              continue;
-            }
-
+            // Generate email content (but don't send) via the shared Claude
+            // outreach module, so sequence emails match the consultative tone
+            // of one-off outreach. Awaits approval before sending.
             const lead = leadSequence.lead;
-            
-            // Get web analyses for context
+
             const { data: analyses } = await supabase
               .from("web_analyses")
               .select("*")
               .eq("lead_id", lead.id)
               .order("created_at", { ascending: false })
               .limit(1);
-
             const analysis = analyses?.[0];
 
-            // Get user profile for signature
             const { data: profile } = await supabase
               .from("profiles")
               .select("*")
               .eq("id", leadSequence.created_by)
               .single();
 
-            // Build context for AI
-            const leadContext = `
-Företag: ${lead.company_name || "Okänt"}
-Kontaktperson: ${lead.contact_name || "Okänd"}
-E-post: ${lead.email}
-Hemsida: ${lead.website || "Saknas"}
-`;
-
-            const analysisContext = analysis ? `
-Webbanalys resultat:
-- Performance: ${analysis.performance_score ?? "Ej analyserat"}/100
-- SEO: ${analysis.seo_score ?? "Ej analyserat"}/100
-- Tillgänglighet: ${analysis.accessibility_score ?? "Ej analyserat"}/100
-- Best Practices: ${analysis.best_practices_score ?? "Ej analyserat"}/100
-` : "Ingen webbanalys genomförd ännu.";
-
-            // Determine sequence market for language + tone
             const market: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" | "MX" | "AR" =
               (leadSequence.sequence?.market as "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" | "MX" | "AR") || "SE";
 
-            // Heuristic: skip a Swedish saved signature when sending in English/German
-            const sigText = (profile?.email_signature || "").toLowerCase();
-            const sigLooksSwedish =
-              sigText.includes("med vänlig") ||
-              sigText.includes("vänliga hälsningar") ||
-              sigText.includes("mvh") ||
-              sigText.includes("hälsningar");
-            const useSavedSignature =
-              !!profile?.email_signature && (market === "SE" || !sigLooksSwedish);
-
-            const signatureContext = profile ? `
-Sender:
-- Name: ${profile.full_name || ""}
-- Company: ${profile.company_name || ""}
-${useSavedSignature ? `Saved signature (in ${market === "SE" ? "Swedish" : (market === "US" || market === "UK" || market === "CA" || market === "AU" || market === "IE") ? "English" : (market === "ES" || market === "MX" || market === "AR") ? "Spanish" : market === "KR" ? "Korean" : "German"}, may be appended verbatim): ${profile.email_signature}` : "(No localized signature available — close the body without a signature; one will be appended automatically.)"}
-` : "";
-
-            const systemPromptByMarket: Record<"SE" | "US" | "DE" | "ES" | "UK", string> = {
-              ES: `Escribes correos de prospección personales y genuinamente útiles en español. Escribe como un colega con conocimiento que notó algo específico del destinatario y tiene UNA idea concreta — no como un comercial, nunca con tono de venta ni insistente. El objetivo es una reunión corta, pero el correo debe sentirse útil.
-Tus correos deben:
-- Tener alrededor de 110-140 palabras
-- Empezar con una observación genuina y específica sobre el negocio/web del destinatario — sin puntuaciones numéricas como punto principal
-- Ofrecer UNA idea concreta formulada como oportunidad, no como problema
-- Cerrar con una petición de reunión concreta y de baja exigencia, p. ej. "¿Tienes 15 minutos la próxima semana?"
-- Estar libres de clichés y lenguaje de venta
-
-${signatureContext}`,
-              SE: `Du skriver personliga, hjälpsamma outreach-mail på svenska. Skriv som en kunnig kollega som sett något specifikt hos mottagaren och har EN konkret idé – inte som en säljare, aldrig säljigt eller pushigt. Målet är ett kort möte, men mailet ska kännas hjälpsamt.
-Dina mail ska:
-- Vara ca 110-140 ord
-- Öppna med en äkta, specifik observation om mottagarens verksamhet/sajt – inga sifferbetyg som huvudpoäng
-- Erbjuda EN konkret idé formulerad som en möjlighet, inte ett problem
-- Avsluta med en konkret låg-tröskel mötesfråga, t.ex. "Har du 15 minuter nästa vecka?"
-- Vara utan klyschor och säljspråk
-
-${signatureContext}`,
-              US: `You write personal, genuinely helpful outreach emails in American English. Write like a knowledgeable colleague who noticed something specific about the recipient and has ONE concrete idea — not like a salesperson, never salesy or pushy. The goal is a short meeting, but the email should feel helpful.
-Your emails should:
-- Be around 110-140 words
-- Open with a genuine, specific observation about the recipient's business/site — no numeric scores as the main point
-- Offer ONE concrete idea framed as an opportunity, not a problem
-- End with a concrete, low-threshold meeting ask, e.g. "Do you have 15 minutes next week?"
-- Be free of clichés and salesy language
-
-${signatureContext}`,
-              DE: `Sie schreiben persönliche, wirklich hilfreiche Outreach-E-Mails auf Deutsch. Schreiben Sie wie ein sachkundiger Kollege, der etwas Konkretes bemerkt hat und EINE konkrete Idee hat — nicht wie ein Verkäufer, nie verkäuferisch oder aufdringlich. Ziel ist ein kurzes Gespräch, aber die E-Mail soll hilfsbereit wirken. Verwenden Sie 'Sie'.
-Ihre E-Mails sollen:
-- Etwa 110-140 Wörter lang sein
-- Mit einer echten, konkreten Beobachtung zum Unternehmen/zur Website beginnen — keine Zahlenwerte als Hauptpunkt
-- EINE konkrete Idee bieten, als Chance formuliert, nicht als Problem
-- Mit einer konkreten, niedrigschwelligen Gesprächsanfrage enden, z. B. "Haben Sie nächste Woche 15 Minuten?"
-- Ohne Floskeln und reine Verkaufssprache auskommen
-
-${signatureContext}`,
-            };
-
-            const KR_SEQ_OVERRIDE = `\n\nLANGUAGE OVERRIDE (HIGHEST PRIORITY): Write the entire email — both subject and body — in natural, professional Korean (한국어), formal business register (존댓말/하십시오체). Greeting: "[이름]님, 안녕하세요." if a person's name is given, otherwise "안녕하세요,". No emojis. Keep the exact JSON format specified below.`;
-            const systemPrompt = systemPromptByMarket[(market === "UK" || market === "KR" || market === "CA" || market === "AU" || market === "IE") ? "US" : (market === "MX" || market === "AR") ? "ES" : market]
-              + (market === "KR" ? KR_SEQ_OVERRIDE : "");
-
-            // Get total steps
             const { count: totalSteps } = await supabase
               .from("sequence_steps")
               .select("*", { count: "exact", head: true })
               .eq("sequence_id", leadSequence.sequence_id);
 
-            const stepNumber = currentStep.step_order;
-
-            const userPromptByMarket: Record<"SE" | "US" | "DE" | "ES" | "UK", string> = {
-              ES: `Este es el correo ${stepNumber} de ${totalSteps} en una secuencia de prospección.
-
-${stepNumber === 1 ? "Este es el primer contacto — preséntate y presenta tu oferta según sus necesidades." :
-  stepNumber === totalSteps ? "Este es el último correo de la secuencia — haz un último intento de conectar." :
-  "Este es un seguimiento — haz referencia a los intentos de contacto anteriores y aporta nuevo valor."}
-
-${currentStep.email_prompt ? `Instrucciones adicionales: ${currentStep.email_prompt}` : ""}
-
-Información del lead:
-${leadContext}
-
-${analysisContext}
-
-Genera un correo con asunto y cuerpo. Formatea la respuesta como JSON:
-{"subject": "Asunto aquí", "body": "Texto del correo aquí"}`,
-              SE: `Detta är mail ${stepNumber} av ${totalSteps} i en outreach-sekvens.
-
-${stepNumber === 1 ? "Detta är första kontakten - presentera dig och ditt erbjudande baserat på deras behov." :
-  stepNumber === totalSteps ? "Detta är sista mailet i sekvensen - gör ett sista försök att få kontakt." :
-  "Detta är en uppföljning - referera till tidigare kontaktförsök och tillför nytt värde."}
-
-${currentStep.email_prompt ? `Extra instruktioner: ${currentStep.email_prompt}` : ""}
-
-Leadinformation:
-${leadContext}
-
-${analysisContext}
-
-Generera ett mail med ämnesrad och brödtext. Formatera svaret som JSON:
-{"subject": "Ämnesrad här", "body": "Mailtext här"}`,
-              US: `This is email ${stepNumber} of ${totalSteps} in an outreach sequence.
-
-${stepNumber === 1 ? "This is the first contact — introduce yourself and your offer based on their needs." :
-  stepNumber === totalSteps ? "This is the final email in the sequence — make one last attempt to connect." :
-  "This is a follow-up — reference previous contact attempts and add new value."}
-
-${currentStep.email_prompt ? `Extra instructions: ${currentStep.email_prompt}` : ""}
-
-Lead information:
-${leadContext}
-
-${analysisContext}
-
-Generate an email with a subject line and body. Format the response as JSON:
-{"subject": "Subject line here", "body": "Email body here"}`,
-              DE: `Dies ist E-Mail ${stepNumber} von ${totalSteps} in einer Outreach-Sequenz.
-
-${stepNumber === 1 ? "Dies ist der Erstkontakt — stellen Sie sich und Ihr Angebot anhand des Bedarfs vor." :
-  stepNumber === totalSteps ? "Dies ist die letzte E-Mail der Sequenz — unternehmen Sie einen letzten Kontaktversuch." :
-  "Dies ist ein Follow-up — beziehen Sie sich auf frühere Kontaktversuche und liefern Sie neuen Mehrwert."}
-
-${currentStep.email_prompt ? `Zusätzliche Anweisungen: ${currentStep.email_prompt}` : ""}
-
-Lead-Informationen:
-${leadContext}
-
-${analysisContext}
-
-Generieren Sie eine E-Mail mit Betreffzeile und Text. Antworten Sie als JSON:
-{"subject": "Betreff hier", "body": "E-Mail-Text hier"}`,
+            const ctx: OutreachContext = {
+              companyName: lead.company_name || undefined,
+              contactName: lead.contact_name || undefined,
+              tone: profile?.outreach_tone || "standard",
+              context: currentStep.step_order === 1 ? "initial" : "follow_up",
+              market,
+              stepNumber: currentStep.step_order,
+              totalSteps: totalSteps || undefined,
+              stepPrompt: currentStep.email_prompt || undefined,
+              senderName: profile?.full_name || undefined,
+              senderCompany: profile?.company_name || undefined,
             };
-
-            const emailContext = userPromptByMarket[(market === "UK" || market === "KR" || market === "CA" || market === "AU" || market === "IE") ? "US" : (market === "MX" || market === "AR") ? "ES" : market];
-
-            const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${GEMINI_API_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "gemini-2.5-flash",
-                messages: [
-                  { role: "system", content: systemPrompt },
-                  { role: "user", content: emailContext },
-                ],
-              }),
-            });
-
-            if (!aiResponse.ok) {
-              console.error("AI gateway error:", aiResponse.status);
-              continue;
-            }
-
-            const aiData = await aiResponse.json();
-            const content = aiData.choices?.[0]?.message?.content;
-
-            let emailContent;
-            try {
-              const jsonMatch = content?.match(/\{[\s\S]*"subject"[\s\S]*"body"[\s\S]*\}/);
-              if (jsonMatch) {
-                emailContent = JSON.parse(jsonMatch[0]);
-              } else {
-                throw new Error("No JSON found");
-              }
-            } catch {
-              emailContent = {
-                subject: `Angående ${lead.company_name || "ert företag"}`,
-                body: content || "Kunde inte generera innehåll",
+            if (analysis) {
+              ctx.webAnalysis = {
+                performanceScore: analysis.performance_score ?? 0,
+                seoScore: analysis.seo_score ?? 0,
+                accessibilityScore: analysis.accessibility_score ?? 0,
+                bestPracticesScore: analysis.best_practices_score ?? 0,
               };
             }
 
-            // Append signature — localized for the sequence's market.
-            // Skip a Swedish saved signature when sending in English/German.
-            const closingByMarket: Record<"SE" | "US" | "DE" | "ES" | "UK" | "KR", string> = {
-              SE: "Med vänlig hälsning,",
-              US: "Best regards,",
-              DE: "Mit freundlichen Grüßen,",
-              ES: "Un saludo,",
-              KR: "감사합니다,",
+            const aiData = await callAI({
+              model: AI_MODELS.claude,
+              messages: [
+                { role: "system", content: buildOutreachSystemPrompt(ctx) },
+                { role: "user", content: buildOutreachUserPrompt(ctx) },
+              ],
+            });
+            const parsed = parseOutreachResponse(
+              aiData.choices?.[0]?.message?.content,
+              lead.company_name || undefined,
+            );
+            const emailContent = {
+              subject: parsed.subject,
+              body: appendSignature(parsed.body_without_signature, profile, market),
             };
-            if (useSavedSignature) {
-              emailContent.body += `\n\n${profile!.email_signature}`;
-            } else {
-              const senderName = profile?.full_name || profile?.company_name || "";
-              emailContent.body += `\n\n${closingByMarket[(market === "UK" || market === "CA" || market === "AU" || market === "IE") ? "US" : (market === "MX" || market === "AR") ? "ES" : market]}\n${senderName}`.trimEnd();
-            }
-            const footerText = (profile?.email_footer || "").toLowerCase();
-            const footerLooksSwedish =
-              footerText.includes("med vänlig") ||
-              footerText.includes("vänliga hälsningar") ||
-              footerText.includes("mvh") ||
-              footerText.includes("hälsningar");
-            if (profile?.email_footer && (market === "SE" || !footerLooksSwedish)) {
-              emailContent.body += `\n\n${profile.email_footer}`;
-            }
 
             // Update execution with generated content and set to needs_approval
             await supabase

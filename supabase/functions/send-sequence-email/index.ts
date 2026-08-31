@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { logActivityEvent } from "../_shared/activity-logger.ts";
 import { fetchWithTimeout } from "../_shared/http.ts";
 import { validateSendSequenceRequest, sanitizeForHtml } from "../_shared/validation.ts";
+import { callAI, AI_MODELS } from "../_shared/ai.ts";
 import {
   buildOutreachSystemPrompt,
   buildOutreachUserPrompt,
@@ -175,11 +176,6 @@ serve(async (req) => {
 
       const analysis = analyses?.[0];
 
-      const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-      if (!GEMINI_API_KEY) {
-        throw new Error("GEMINI_API_KEY is not configured");
-      }
-
       // Build context using shared module
       const ctx: OutreachContext = {
         companyName: lead.company_name || undefined,
@@ -204,28 +200,15 @@ serve(async (req) => {
       const systemPrompt = buildOutreachSystemPrompt(ctx);
       const userPrompt = buildOutreachUserPrompt(ctx);
 
-      const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${GEMINI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gemini-2.5-flash",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-        }),
+      // Consultative outreach copy → Claude (same path as one-off emails), so
+      // sequence emails share the exact tone/quality of the rest of outreach.
+      const aiData = await callAI({
+        model: AI_MODELS.claude,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
       });
-
-      if (!aiResponse.ok) {
-        const errorText = await aiResponse.text();
-        console.error("AI gateway error:", aiResponse.status, errorText);
-        throw new Error("Failed to generate email content");
-      }
-
-      const aiData = await aiResponse.json();
       const content = aiData.choices?.[0]?.message?.content;
 
       const parsed = parseOutreachResponse(content, lead.company_name || undefined);
