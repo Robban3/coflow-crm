@@ -61,6 +61,9 @@ export interface OutreachContext {
   websiteContent?: string;
   websiteInsights?: string[];
 
+  // Optional trackable value asset (public report link) to reference as the hook.
+  reportUrl?: string;
+
   // detected problems from auto-enrich scoring
   detectedProblems?: Array<{
     key: string;
@@ -559,6 +562,18 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
   if (!hasAnyData) {
     parts.push("INGEN DETALJERAD DATA TILLGÄNGLIG.");
     parts.push("Skriv ett kort, nyfikenhetsväckande mail.\n");
+  }
+
+  if (ctx.reportUrl) {
+    const rl = (market === "US" || market === "UK" || market === "KR" || market === "CA" || market === "AU" || market === "IE")
+      ? `VALUE ASSET (optional): A ready-made report is available here: ${ctx.reportUrl}\n→ Reference it NATURALLY as concrete value ("I put together a short report you can look at"), place the link in the body ONCE, never spammy. If it doesn't fit naturally, skip it.`
+      : market === "DE"
+      ? `WERT-ASSET (optional): Ein fertiger Bericht ist hier verfügbar: ${ctx.reportUrl}\n→ Verweisen Sie NATÜRLICH als konkreten Mehrwert darauf ("ich habe einen kurzen Bericht zusammengestellt"), den Link EINMAL im Text, nie spammig. Passt es nicht natürlich, lassen Sie ihn weg.`
+      : (market === "ES" || market === "MX" || market === "AR")
+      ? `RECURSO DE VALOR (opcional): Hay un informe listo aquí: ${ctx.reportUrl}\n→ Menciónalo con NATURALIDAD como valor concreto ("preparé un informe corto que puedes ver"), pon el enlace UNA vez en el cuerpo, nunca de forma spam. Si no encaja con naturalidad, omítelo.`
+      : `VÄRDEBEVIS (valfritt): En färdig rapport finns här: ${ctx.reportUrl}\n→ Referera till den NATURLIGT som konkret värde ("jag sammanställde en kort rapport du kan titta på"), lägg länken i löptext EN gång, aldrig spammigt. Om det inte passar naturligt, hoppa över den.`;
+    parts.push(rl);
+    parts.push("");
   }
 
   parts.push('SUBJECT LINES: "subject_a" and "subject_b" must be TWO DISTINCT subject angles (each max ~60 chars). "preheader" is a 40-90 char preview line that COMPLEMENTS the subject (never repeats it). Write subjects and preheader in the SAME language as the email body.');

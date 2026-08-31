@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { callAI, AI_MODELS } from "../_shared/ai.ts";
+import { getOrCreateReportLink } from "../_shared/report-link.ts";
 import { validateGenerateOutreachRequest } from "../_shared/validation.ts";
 import {
   buildOutreachSystemPrompt,
@@ -139,6 +140,13 @@ serve(async (req) => {
         accessibilityScore: analysis.accessibility_score ?? 0,
         bestPracticesScore: analysis.best_practices_score ?? 0,
       };
+    }
+
+    // Value hook: reference a trackable report link when the lead has a report
+    // (opt out with includeReportLink:false). Only present when a report exists.
+    if (rawBody.includeReportLink !== false) {
+      const reportUrl = await getOrCreateReportLink(supabase, leadId, lead.organization_id);
+      if (reportUrl) ctx.reportUrl = reportUrl;
     }
 
     const systemPrompt = buildOutreachSystemPrompt(ctx);
