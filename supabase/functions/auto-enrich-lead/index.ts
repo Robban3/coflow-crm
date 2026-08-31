@@ -671,6 +671,8 @@ async function stepGenerateDraft(
 
   return {
     subject: parsed.subject,
+    subject_b: parsed.subject_b,
+    preheader: parsed.preheader,
     body: parsed.body_without_signature,
     aiSummary,
   };
@@ -1073,6 +1075,8 @@ Deno.serve(async (req) => {
           organization_id: orgId,
           lead_id: leadId,
           subject: draft.subject,
+          subject_b: draft.subject_b || null,
+          preheader: draft.preheader || null,
           body: draft.body,
           ai_summary: draft.aiSummary,
           ai_confidence: scoring.aiConfidence,

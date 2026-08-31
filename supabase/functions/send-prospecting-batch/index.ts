@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { logActivityEvent } from "../_shared/activity-logger.ts";
 import { fetchWithTimeout } from "../_shared/http.ts";
+import { pickSubjectVariant, preheaderSpan } from "../_shared/email-html.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,7 +75,7 @@ Deno.serve(async (req) => {
     // Fetch drafts with strict org ownership check
     const { data: drafts, error: draftsError } = await supabase
       .from("prospecting_drafts")
-      .select("id, organization_id, lead_id, subject, body, status")
+      .select("id, organization_id, lead_id, subject, subject_b, body, preheader, status")
       .in("id", draftIds)
       .eq("organization_id", orgId)
       .in("status", ["draft", "approved"]);
@@ -178,8 +179,14 @@ Deno.serve(async (req) => {
           );
         };
 
-        // Build HTML body
-        let htmlBody = draft.body.replace(/\n/g, "<br>");
+        // A/B subject + preheader (stored on the draft at generation time)
+        const picked = pickSubjectVariant(draft.subject, draft.subject_b);
+        const finalSubject = picked.subject;
+        const subjectVariant = draft.subject_b ? picked.variant : null;
+        const draftPreheader = draft.preheader || "";
+
+        // Build HTML body (preheader first)
+        let htmlBody = preheaderSpan(draftPreheader) + draft.body.replace(/\n/g, "<br>");
 
         // Append signature — localized to the email body's language.
         const sigParts: string[] = [];
@@ -223,12 +230,14 @@ Deno.serve(async (req) => {
             sent_by: userId,
             recipient_email: lead.email,
             recipient_name: lead.contact_name,
-            subject: draft.subject,
+            subject: finalSubject,
             body: draft.body,
             source: "prospecting",
             organization_id: orgId,
             reply_token: replyToken,
             status: "draft",
+            subject_variant: subjectVariant,
+            preheader: draftPreheader || null,
           })
           .select("id")
           .single();
@@ -249,7 +258,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
               from: `${fromName} <${fromEmail}>`,
               to: [lead.email],
-              subject: draft.subject,
+              subject: finalSubject,
               html: htmlBody,
               text: draft.body,
               // [PAUSED] reply_to: smartReplyTo,

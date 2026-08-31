@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { validateQuickOutreachRequest, sanitizeForHtml } from "../_shared/validation.ts";
 import { logActivityEvent } from "../_shared/activity-logger.ts";
 import { fetchWithTimeout } from "../_shared/http.ts";
+import { pickSubjectVariant, preheaderSpan } from "../_shared/email-html.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -43,6 +44,13 @@ serve(async (req) => {
     }
 
     const { to, subject, bodyText, leadId } = validation.data;
+
+    // Optional A/B second subject + preview text (not part of the strict schema).
+    const subjectB = typeof rawBody?.subjectB === "string" ? rawBody.subjectB : undefined;
+    const preheader = typeof rawBody?.preheader === "string" ? rawBody.preheader : "";
+    const picked = pickSubjectVariant(subject, subjectB);
+    const finalSubject = picked.subject;
+    const subjectVariant = subjectB ? picked.variant : null;
 
     // API keys loaded after we determine which domain to use
     const RESEND_API_KEY_KODCO = Deno.env.get("RESEND_API_KEY");
@@ -128,11 +136,13 @@ serve(async (req) => {
         sent_by: userId,
         recipient_email: to,
         recipient_name: recipientName,
-        subject,
+        subject: finalSubject,
         body: bodyText,
         source: "quick_outreach",
         organization_id: profile?.organization_id || null,
         reply_token: replyToken, // null for custom domain orgs
+        subject_variant: subjectVariant,
+        preheader: preheader || null,
       })
       .select("id")
       .single();
@@ -147,8 +157,8 @@ serve(async (req) => {
     // [PAUSED] CRM reply routing
     // const replyTo: string | string[] = useCustomDomain ? [orgEmail, smartReplyTo] : smartReplyTo;
 
-    // Build HTML body
-    let html = textToHtml(bodyText);
+    // Build HTML body (preheader first, then the message)
+    let html = preheaderSpan(preheader) + textToHtml(bodyText);
 
     // Signature (HTML) - robust duplicate detection
     // The body may already contain a signature appended by the email generation step
@@ -199,7 +209,7 @@ serve(async (req) => {
     const emailPayload: Record<string, unknown> = {
       from: `${fromName} <${fromEmail}>`,
       to: [to],
-      subject,
+      subject: finalSubject,
       html,
       // include a plain-text fallback
       text: bodyText,

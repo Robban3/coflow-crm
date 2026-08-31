@@ -45,6 +45,7 @@ interface SentEmail {
   opened_at: string | null;
   opened_count: number | null;
   source: string;
+  subject_variant: string | null;
   status: string | null;
   send_error: string | null;
   lead_id: string | null;
@@ -76,9 +77,11 @@ export function EmailStatisticsTab() {
   const { data: emails, isLoading: loadingEmails } = useQuery({
     queryKey: ["email-stats-sent", organizationId, period, isAdmin, user?.id],
     queryFn: async () => {
-      let q = supabase
+      // Cast to any: subject_variant isn't in the generated types yet (added by
+      // the A/B migration) but exists on the table.
+      let q = (supabase as any)
         .from("sent_emails")
-        .select("id, created_at, subject, recipient_email, recipient_name, opened_at, opened_count, source, status, send_error, lead_id, sent_by")
+        .select("id, created_at, subject, recipient_email, recipient_name, opened_at, opened_count, source, subject_variant, status, send_error, lead_id, sent_by")
         .eq("organization_id", organizationId!)
         .gte("created_at", startDate.toISOString())
         .order("created_at", { ascending: false });
@@ -162,6 +165,18 @@ export function EmailStatisticsTab() {
       bySource.set(src, entry);
     });
 
+    // By A/B subject variant (only emails that carried a variant)
+    const byVariant = new Map<string, { sent: number; opened: number; replied: number }>();
+    emails.forEach(e => {
+      if (e.subject_variant !== "a" && e.subject_variant !== "b") return;
+      const key = e.subject_variant.toUpperCase();
+      const entry = byVariant.get(key) || { sent: 0, opened: 0, replied: 0 };
+      entry.sent++;
+      if (e.opened_at) entry.opened++;
+      if (replySet.has(e.id)) entry.replied++;
+      byVariant.set(key, entry);
+    });
+
     // By sender
     const bySender = new Map<string, { sent: number; opened: number; replied: number }>();
     emails.forEach(e => {
@@ -204,6 +219,7 @@ export function EmailStatisticsTab() {
       total, delivered, opened, failed, replied,
       openRate, replyRate,
       bySource: Array.from(bySource.entries()).map(([source, v]) => ({ source, ...v })),
+      byVariant: Array.from(byVariant.entries()).map(([variant, v]) => ({ variant, ...v })).sort((a, b) => a.variant.localeCompare(b.variant)),
       bySender: Array.from(bySender.entries()).map(([userId, v]) => ({ userId, ...v })),
       timeSeries,
       replySet,
@@ -305,6 +321,42 @@ export function EmailStatisticsTab() {
                   <Legend />
                 </LineChart>
               </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {stats.byVariant.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{t("statistics.abTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("statistics.abVariant")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.sent")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.opened")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.answered")}</TableHead>
+                  <TableHead className="text-right">{t("statistics.openPct")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {stats.byVariant.map(row => (
+                  <TableRow key={row.variant}>
+                    <TableCell><Badge variant="outline" className="text-xs">{row.variant}</Badge></TableCell>
+                    <TableCell className="text-right">{row.sent}</TableCell>
+                    <TableCell className="text-right">{row.opened}</TableCell>
+                    <TableCell className="text-right">{row.replied}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {row.sent > 0 ? Math.round((row.opened / row.sent) * 100) : 0}%
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
             </div>
           </CardContent>
         </Card>

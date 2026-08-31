@@ -4,6 +4,7 @@ import { logActivityEvent } from "../_shared/activity-logger.ts";
 import { fetchWithTimeout } from "../_shared/http.ts";
 import { validateSendSequenceRequest, sanitizeForHtml } from "../_shared/validation.ts";
 import { callAI, AI_MODELS } from "../_shared/ai.ts";
+import { pickSubjectVariant, preheaderSpan } from "../_shared/email-html.ts";
 import {
   buildOutreachSystemPrompt,
   buildOutreachUserPrompt,
@@ -158,9 +159,12 @@ serve(async (req) => {
     }
 
     let emailContent: { subject: string; body: string };
+    let subjectVariant: "a" | "b" | null = null;
+    let preheader = "";
 
     // Use pre-approved content if available
     if (preApproved && approvedSubject && approvedBody) {
+      // Human-approved subject — no A/B, keep it as sent.
       emailContent = {
         subject: approvedSubject,
         body: approvedBody,
@@ -216,8 +220,11 @@ serve(async (req) => {
       // Append signature from profile (localized for the sequence's market)
       const seqMarket: "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" | "MX" | "AR" =
         (leadSequence.sequence?.market as "SE" | "US" | "DE" | "ES" | "UK" | "KR" | "CA" | "AU" | "IE" | "MX" | "AR") || "SE";
+      const picked = pickSubjectVariant(parsed.subject_a, parsed.subject_b);
+      subjectVariant = picked.variant;
+      preheader = parsed.preheader || "";
       emailContent = {
-        subject: parsed.subject,
+        subject: picked.subject,
         body: appendSignature(parsed.body_without_signature, profile, seqMarket),
       };
     }
@@ -232,8 +239,8 @@ serve(async (req) => {
     // [PAUSED] CRM reply routing
     // const replyTo: string | string[] = useCustomDomain ? [orgEmail, smartReplyTo] : smartReplyTo;
 
-    // Build HTML email with signature and logo
-    let htmlBody = sanitizeForHtml(emailContent.body).replace(/\n/g, "<br>");
+    // Build HTML email with preheader, signature and logo
+    let htmlBody = preheaderSpan(preheader) + sanitizeForHtml(emailContent.body).replace(/\n/g, "<br>");
 
     // Add clickable logo if available
     if (profile?.company_logo_url) {
@@ -258,6 +265,8 @@ serve(async (req) => {
         sequence_execution_id: executionId,
         organization_id: profile?.organization_id || null,
         reply_token: replyToken, // null for custom domain orgs
+        subject_variant: subjectVariant,
+        preheader: preheader || null,
       })
       .select("id")
       .single();

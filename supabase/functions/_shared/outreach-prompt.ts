@@ -164,7 +164,7 @@ ABSOLUTA REGLER:
 - INGEN signatur, INGET avslutande namn. Signaturen läggs på automatiskt.
 - Använd REGIONALA eller BRANSCHÖVERGRIPANDE referenser – INTE hyperspecifika lokala ortsnamn om företaget inte är i en storstad.
 
-Svara EXAKT som JSON: {"subject": "...", "body_without_signature": "..."}
+Svara EXAKT som JSON: {"subject_a": "...", "subject_b": "...", "preheader": "...", "body_without_signature": "..."}
 body_without_signature = ren text med \\n för radbrytningar, UTAN signatur/namn.`;
 }
 
@@ -216,7 +216,7 @@ RULES:
 - No emojis, no clichés, no "I hope this finds you well". Avoid salesy phrases: "revolutionize", "take you to the next level", "boost", "we are experts in", "free audit", "unique opportunity".
 - NO signature, NO closing name — added automatically.
 
-Respond EXACTLY as JSON: {"subject": "...", "body_without_signature": "..."}`;
+Respond EXACTLY as JSON: {"subject_a": "...", "subject_b": "...", "preheader": "...", "body_without_signature": "..."}`;
 }
 
 function buildDESystemPrompt(ctx: OutreachContext): string {
@@ -243,7 +243,7 @@ REGELN:
 - Keine Emojis, keine Floskeln. Vermeiden Sie Verkaufsphrasen: "revolutionieren", "auf das nächste Level", "boosten", "wir sind Experten für", "kostenlose Analyse", "einzigartige Chance".
 - KEINE Signatur, KEIN abschließender Name — wird automatisch hinzugefügt.
 
-Antworten Sie GENAU als JSON: {"subject": "...", "body_without_signature": "..."}`;
+Antworten Sie GENAU als JSON: {"subject_a": "...", "subject_b": "...", "preheader": "...", "body_without_signature": "..."}`;
 }
 
 function buildSenderBlockES(ctx: OutreachContext): string {
@@ -281,7 +281,7 @@ REGLAS:
 - Sin emojis, sin clichés. Evita frases de venta: "revolucionar", "llevaros al siguiente nivel", "impulsar", "somos expertos en", "análisis gratuito", "oportunidad única".
 - SIN firma, SIN nombre de cierre — se añade automáticamente.
 
-Responde EXACTAMENTE como JSON: {"subject": "...", "body_without_signature": "..."}`;
+Responde EXACTAMENTE como JSON: {"subject_a": "...", "subject_b": "...", "preheader": "...", "body_without_signature": "..."}`;
 }
 
 
@@ -304,7 +304,7 @@ FOLLOW-UP STRATEGY:
 - NO signature (added automatically), no emojis, no clichés.
 - BANNED phrases: "just following up", "just checking in", "circling back".
 
-Respond EXACTLY as JSON: {"subject": "...", "body_without_signature": "..."}`;
+Respond EXACTLY as JSON: {"subject_a": "...", "subject_b": "...", "preheader": "...", "body_without_signature": "..."}`;
     return market === "KR" ? base + KR_LANGUAGE_OVERRIDE : base;
   }
 
@@ -322,7 +322,7 @@ FOLLOW-UP-STRATEGIE:
 - Anrede: "Sehr geehrte/r [Vorname]," bei einer Person, sonst "Guten Tag,". Verwenden Sie "Sie".
 - KEINE Signatur (wird automatisch ergänzt), keine Emojis, keine Floskeln.
 
-Antworten Sie GENAU als JSON: {"subject": "...", "body_without_signature": "..."}`;
+Antworten Sie GENAU als JSON: {"subject_a": "...", "subject_b": "...", "preheader": "...", "body_without_signature": "..."}`;
   }
 
   if (market === "ES" || market === "MX" || market === "AR") {
@@ -340,7 +340,7 @@ ESTRATEGIA DE SEGUIMIENTO:
 - SIN firma (se añade automáticamente), sin emojis, sin clichés.
 - Frases PROHIBIDAS: "solo quería hacer seguimiento", "solo para saber cómo va".
 
-Responde EXACTAMENTE como JSON: {"subject": "...", "body_without_signature": "..."}`;
+Responde EXACTAMENTE como JSON: {"subject_a": "...", "subject_b": "...", "preheader": "...", "body_without_signature": "..."}`;
   }
 
   const senderFullName = ctx.senderName || "";
@@ -376,7 +376,7 @@ REGLER:
 - Inga emojis, inga klyschor, inget säljspråk
 - FÖRBJUDNA fraser: "bara ville följa upp", "checka in", "ville bara kolla"
 
-Svara EXAKT som JSON: {"subject": "...", "body_without_signature": "..."}`;
+Svara EXAKT som JSON: {"subject_a": "...", "subject_b": "...", "preheader": "...", "body_without_signature": "..."}`;
 }
 
 // ── user prompt ──────────────────────────────────────────────────────
@@ -561,7 +561,8 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
     parts.push("Skriv ett kort, nyfikenhetsväckande mail.\n");
   }
 
-  parts.push('Svara som JSON: {"subject": "...", "body_without_signature": "..."}');
+  parts.push('SUBJECT LINES: "subject_a" and "subject_b" must be TWO DISTINCT subject angles (each max ~60 chars). "preheader" is a 40-90 char preview line that COMPLEMENTS the subject (never repeats it). Write subjects and preheader in the SAME language as the email body.');
+  parts.push('Svara som JSON: {"subject_a": "...", "subject_b": "...", "preheader": "...", "body_without_signature": "..."}');
 
   return parts.join("\n");
 }
@@ -569,7 +570,10 @@ export function buildOutreachUserPrompt(ctx: OutreachContext): string {
 // ── response parser ──────────────────────────────────────────────────
 
 export interface ParsedOutreachEmail {
-  subject: string;
+  subject: string;        // = subject_a (kept for back-compat with all callers)
+  subject_a: string;
+  subject_b: string;      // falls back to subject_a when the model returns one
+  preheader: string;      // "" when absent
   body_without_signature: string;
 }
 
@@ -577,19 +581,30 @@ export function parseOutreachResponse(
   content: string,
   fallbackCompanyName?: string,
 ): ParsedOutreachEmail {
+  const fallbackSubject = `Angående ${fallbackCompanyName || "ert företag"}`;
   try {
-    const jsonMatch = content.match(/\{[\s\S]*"subject"[\s\S]*\}/);
+    // Match new (subject_a) or legacy (subject) JSON shapes.
+    const jsonMatch = content.match(/\{[\s\S]*"(subject_a|subject)"[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
+      const subject_a = parsed.subject_a || parsed.subject || fallbackSubject;
+      const subject_b = parsed.subject_b || subject_a;
+      const preheader = typeof parsed.preheader === "string" ? parsed.preheader : "";
       return {
-        subject: parsed.subject || `Angående ${fallbackCompanyName || "ert företag"}`,
+        subject: subject_a,
+        subject_a,
+        subject_b,
+        preheader,
         body_without_signature: parsed.body_without_signature || parsed.body || "",
       };
     }
     throw new Error("No JSON found");
   } catch {
     return {
-      subject: `Angående ${fallbackCompanyName || "ert företag"}`,
+      subject: fallbackSubject,
+      subject_a: fallbackSubject,
+      subject_b: fallbackSubject,
+      preheader: "",
       body_without_signature: content.replace(/```json|```/g, "").trim(),
     };
   }
