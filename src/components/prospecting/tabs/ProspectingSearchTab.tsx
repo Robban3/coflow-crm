@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Search, Star, ExternalLink, CheckCircle2, Loader2, Globe, Phone, Mail, Download, History, Trash2, AlertCircle, ChevronDown, ListPlus } from "lucide-react";
+import { Search, Star, ExternalLink, CheckCircle2, Loader2, Globe, Phone, Mail, Download, History, Trash2, AlertCircle, ChevronDown, ListPlus, UserPlus } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { COUNTIES, COMPANY_FORMS, INDUSTRIES } from "@/lib/swedishProspecting";
 import { AddToProspectListDialog } from "@/components/prospecting/AddToProspectListDialog";
+import { ManualLeadDialog } from "@/components/prospecting/ManualLeadDialog";
 import type { NewProspectListItem } from "@/lib/prospectLists";
 import { toast } from "sonner";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -234,6 +235,9 @@ export default function ProspectingSearchTab() {
   const [registryTotal, setRegistryTotal] = useState(0);
   const REGISTRY_PAGE_SIZE = 100;
   const [isRegistryImporting, setIsRegistryImporting] = useState(false);
+  const [regCompanyName, setRegCompanyName] = useState(""); // registry: firmanamn
+  const [regPhone, setRegPhone] = useState("");             // registry: telefonnummer
+  const [manualOpen, setManualOpen] = useState(false);      // manuell "lägg till lead"-dialog
 
   // ── Prospektlista (parallell väg till lead-importen ovan) ──
   const [listDialogOpen, setListDialogOpen] = useState(false);
@@ -588,6 +592,16 @@ export default function ProspectingSearchTab() {
         const term = industry.trim().replace(/[%,()]/g, " ").trim();
         q = q.or(`sni_descriptions.ilike.%${term}%,business_description.ilike.%${term}%`);
       }
+      if (regCompanyName.trim()) {
+        const nameTerm = regCompanyName.trim().replace(/[%,()]/g, " ").trim();
+        if (nameTerm) q = q.ilike("company_name", `%${nameTerm}%`);
+      }
+      if (regPhone.trim()) {
+        // Match on the digit sequence so formatting (spaces, +46, dashes) in
+        // either the input or the stored number doesn't block a hit.
+        const digits = regPhone.replace(/\D/g, "");
+        if (digits) q = q.ilike("phone", `%${digits}%`);
+      }
       if (location.trim()) q = q.ilike("city", `%${location.trim()}%`);
       if (companyForm) q = q.ilike("company_form", `%${companyForm}%`);
       if (region) {
@@ -613,7 +627,7 @@ export default function ProspectingSearchTab() {
     } finally {
       setIsRegistrySearching(false);
     }
-  }, [industry, location, companyForm, region, regDateFrom, youngerThan, olderThan, t]);
+  }, [industry, location, companyForm, region, regDateFrom, youngerThan, olderThan, regCompanyName, regPhone, t]);
 
   const toggleRegistrySelect = (id: string) => {
     setRegistrySelected((prev) => {
@@ -746,6 +760,8 @@ export default function ProspectingSearchTab() {
   const handleClear = () => {
     setIndustry("");
     setLocation("");
+    setRegCompanyName("");
+    setRegPhone("");
     setSelectedIds(new Set());
     setAccumulatedResults([]);
     seenPlaceIdsRef.current = new Set();
@@ -856,6 +872,18 @@ export default function ProspectingSearchTab() {
       {/* ── Register advanced filters ── */}
       {searchSource === "registry" && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 bg-muted/50 rounded-lg">
+          <Input
+            placeholder={t("companyRegistry.filterCompanyName")}
+            title={t("companyRegistry.filterCompanyName")}
+            value={regCompanyName}
+            onChange={(e) => setRegCompanyName(e.target.value)}
+          />
+          <Input
+            placeholder={t("companyRegistry.filterPhone")}
+            title={t("companyRegistry.filterPhone")}
+            value={regPhone}
+            onChange={(e) => setRegPhone(e.target.value)}
+          />
           <Select value={region || "__all__"} onValueChange={(v) => setRegion(v === "__all__" ? "" : v)}>
             <SelectTrigger><SelectValue placeholder={t("companyRegistry.filterCounty")} /></SelectTrigger>
             <SelectContent>
@@ -919,6 +947,16 @@ export default function ProspectingSearchTab() {
             {regDateFrom && (
               <Badge variant="secondary" className="text-[10px]">{regDateFrom}</Badge>
             )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 ml-auto gap-1.5"
+              onClick={() => setManualOpen(true)}
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              {t("companyRegistry.addManual")}
+            </Button>
           </div>
         </div>
       )}
@@ -1253,7 +1291,11 @@ export default function ProspectingSearchTab() {
       {searchSource === "registry" && registrySearched && !isRegistrySearching && registryTotal === 0 && (
         <div className="text-center py-16 text-muted-foreground">
           <Search className="h-8 w-8 mx-auto mb-3 opacity-40" />
-          <p className="text-sm">{t("prospecting.regNoResults")}</p>
+          <p className="text-sm mb-3">{t("prospecting.regNoResults")}</p>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setManualOpen(true)}>
+            <UserPlus className="h-4 w-4" />
+            {t("companyRegistry.addManual")}
+          </Button>
         </div>
       )}
 
@@ -1273,6 +1315,18 @@ export default function ProspectingSearchTab() {
           if (listDialogSource === "places") setSelectedIds(new Set());
           else setRegistrySelected(new Set());
           setListDialogItems([]);
+        }}
+      />
+
+      <ManualLeadDialog
+        open={manualOpen}
+        onOpenChange={setManualOpen}
+        defaultCompanyName={regCompanyName}
+        defaultPhone={regPhone}
+        onCreated={() => {
+          queryClient.invalidateQueries({ queryKey: ["prospecting-lead-orgnumbers"] });
+          queryClient.invalidateQueries({ queryKey: ["prospecting-existing-leads"] });
+          queryClient.invalidateQueries({ queryKey: ["prospecting-sent-leads"] });
         }}
       />
     </div>
