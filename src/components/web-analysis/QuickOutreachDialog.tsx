@@ -38,6 +38,8 @@ export function QuickOutreachDialog({
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
   const [subject, setSubject] = useState("");
+  const [subjectB, setSubjectB] = useState<string | undefined>(undefined);
+  const [preheader, setPreheader] = useState<string | undefined>(undefined);
   const [body, setBody] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -94,6 +96,8 @@ export function QuickOutreachDialog({
       }
 
       setSubject(response.data.subject);
+      setSubjectB(response.data.subject_b);
+      setPreheader(response.data.preheader);
       setBody(response.data.body);
       setIsGenerated(true);
 
@@ -136,6 +140,8 @@ export function QuickOutreachDialog({
         body: {
           to: recipientEmail,
           subject,
+          subjectB,
+          preheader,
           bodyText: body,
         },
       });
@@ -169,6 +175,8 @@ export function QuickOutreachDialog({
     setCompanyName("");
     setContactName("");
     setSubject("");
+    setSubjectB(undefined);
+    setPreheader(undefined);
     setBody("");
     setIsGenerated(false);
   };

@@ -83,6 +83,8 @@ export function PlaceWorkflowDialog({
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
+  const [emailSubjectB, setEmailSubjectB] = useState<string | undefined>(undefined);
+  const [emailPreheader, setEmailPreheader] = useState<string | undefined>(undefined);
   const [emailBody, setEmailBody] = useState("");
   const [isGeneratingEmail, setIsGeneratingEmail] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -266,6 +268,8 @@ export function PlaceWorkflowDialog({
       if (response.error) throw new Error(response.error.message);
 
       setEmailSubject(response.data.subject);
+      setEmailSubjectB(response.data.subject_b);
+      setEmailPreheader(response.data.preheader);
       setEmailBody(response.data.body);
       setEmailGenerated(true);
 
@@ -375,6 +379,8 @@ export function PlaceWorkflowDialog({
         body: {
           to: recipientEmail,
           subject: emailSubject,
+          subjectB: emailSubjectB,
+          preheader: emailPreheader,
           bodyText: emailBody,
           leadId: currentLeadId,
         },

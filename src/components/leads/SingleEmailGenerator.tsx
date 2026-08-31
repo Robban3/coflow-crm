@@ -87,6 +87,8 @@ export function SingleEmailGenerator({
   const [isOpen, setIsOpen] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
   const [subject, setSubject] = useState("");
+  const [subjectB, setSubjectB] = useState<string | undefined>(undefined);
+  const [preheader, setPreheader] = useState<string | undefined>(undefined);
   const [body, setBody] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -247,6 +249,8 @@ export function SingleEmailGenerator({
       }
 
       setSubject(response.data.subject);
+      setSubjectB(response.data.subject_b);
+      setPreheader(response.data.preheader);
       setBody(response.data.body);
       setIsGenerated(true);
 
@@ -296,6 +300,8 @@ export function SingleEmailGenerator({
         body: {
           to: leadEmail,
           subject,
+          subjectB,
+          preheader,
           bodyText: body,
           leadId,
         },

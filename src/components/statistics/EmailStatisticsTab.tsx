@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Mail, MailOpen, MessageSquare, TrendingUp, Eye } from "lucide-react";
+import { Mail, MailOpen, MessageSquare, TrendingUp, Eye, AlertCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line, Legend } from "recharts";
 import { format, parseISO, startOfMonth, startOfWeek, subDays, subMonths, isAfter } from "date-fns";
 import { sv, enUS, es } from "date-fns/locale";
@@ -46,6 +46,8 @@ interface SentEmail {
   opened_count: number | null;
   source: string;
   subject_variant: string | null;
+  delivered_at: string | null;
+  bounced_at: string | null;
   status: string | null;
   send_error: string | null;
   lead_id: string | null;
@@ -81,7 +83,7 @@ export function EmailStatisticsTab() {
       // the A/B migration) but exists on the table.
       let q = (supabase as any)
         .from("sent_emails")
-        .select("id, created_at, subject, recipient_email, recipient_name, opened_at, opened_count, source, subject_variant, status, send_error, lead_id, sent_by")
+        .select("id, created_at, subject, recipient_email, recipient_name, opened_at, opened_count, source, subject_variant, delivered_at, bounced_at, status, send_error, lead_id, sent_by")
         .eq("organization_id", organizationId!)
         .gte("created_at", startDate.toISOString())
         .order("created_at", { ascending: false });
@@ -144,7 +146,10 @@ export function EmailStatisticsTab() {
     if (!emails) return null;
 
     const total = emails.length;
-    const delivered = emails.filter(e => !e.send_error).length;
+    const bounced = emails.filter(e => e.bounced_at).length;
+    // Delivered excludes hard/soft bounces (bounce data only present once F4's
+    // Resend webhook is wired; older rows fall back to "no send error").
+    const delivered = emails.filter(e => !e.send_error && !e.bounced_at).length;
     const opened = emails.filter(e => e.opened_at).length;
     const failed = emails.filter(e => e.send_error).length;
 
@@ -216,7 +221,7 @@ export function EmailStatisticsTab() {
       .sort((a, b) => a.date.localeCompare(b.date));
 
     return {
-      total, delivered, opened, failed, replied,
+      total, delivered, opened, failed, replied, bounced,
       openRate, replyRate,
       bySource: Array.from(bySource.entries()).map(([source, v]) => ({ source, ...v })),
       byVariant: Array.from(byVariant.entries()).map(([variant, v]) => ({ variant, ...v })).sort((a, b) => a.variant.localeCompare(b.variant)),
@@ -264,11 +269,12 @@ export function EmailStatisticsTab() {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <KPICard icon={<Mail className="h-4 w-4" />} label={t("statistics.sent")} value={stats.total} />
         <KPICard icon={<MailOpen className="h-4 w-4" />} label={t("statistics.opened")} value={stats.opened} sub={`${stats.openRate}%`} />
         <KPICard icon={<MessageSquare className="h-4 w-4" />} label={t("statistics.answered")} value={stats.replied} sub={`${stats.replyRate}%`} />
         <KPICard icon={<Eye className="h-4 w-4" />} label={t("statistics.delivered")} value={stats.delivered} />
+        <KPICard icon={<AlertCircle className="h-4 w-4" />} label={t("statistics.bounced")} value={stats.bounced} variant={stats.bounced > 0 ? "destructive" : "default"} />
         <KPICard icon={<TrendingUp className="h-4 w-4" />} label={t("statistics.failed")} value={stats.failed} variant={stats.failed > 0 ? "destructive" : "default"} />
       </div>
 

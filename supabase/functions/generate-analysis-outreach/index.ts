@@ -149,6 +149,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         subject: parsed.subject,
+        subject_b: parsed.subject_b,
+        preheader: parsed.preheader,
         body: finalBody,
         logoUrl: profile?.company_logo_url || null,
       }),

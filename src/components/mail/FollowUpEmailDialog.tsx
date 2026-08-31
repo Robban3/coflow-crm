@@ -28,6 +28,8 @@ interface GeneratedEmail {
   leadId: string;
   leadName: string;
   subject: string;
+  subject_b?: string;
+  preheader?: string;
   body: string;
   body_without_signature: string;
   email: string;
@@ -83,6 +85,8 @@ export function FollowUpEmailDialog({
             leadName:
               lead.contact_name || lead.company_name || t("mail.unknownCompany"),
             subject: data.subject,
+            subject_b: data.subject_b,
+            preheader: data.preheader,
             body: data.body,
             body_without_signature: data.body_without_signature,
             email: lead.email,
@@ -140,6 +144,8 @@ export function FollowUpEmailDialog({
             body: {
               to: email.email,
               subject: email.subject,
+              subjectB: email.subject_b,
+              preheader: email.preheader,
               bodyText: email.body,
               leadId: email.leadId,
             },
