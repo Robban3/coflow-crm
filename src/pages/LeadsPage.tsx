@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Zap, Building2 } from "lucide-react";
+import { Users, Zap, Building2, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 import { LeadsList } from "@/components/leads/LeadsList";
 import { LeadGeneration } from "@/components/leads/LeadGeneration";
 import { CompanyRegistrySearch } from "@/components/leads/CompanyRegistrySearch";
+import { ManualLeadDialog } from "@/components/prospecting/ManualLeadDialog";
 import { useOrganizationId } from "@/hooks/useOrganizationId";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { fetchLeadsData } from "@/lib/leadsQuery";
@@ -15,6 +17,7 @@ export type { LeadWithOutreachStatus } from "@/lib/leadsQuery";
 
 export default function LeadsPage() {
   const [activeTab, setActiveTab] = useState("leads");
+  const [manualOpen, setManualOpen] = useState(false);
   const queryClient = useQueryClient();
   const { t } = useTranslation();
 
@@ -79,6 +82,12 @@ export default function LeadsPage() {
           </TabsList>
 
           <TabsContent value="leads" className="mt-6">
+            <div className="flex justify-end mb-3">
+              <Button size="sm" className="gap-1.5" onClick={() => setManualOpen(true)}>
+                <UserPlus className="h-4 w-4" />
+                {t("leads.addLead")}
+              </Button>
+            </div>
             <LeadsList leads={leads} onRefresh={handleLeadCreated} />
           </TabsContent>
 
@@ -91,6 +100,12 @@ export default function LeadsPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <ManualLeadDialog
+        open={manualOpen}
+        onOpenChange={setManualOpen}
+        onCreated={handleLeadCreated}
+      />
     </AppLayout>
   );
 }

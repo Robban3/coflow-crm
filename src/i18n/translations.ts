@@ -164,6 +164,7 @@ export const translations: Record<Language, Dict> = {
     "leads.tabLeads": "Leads",
     "leads.tabFind": "Hitta leads",
     "leads.tabRegistry": "Företagsregister",
+    "leads.addLead": "Lägg till lead",
 
     // Customers
     "customers.title": "Kunder",
@@ -553,6 +554,7 @@ export const translations: Record<Language, Dict> = {
     "leads.tabLeads": "Leads",
     "leads.tabFind": "Find leads",
     "leads.tabRegistry": "Company registry",
+    "leads.addLead": "Add lead",
 
     // Customers
     "customers.title": "Customers",
@@ -942,6 +944,7 @@ export const translations: Record<Language, Dict> = {
     "leads.tabLeads": "Leads",
     "leads.tabFind": "Buscar leads",
     "leads.tabRegistry": "Registro de empresas",
+    "leads.addLead": "Añadir lead",
 
     // Customers
     "customers.title": "Clientes",
